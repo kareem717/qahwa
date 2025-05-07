@@ -5,7 +5,7 @@
   ],
   "private": true,
   "scripts": {
-    "dev:api": "cd apps/backend && wrangler dev",
+    "dev:api": "cd apps/api && wrangler dev",
     "dev:landing": "cd apps/landing && bun run dev"
   }
 }
