@@ -1,4 +1,4 @@
-name: Deploy Landing
+name: Deploy
 on:
   push:
     branches:
@@ -8,7 +8,28 @@ env:
   BUN_VERSION: latest # Use latest instead of 1.x
 
 jobs:
-  deploy:
+  deploy-api:
+    name: Deploy API to Cloudflare Workers
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install API Dependencies
+        run: cd apps/api && bun install --frozen-lockfile
+
+      - name: Build & Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: 'apps/api'
+
+  deploy-landing:
     name: Deploy Landing Page to Cloudflare Pages
     runs-on: ubuntu-latest
     steps:
@@ -32,3 +53,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'apps/landing'
+          command: pages deploy ./dist 
