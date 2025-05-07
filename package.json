@@ -3,5 +3,9 @@
   "workspaces": [
     "apps/*"
   ],
-  "private": true
+  "private": true,
+  "scripts": {
+    "dev:api": "cd apps/backend && wrangler dev",
+    "dev:landing": "cd apps/landing && bun run dev"
+  }
 }

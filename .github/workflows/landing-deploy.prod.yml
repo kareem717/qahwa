@@ -1,0 +1,34 @@
+name: Deploy Landing
+on:
+  push:
+    branches:
+      - main
+
+env:
+  BUN_VERSION: latest # Use latest instead of 1.x
+
+jobs:
+  deploy:
+    name: Deploy Landing Page to Cloudflare Pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun # Use Bun for install/build
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install Landing App Dependencies
+        run: cd apps/landing && bun install --frozen-lockfile
+
+      - name: Build Landing Page
+        run: cd apps/landing && bun run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: 'apps/landing'
