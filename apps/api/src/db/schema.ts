@@ -10,8 +10,8 @@ export const notes = pgTable(
       me: string,
       them: string,
     }[]>().notNull(),
-    userNotes: jsonb().notNull(),
-    generatedNotes: jsonb().notNull(),
+    userNotes: jsonb(),
+    generatedNotes: jsonb(),
     createdAt: timestamp(
       {
         withTimezone: true,
@@ -25,7 +25,7 @@ export const notes = pgTable(
         withTimezone: true,
         mode: "string",
       }
-    ).notNull().$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+    ).$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
   }
 );
 

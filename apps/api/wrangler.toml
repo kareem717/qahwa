@@ -6,8 +6,3 @@ minify = true
 
 [dev]
 port = 8080
-
-[ai]
-binding = "AI"
-
-[vars]
