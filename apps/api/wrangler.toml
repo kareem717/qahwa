@@ -1,6 +1,7 @@
 name = "note-api"
-compatibility_date = "2024-05-01"
 main = "src/index.ts"
+compatibility_date = "2024-07-22"
+compatibility_flags = ["nodejs_compat"]
 minify = true
 
 [dev]
@@ -8,3 +9,5 @@ port = 8080
 
 [ai]
 binding = "AI"
+
+[vars]

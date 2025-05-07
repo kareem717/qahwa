@@ -1,14 +1,19 @@
 import { Hono } from 'hono'
 import type { Ai } from '@cloudflare/workers-types'
+import { getDb } from '@/db'
+import { notes } from '@/db/schema'
 
 type Bindings = {
   AI: Ai
+  DATABASE_URL: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
+app.get('/', async (c) => {
+  const db = getDb(c.env.DATABASE_URL)
+  const res = await db.select().from(notes)
+  return c.json(res)
 })
 
 // app.get('/ai', async (c) => {
