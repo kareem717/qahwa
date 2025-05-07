@@ -2,6 +2,8 @@ import { Hono } from 'hono'
 import type { Ai } from '@cloudflare/workers-types'
 import { getDb } from '@/db'
 import { notes } from '@/db/schema'
+import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
 
 type Bindings = {
   AI: Ai
@@ -16,22 +18,26 @@ app.get('/', async (c) => {
   return c.json(res)
 })
 
-// app.get('/ai', async (c) => {
-//   try {
-//     const responseStream = await c.env.AI.run('@cf/google/gemma-2b-it-lora', {
-//       stream: true,
-//       messages: [{ role: 'user', content: 'What is the capital of France?' }],
-//     })
+app.post(
+  '/note',
+  zValidator(
+    'json',
+    z.object({
+      content: z.object({
+        me: z.string(),
+        them: z.string(),
+      }).array(),
+      title: z.string(),
+    })
+  ),
+  async (c) => {
+    const reqBody = c.req.valid('json')
 
-//     return new Response(responseStream as ReadableStream, {
-//       headers: {
-//         "content-type": "text/event-stream",
-//       },
-//     });
-//   } catch (e: any) {
-//     console.error('Error calling AI:', e)
-//     return c.json({ error: 'Failed to call AI service', details: e.message }, 500)
-//   }
-// })
+    const db = getDb(c.env.DATABASE_URL)
+
+    const res = await db.insert(notes).values(reqBody).returning()
+
+    return c.json({ res })
+  })
 
 export default app

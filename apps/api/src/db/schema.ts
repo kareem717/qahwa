@@ -6,7 +6,12 @@ export const notes = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     title: text().notNull(),
-    content: jsonb().$type<Record<"Me" | "Them", string>>().notNull(),
+    transcript: jsonb().$type<{
+      me: string,
+      them: string,
+    }[]>().notNull(),
+    userNotes: jsonb().notNull(),
+    generatedNotes: jsonb().notNull(),
     createdAt: timestamp(
       {
         withTimezone: true,
