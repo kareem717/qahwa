@@ -1,0 +1,10 @@
+name = "note-api"
+compatibility_date = "2024-05-01"
+main = "src/index.ts"
+minify = true
+
+[dev]
+port = 8080
+
+# [ai]
+# binding = "AI"
