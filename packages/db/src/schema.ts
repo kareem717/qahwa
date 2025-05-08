@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { jsonb, pgTable, timestamp, text, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, timestamp, text, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const notes = pgTable(
   "notes",
@@ -29,5 +29,26 @@ export const notes = pgTable(
   }
 );
 
-export type Note = typeof notes.$inferSelect;
-export type InsertNote = typeof notes.$inferInsert;
+
+export const waitlistEmail = pgTable(
+  "waitlist_email",
+  {
+    email: varchar({ length: 360 }).primaryKey(),
+    createdAt: timestamp(
+      {
+        withTimezone: true,
+        mode: "string",
+      }
+    )
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp(
+      {
+        withTimezone: true,
+        mode: "string",
+      }
+    ).$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+  }
+);
+
+

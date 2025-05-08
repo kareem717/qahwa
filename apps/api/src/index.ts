@@ -1,6 +1,4 @@
 import { Hono } from 'hono'
-import { getDb } from '@/db'
-import { notes } from '@/db/schema'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { eq } from 'drizzle-orm'
@@ -8,6 +6,8 @@ import { HTTPException } from 'hono/http-exception'
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { bearerAuth } from 'hono/bearer-auth'
+import { getDb } from '@note/db'
+import { notes } from '@note/db/schema'
 
 type Bindings = {
   DATABASE_URL: string
