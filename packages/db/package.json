@@ -9,17 +9,16 @@
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
-    "@types/bun": "latest",
     "dotenv-cli": "^8.0.0",
-    "drizzle-kit": "^0.31.1"
-  },
-  "peerDependencies": {
+    "drizzle-kit": "^0.31.1",
     "typescript": "^5"
   },
   "dependencies": {
-    "drizzle-orm": "^0.43.1",
     "drizzle-zod": "^0.7.1",
     "postgres": "^3.4.5"
+  },
+  "peerDependencies": {
+    "drizzle-orm": "^0.43.1"
   },
   "exports": {
     ".": "./src/client.ts",

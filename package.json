@@ -1,11 +1,13 @@
 {
   "name": "note-monorepo",
   "private": true,
+  "scripts": {
+    "dev:landing": "pnpm --filter @note/landing dev",
+    "dev:desktop": "pnpm --filter @note/desktop start",
+    "dev:api": "pnpm --filter @note/api dev"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "dependencies": {
-    "electron": "^36.2.0"
-  }
+  ]
 }

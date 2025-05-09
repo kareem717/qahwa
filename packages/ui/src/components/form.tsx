@@ -12,7 +12,6 @@ import {
   type FieldPath,
   type FieldValues,
 } from "react-hook-form"
-
 import { cn } from "@note/ui/lib/utils"
 import { Label } from "@note/ui/components/label"
 

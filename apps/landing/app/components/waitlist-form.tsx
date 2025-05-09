@@ -1,6 +1,4 @@
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@note/ui/components/button"
 import {
@@ -13,8 +11,10 @@ import {
 import { Input } from "@note/ui/components/input"
 import { addWaitlistEmail } from "@note/landing/functions/waitlist"
 import { ComponentPropsWithoutRef } from "react"
-import { cn } from "@note/landing/lib/utils"
+import { cn } from "@note/ui/lib/utils"
 import { InsertWaitlistEmailSchema } from "@note/db/validation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
 export function WaitlistForm({ className, ...props }: ComponentPropsWithoutRef<"form">) {
   const form = useForm<z.infer<typeof InsertWaitlistEmailSchema>>({
@@ -25,7 +25,7 @@ export function WaitlistForm({ className, ...props }: ComponentPropsWithoutRef<"
   })
 
   async function onSubmit(values: z.infer<typeof InsertWaitlistEmailSchema>) {
-    await addWaitlistEmail({ data: values })
+    await addWaitlistEmail({ data: { email: values.email } })
     console.log(values)
   }
 

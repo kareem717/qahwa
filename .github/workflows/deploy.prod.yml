@@ -4,9 +4,6 @@ on:
     branches:
       - main
 
-env:
-  BUN_VERSION: latest # Use latest instead of 1.x
-
 jobs:
   deploy-api:
     name: Deploy API to Cloudflare Workers
@@ -16,11 +13,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install API Dependencies
-        run: cd apps/api && bun install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build & Deploy Worker
         uses: cloudflare/wrangler-action@v3
@@ -36,16 +41,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Bun # Use Bun for install/build
-        uses: oven-sh/setup-bun@v1
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
 
       - name: Install Landing App Dependencies
-        run: cd apps/landing && bun install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build Landing Page
-        run: cd apps/landing && bun run build
+        run: cd apps/landing && pnpm run build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

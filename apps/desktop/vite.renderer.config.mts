@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
+
   plugins: [
     tailwindcss(),
     react({
@@ -12,6 +13,7 @@ export default defineConfig({
         plugins: [["babel-plugin-react-compiler"]],
       },
     }),
+
     nodePolyfills({
       // You might need to fine-tune this based on specific needs
       protocolImports: true, // Needed for 'node:' protocol imports
@@ -24,7 +26,8 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@note/desktop": path.resolve(__dirname, "./src"),
+      "@note/ui": path.resolve(__dirname, "../../packages/ui/src"),
     },
   },
 });

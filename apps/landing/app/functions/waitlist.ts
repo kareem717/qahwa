@@ -13,5 +13,5 @@ export const addWaitlistEmail = createServerFn({
   })
   .handler(async (ctx) => {
     const db = getDb(env.DATABASE_URL)
-    await db.insert(waitlistEmail).values(ctx.data)
+    await db.insert(waitlistEmail).values({ email: ctx.data.email })
   })

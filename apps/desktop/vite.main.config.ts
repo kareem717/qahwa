@@ -25,7 +25,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@note/desktop': path.resolve(__dirname, './src'),
+      '@note/ui': path.resolve(__dirname, '../../packages/ui/src'),
     }
   }
 });
