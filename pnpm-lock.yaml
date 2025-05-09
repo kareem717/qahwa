@@ -15,7 +15,7 @@ importers:
         version: 1.2.17(zod@3.24.4)
       '@hono/zod-validator':
         specifier: ^0.5.0
-        version: 0.5.0(hono@4.7.8)(zod@3.24.4)
+        version: 0.5.0(hono@4.7.9)(zod@3.24.4)
       '@note/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -27,7 +27,7 @@ importers:
         version: 0.43.1(@cloudflare/workers-types@4.20250509.0)(@opentelemetry/api@1.9.0)(postgres@3.4.5)
       hono:
         specifier: ^4.7.8
-        version: 4.7.8
+        version: 4.7.9
       workers-ai-provider:
         specifier: ^0.3.0
         version: 0.3.1
@@ -197,10 +197,10 @@ importers:
         version: 9.26.0(jiti@2.4.2)
       eslint-config-prettier:
         specifier: ^10.1.2
-        version: 10.1.4(eslint@9.26.0(jiti@2.4.2))
+        version: 10.1.5(eslint@9.26.0(jiti@2.4.2))
       eslint-plugin-prettier:
         specifier: ^5.2.6
-        version: 5.4.0(eslint-config-prettier@10.1.4(eslint@9.26.0(jiti@2.4.2)))(eslint@9.26.0(jiti@2.4.2))(prettier@3.5.3)
+        version: 5.4.0(eslint-config-prettier@10.1.5(eslint@9.26.0(jiti@2.4.2)))(eslint@9.26.0(jiti@2.4.2))(prettier@3.5.3)
       eslint-plugin-react:
         specifier: ^7.37.5
         version: 7.37.5(eslint@9.26.0(jiti@2.4.2))
@@ -4174,8 +4174,8 @@ packages:
     engines: {node: '>=6.0'}
     hasBin: true
 
-  eslint-config-prettier@10.1.4:
-    resolution: {integrity: sha512-1ET6/XNoL/ktO/JjHdGzImKKR9RXo2aFlNRyP6B4WWeZg/7m9SkZrrXkxKgHtJJ8edLOJa4Kp1wLkdnZ6pnZUw==}
+  eslint-config-prettier@10.1.5:
+    resolution: {integrity: sha512-zc1UmCpNltmVY34vuLRV61r1K27sWuX39E+uyUnY8xS2Bex88VV9cugG+UZbRSRGtGyFboj+D8JODyme1plMpw==}
     hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
@@ -4787,8 +4787,8 @@ packages:
   hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
 
-  hono@4.7.8:
-    resolution: {integrity: sha512-PCibtFdxa7/Ldud9yddl1G81GjYaeMYYTq4ywSaNsYbB1Lug4mwtOMJf2WXykL0pntYwmpRJeOI3NmoDgD+Jxw==}
+  hono@4.7.9:
+    resolution: {integrity: sha512-/EsCoR5h7N4yu01TDu9GMCCJa6ZLk5ZJIWFFGNawAXmd1Tp53+Wir4xm0D2X19bbykWUlzQG0+BvPAji6p9E8Q==}
     engines: {node: '>=16.9.0'}
 
   hookable@5.5.3:
@@ -9153,9 +9153,9 @@ snapshots:
 
   '@gar/promisify@1.1.3': {}
 
-  '@hono/zod-validator@0.5.0(hono@4.7.8)(zod@3.24.4)':
+  '@hono/zod-validator@0.5.0(hono@4.7.9)(zod@3.24.4)':
     dependencies:
-      hono: 4.7.8
+      hono: 4.7.9
       zod: 3.24.4
 
   '@hookform/resolvers@5.0.1(react-hook-form@7.56.3(react@19.1.0))':
@@ -12609,18 +12609,18 @@ snapshots:
     optionalDependencies:
       source-map: 0.6.1
 
-  eslint-config-prettier@10.1.4(eslint@9.26.0(jiti@2.4.2)):
+  eslint-config-prettier@10.1.5(eslint@9.26.0(jiti@2.4.2)):
     dependencies:
       eslint: 9.26.0(jiti@2.4.2)
 
-  eslint-plugin-prettier@5.4.0(eslint-config-prettier@10.1.4(eslint@9.26.0(jiti@2.4.2)))(eslint@9.26.0(jiti@2.4.2))(prettier@3.5.3):
+  eslint-plugin-prettier@5.4.0(eslint-config-prettier@10.1.5(eslint@9.26.0(jiti@2.4.2)))(eslint@9.26.0(jiti@2.4.2))(prettier@3.5.3):
     dependencies:
       eslint: 9.26.0(jiti@2.4.2)
       prettier: 3.5.3
       prettier-linter-helpers: 1.0.0
       synckit: 0.11.4
     optionalDependencies:
-      eslint-config-prettier: 10.1.4(eslint@9.26.0(jiti@2.4.2))
+      eslint-config-prettier: 10.1.5(eslint@9.26.0(jiti@2.4.2))
 
   eslint-plugin-react-compiler@19.1.0-rc.1(eslint@9.26.0(jiti@2.4.2)):
     dependencies:
@@ -13450,7 +13450,7 @@ snapshots:
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
 
-  hono@4.7.8: {}
+  hono@4.7.9: {}
 
   hookable@5.5.3: {}
 

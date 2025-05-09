@@ -1,4 +1,3 @@
-// app/routes/index.tsx
 import { createFileRoute } from '@tanstack/react-router'
 import { WaitlistForm } from '@note/landing/components/waitlist-form'
 

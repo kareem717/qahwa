@@ -9,7 +9,7 @@
     "baseUrl": ".",
     "paths": {
       "@note/landing/*": [
-        "./app/*"
+        "./src/*"
       ],
       "@note/ui/*": [
         "../../packages/ui/src/*"
@@ -17,7 +17,8 @@
     }
   },
   "include": [
-    "app/**/*",
-    "./package.json",
-  ]
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "noEmit": true
 }

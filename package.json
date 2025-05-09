@@ -1,10 +1,11 @@
 {
-  "name": "note-monorepo",
+  "name": "note",
   "private": true,
   "scripts": {
     "dev:landing": "pnpm --filter @note/landing dev",
     "dev:desktop": "pnpm --filter @note/desktop start",
-    "dev:api": "pnpm --filter @note/api dev"
+    "dev:api": "pnpm --filter @note/api dev",
+    "clean-all": "find . -type d -name node_modules -o -name dist -o -name .turbo -o -name .next -o -type f -name tsconfig.tsbuildinfo -o -name pnpm-lock.yaml | xargs rm -rf"
   },
   "workspaces": [
     "apps/*",
