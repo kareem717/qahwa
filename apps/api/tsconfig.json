@@ -13,7 +13,13 @@
     "jsxImportSource": "hono/jsx",
     "baseUrl": ".",
     "paths": {
-      "@note/api/*": ["./src/*"]
-    }
-  },
+      "@note/api/*": [
+        "./src/*"
+      ]
+    },
+    "types": [
+      "worker-configuration.d.ts",
+      "node"
+    ]
+  }
 }

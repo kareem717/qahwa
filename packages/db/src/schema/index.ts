@@ -51,4 +51,4 @@ export const waitlistEmail = pgTable(
   }
 );
 
-
+export * as auth from "./auth";

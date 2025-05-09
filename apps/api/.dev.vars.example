@@ -2,3 +2,7 @@ DATABASE_URL=
 GOOGLE_API_KEY=
 BEARER_TOKEN=
 ENV="development"
+BETTER_AUTH_SECRET=abcdefghijklmnopqrstuvwxyz
+BETTER_AUTH_URL=http://localhost:8080
+LANDING_URL=http://localhost:3000
+ELECTRON_URL=http://localhost:5173

@@ -9,6 +9,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
+    "@types/node": "^22.15.17",
     "dotenv-cli": "^8.0.0",
     "drizzle-kit": "^0.31.1",
     "typescript": "^5"
@@ -22,7 +23,7 @@
   },
   "exports": {
     ".": "./src/client.ts",
-    "./schema": "./src/schema.ts",
+    "./schema": "./src/schema/index.ts",
     "./types": "./src/types.ts",
     "./validation": "./src/zod.ts"
   }
