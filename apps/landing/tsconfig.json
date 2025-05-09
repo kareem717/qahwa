@@ -1,14 +1,23 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "module": "ESNext",
     "target": "ES2022",
     "skipLibCheck": true,
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
-      "@note/landing/*": ["./app/*"]
+      "@note/landing/*": [
+        "./app/*"
+      ],
+      "@note/ui/*": [
+        "../../packages/ui/src/*"
+      ]
     }
-  }
+  },
+  "include": [
+    "app/**/*",
+    "./package.json",
+  ]
 }

@@ -1,4 +1,4 @@
-import { ThemeMode } from "@/types/theme-mode";
+import { ThemeMode } from "@note/desktop/types/theme-mode";
 
 const THEME_KEY = "theme";
 

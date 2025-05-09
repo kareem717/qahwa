@@ -2,33 +2,29 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Button } from "@note/landing/components/ui/button"
+import { Button } from "@note/ui/components/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
-} from "@note/landing/components/ui/form"
-import { Input } from "@note/landing/components/ui/input"
+} from "@note/ui/components/form"
+import { Input } from "@note/ui/components/input"
 import { addWaitlistEmail } from "@note/landing/functions/waitlist"
 import { ComponentPropsWithoutRef } from "react"
 import { cn } from "@note/landing/lib/utils"
-const formSchema = z.object({
-  email: z.string().email(),
-})
+import { InsertWaitlistEmailSchema } from "@note/db/validation"
 
 export function WaitlistForm({ className, ...props }: ComponentPropsWithoutRef<"form">) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof InsertWaitlistEmailSchema>>({
+    resolver: zodResolver(InsertWaitlistEmailSchema),
     defaultValues: {
       email: "",
     },
   })
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof InsertWaitlistEmailSchema>) {
     await addWaitlistEmail({ data: values })
     console.log(values)
   }

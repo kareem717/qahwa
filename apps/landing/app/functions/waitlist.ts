@@ -1,4 +1,4 @@
-import { createServerFn } from '@tanstack/start'
+import { createServerFn } from '@tanstack/react-start'
 import { InsertWaitlistEmailSchema } from '@note/db/validation'
 import { getDb } from '@note/db'
 import { waitlistEmail } from '@note/db/schema'

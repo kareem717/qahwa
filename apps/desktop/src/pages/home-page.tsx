@@ -1,5 +1,5 @@
 import React from "react";
-// import { AudioRecorder } from "@/components/audio-recorder";
+// import { AudioRecorder } from "@note/desktop/components/audio-recorder";
 
 export default function HomePage() {
   return (

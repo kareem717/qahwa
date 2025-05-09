@@ -2,17 +2,29 @@
 import { defineConfig } from '@tanstack/react-start/config'
 import tsConfigPaths from 'vite-tsconfig-paths'
 import { cloudflare } from 'unenv'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-export default defineConfig({
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
+
+const config = defineConfig({
   vite: {
     plugins: [
       tsConfigPaths({
         projects: ['./tsconfig.json'],
       }),
     ],
+    resolve: {
+      alias: [
+        { find: '@note/landing', replacement: path.resolve(currentDir, './app') },
+        { find: '@note/ui', replacement: path.resolve(currentDir, '../../packages/ui/src') },
+      ]
+    },
   },
   server: {
     preset: 'cloudflare-pages',
     unenv: cloudflare,
   },
 })
+
+export default config

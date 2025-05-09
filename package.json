@@ -1,0 +1,11 @@
+{
+  "name": "note-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "electron": "^36.2.0"
+  }
+}

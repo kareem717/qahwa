@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "target": "ESNext",
-    "module": "Preserve",
+    "target": "ES2022",
+    "module": "ESNext",
     "lib": [
       "dom",
       "ESNext"
     ],
     "experimentalDecorators": true,
-    "composite": true,
+    // Makes ui pkg usage fail
+    // "composite": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": false,
@@ -16,19 +17,22 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "strict": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
+      "@note/desktop/*": [
         "./src/*"
+      ],
+      "@note/ui/*": [
+        "../../packages/ui/src/*"
       ]
     },
     "outDir": "dist",
-    // "resolveJsonModule": true
     "moduleResolution": "bundler"
   },
   "include": [
     "src/**/*",
     "./package.json",
     "./forge.config.ts"
-  ]
+  ],
 }

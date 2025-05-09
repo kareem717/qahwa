@@ -1,10 +1,10 @@
-import { env } from "@/env"
+import { env } from "@note/desktop/env"
 import React, { useState, useRef, useEffect } from 'react';
 import {
   RealtimeTranscriber,
   RealtimeTranscript
 } from "assemblyai";
-import { Button } from "./ui/button";
+import { Button } from "@note/ui/components/button";
 import RecordRTC, { StereoAudioRecorder } from 'recordrtc';
 
 // Define the message structure
@@ -68,7 +68,7 @@ export function AudioRecorder() {
           token: token,
           sampleRate: 16_000, // Ensure sample rate matches recorder
           endUtteranceSilenceThreshold: 700,
-  
+
         });
         socketRef.current = rt;
 
