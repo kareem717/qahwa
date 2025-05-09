@@ -64,4 +64,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'apps/landing'
-          command: pages deploy ./dist 
+          command: pages deploy ./dist
+          wranglerVersion: '3.90.0' 
