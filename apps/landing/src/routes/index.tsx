@@ -1,11 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { WaitlistForm } from '@note/landing/components/waitlist-form'
+import { LoginButton } from '@note/landing/components/auth/login-button'
+import { useSession, signOut } from '../lib/auth-client'
+import { Button } from '@note/ui/components/button'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
 })
 
 function HomeComponent() {
+  const { data: session, isPending } = useSession()
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <header className="mb-10 text-center">
@@ -19,6 +23,12 @@ function HomeComponent() {
           Get notified when we launch.
         </p>
         <WaitlistForm />
+      </div>
+      <div className="flex flex-col items-center justify-center gap-4">
+        {isPending ? <p>Loading...</p> : session ?
+          <Button onClick={() => signOut()}>Sign out</Button> :
+          <LoginButton provider="google" />
+        }
       </div>
     </div>
   )

@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
 import { getDb } from '@note/db'
 import { notes } from '@note/db/schema'
-import { auth } from '@note/api/lib/auth'
+import { createAuth } from '@note/api/lib/auth'
 import { env } from 'cloudflare:workers'
+import { cors } from 'hono/cors'
 
 export type Bindings = {
   DATABASE_URL: string
@@ -18,6 +19,13 @@ export type Bindings = {
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
+  .use(
+    "*",
+    cors({
+      origin: ["http://localhost:3000"],
+      credentials: true,
+    })
+  )
 
 app.get('/', async (c) => {
   const db = getDb(env.DATABASE_URL!)
@@ -26,7 +34,7 @@ app.get('/', async (c) => {
 })
 
 export const authHandler = app.on(["POST", "GET"], "/auth/*", (c) => {
-  return auth.handler(c.req.raw);
+  return createAuth().handler(c.req.raw);
 })
 
 export default app

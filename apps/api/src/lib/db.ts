@@ -1,4 +1,4 @@
 import { env } from "cloudflare:workers";
 import { getDb } from "@note/db";
 
-export const db = getDb(env.DATABASE_URL);
+export const createDb = () => getDb(env.DATABASE_URL);
