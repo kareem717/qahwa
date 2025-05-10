@@ -20,7 +20,6 @@
     "@hookform/resolvers": "^5.0.1",
     "@note/db": "workspace:*",
     "@note/ui": "workspace:*",
-    "@t3-oss/env-core": "^0.13.4",
     "@tailwindcss/postcss": "^4.1.5",
     "@tanstack/react-router": "^1.119.0",
     "@tanstack/react-start": "^1.120.3",

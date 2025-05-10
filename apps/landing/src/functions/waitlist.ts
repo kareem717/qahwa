@@ -3,7 +3,6 @@ import { InsertWaitlistEmailSchema } from '@note/db/validation'
 import { getDb } from '@note/db'
 import { waitlistEmail } from '@note/db/schema'
 import { InsertWaitlistEmail } from '@note/db/types'
-import { env } from '@note/landing/env'
 
 export const addWaitlistEmail = createServerFn({
   method: 'POST',
@@ -12,6 +11,6 @@ export const addWaitlistEmail = createServerFn({
     return InsertWaitlistEmailSchema.parse(req)
   })
   .handler(async (ctx) => {
-    const db = getDb(env.DATABASE_URL)
+    const db = getDb(import.meta.env.DATABASE_URL)
     await db.insert(waitlistEmail).values({ email: ctx.data.email })
   })
