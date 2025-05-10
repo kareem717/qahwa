@@ -18,7 +18,16 @@ interface ElectronWindow {
   close: () => Promise<void>;
 }
 
+interface ElectronAuth {
+  openSignInWindow: () => void;
+  getToken: () => Promise<string>;
+  setToken: (token: string) => Promise<void>;
+  removeToken: () => Promise<void>;
+  handleAuthCallback: (callback: (url: string) => void) => () => void;
+}
+
 declare interface Window {
   themeMode: ThemeModeContext;
   electronWindow: ElectronWindow;
+  electronAuth: ElectronAuth;
 }

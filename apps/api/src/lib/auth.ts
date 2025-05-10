@@ -2,6 +2,7 @@ import { getDb } from '@note/db'
 import { auth as AuthSchema } from '@note/db/schema'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { bearer, jwt, openAPI } from 'better-auth/plugins'
 import { reactStartCookies } from 'better-auth/react-start'
 import { env } from 'cloudflare:workers'
 
@@ -15,7 +16,7 @@ export const createAuth = () => {
       },
     }),
     // Allow requests from the frontend development server
-    trustedOrigins: [env.LANDING_URL, env.ELECTRON_URL],
+    trustedOrigins: [env.LANDING_URL, env.ELECTRON_URL, `${env.DESKTOP_APP_PROTOCOL}://`],
     emailAndPassword: {
       enabled: true,
     },
@@ -48,7 +49,19 @@ export const createAuth = () => {
         generateId: false,
       }
     },
-    plugins: [reactStartCookies()],
+    plugins: [
+      openAPI(),
+      bearer(),
+      jwt({
+        jwks: {
+          keyPairConfig: {
+            alg: "EdDSA",
+            crv: "Ed25519"
+          }
+        }
+      }),
+      reactStartCookies() // Has to be the last plugin
+    ],
   })
 }
 

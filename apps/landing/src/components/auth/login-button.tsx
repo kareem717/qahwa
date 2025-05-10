@@ -1,26 +1,29 @@
-import { signIn  } from "@note/landing/lib/auth-client"; //import the auth client
+import { signIn } from "@note/landing/lib/auth-client"; //import the auth client
 import { Button } from "@note/ui/components/button";
 import { ComponentPropsWithRef } from "react";
 import { cn } from "@note/ui/lib/utils";
 
 interface LoginButtonProps extends ComponentPropsWithRef<typeof Button> {
   provider: "google";
-} 
+  redirect?: "web" | "desktop"
+}
 
-export function LoginButton({ className, provider, ...props }: LoginButtonProps) {
+export function LoginButton({ className, provider, redirect = "web", ...props }: LoginButtonProps) {
   async function handleLogin() {
+    const callbackURL = import.meta.env.VITE_APP_URL + (redirect === "web" ? "" : "/app-redirect")
 
+    console.log(callbackURL)
     await signIn.social({
       /**
        * The social provider id
        * @example "github", "google", "apple"
        */
-      provider: provider,
+      provider,
       /**
        * A URL to redirect after the user authenticates with the provider
        * @default "/"
        */
-      callbackURL: "http://localhost:3000/",
+      callbackURL,
       /**
        * A URL to redirect if an error occurs during the sign in process
        */
@@ -28,7 +31,7 @@ export function LoginButton({ className, provider, ...props }: LoginButtonProps)
       /**
        * A URL to redirect if the user is newly registered
        */
-      newUserCallbackURL: "/welcome",
+      // newUserCallbackURL: "note-app://",
       /**
        * disable the automatic redirect to the provider. 
        * @default false
