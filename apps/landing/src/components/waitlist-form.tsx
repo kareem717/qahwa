@@ -26,7 +26,6 @@ export function WaitlistForm({ className, ...props }: ComponentPropsWithoutRef<"
 
   async function onSubmit(values: z.infer<typeof InsertWaitlistEmailSchema>) {
     await addWaitlistEmail({ data: { email: values.email } })
-    console.log(values)
   }
 
   return (

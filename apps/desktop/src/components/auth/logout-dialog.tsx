@@ -15,9 +15,10 @@ import {
 interface LogoutDialogProps extends React.ComponentPropsWithoutRef<typeof AlertDialog> {
   onLogout?: () => void;
   contentProps?: React.ComponentPropsWithoutRef<typeof AlertDialogContent>;
+  children?: React.ReactNode;
 }
 
-export function LogoutDialog({ onLogout, children, contentProps, ...props }: LogoutDialogProps) {
+export function LogoutDialog({ onLogout, contentProps, children, ...props }: LogoutDialogProps) {
 
   function handleLogout() {
     window.electronAuth.removeToken()
@@ -28,7 +29,7 @@ export function LogoutDialog({ onLogout, children, contentProps, ...props }: Log
   }
 
   return (
-    <AlertDialog>
+    <AlertDialog {...props}>
       <AlertDialogTrigger asChild>
         {children ? children : <Button variant="outline">Logout</Button>}
       </AlertDialogTrigger>

@@ -7,11 +7,11 @@ export const notes = pgTable(
   {
     id: serial("id").primaryKey(),
     userId: integer("user_id").notNull().references(() => users.id),
-    title: text().notNull(),
+    title: text(),
     transcript: jsonb().$type<{
       me: string,
       them: string,
-    }[]>().notNull(),
+    }[]>(),
     userNotes: jsonb(),
     generatedNotes: jsonb(),
     createdAt: timestamp(

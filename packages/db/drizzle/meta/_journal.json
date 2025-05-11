@@ -8,6 +8,20 @@
       "when": 1746995108656,
       "tag": "0000_deep_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1746997689735,
+      "tag": "0001_worthless_frog_thor",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746997728904,
+      "tag": "0002_gigantic_whistler",
+      "breakpoints": true
     }
   ]
 }

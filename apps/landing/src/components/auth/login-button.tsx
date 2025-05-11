@@ -12,7 +12,6 @@ export function LoginButton({ className, provider, redirect = "web", ...props }:
   async function handleLogin() {
     const callbackURL = import.meta.env.VITE_APP_URL + (redirect === "web" ? "" : "/app-redirect")
 
-    console.log(callbackURL)
     await signIn.social({
       /**
        * The social provider id

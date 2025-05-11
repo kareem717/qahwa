@@ -12,11 +12,7 @@ export default function HomePage() {
         <>
           NOTES:
           <div className="flex flex-col gap-4">
-            {data?.map((note) => (
-              <div key={note.id}>
-                <h1>{note.title}</h1>
-              </div>
-            ))}
+            {JSON.stringify(data)}
           </div>
         </>
       ) : (

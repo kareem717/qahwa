@@ -28,12 +28,18 @@ export const noteHandler = () => new Hono()
 
       const db = getDb(env.DATABASE_URL)
 
-      const userNotes = await db.query.notes.findMany({
-        where: eq(notes.userId, Number(id)),
-      })
+
+      const userNotes = await db
+        .select()
+        .from(notes)
+        .where(
+          and(
+            eq(notes.userId, Number(id))
+          )
+        ) ?? []
 
       return c.json({
-        notes: userNotes || [],
+        notes: userNotes,
       })
     }
   )
@@ -60,12 +66,46 @@ export const noteHandler = () => new Hono()
 
       const db = getDb(env.DATABASE_URL)
 
-      const note = await db.query.notes.findFirst({
-        where: and(eq(notes.userId, Number(userId)), eq(notes.id, Number(id))),
-      })
+      const [note] = await db
+        .select()
+        .from(notes)
+        .where(
+          and(
+            eq(notes.userId, Number(userId)),
+            eq(notes.id, Number(id))
+          )
+        ) ?? null
 
       return c.json({
-        note: note || null,
+        note,
+      })
+    }
+  )
+  .post(
+    "/",
+    async (c) => {
+      const session = c.get("session")
+      const user = c.get("user")
+
+      if (!session || !user) {
+        throw new HTTPException(401, {
+          message: "Unauthorized",
+        })
+      }
+
+      const {
+        id // TODO: should be number
+      } = user
+
+      const db = getDb(env.DATABASE_URL)
+
+      const [note] = await db.insert(notes).values({
+        userId: Number(id),
+      }).returning()
+
+
+      return c.json({
+        note,
       })
     }
   )
