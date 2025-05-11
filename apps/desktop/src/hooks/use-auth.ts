@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { getClient } from "../api"
+import { getClient } from "../lib/api"
 
 export function useAuth() {
   return useQuery({
@@ -10,7 +10,7 @@ export function useAuth() {
       const response = await api.auth["get-session"].$get()
       const body = await response.json()
 
-      return body
+      return body || undefined
     },
   })
 }

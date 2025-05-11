@@ -1,7 +1,8 @@
-import { Button } from "@note/ui/components/button";
 import React from "react";
-import { useAuth } from "../lib/hooks/use-auth";
-import { AudioTap } from "../components/audio-tap-button";
+import { useAuth } from "../hooks/use-auth";
+import { AudioTap } from "@note/desktop/components/audio-tap-button";
+import { LoginButton } from "@note/desktop/components/auth/login-button";
+import { UserButton } from "../components/auth/user-button";
 
 export default function HomePage() {
   const { data } = useAuth()
@@ -11,18 +12,12 @@ export default function HomePage() {
       {data ? (
         <div className="flex flex-col items-center justify-center">
           <pre>{JSON.stringify(data, null, 2)}</pre>
-          <Button onClick={() => {
-            window.electronAuth.removeToken()
-            window.location.reload()
-          }}>
-            Logout
-          </Button>
+          {/* <LogoutButton /> */}
+          <UserButton />
           <AudioTap />
         </div>
       ) : (
-        <Button onClick={() => window.electronAuth.openSignInWindow()}>
-          Sign in
-        </Button>
+        <LoginButton />
       )}
     </div>
   );
