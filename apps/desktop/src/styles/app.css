@@ -1,0 +1,6 @@
+@import "@note/ui/styles/globals.css";
+/* 
+breaks button interaction
+body {
+    -webkit-app-region: drag;
+} */

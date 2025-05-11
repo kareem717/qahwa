@@ -2,7 +2,7 @@ import { Button } from '@note/ui/components/button';
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@note/ui/components/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@note/ui/components/dropdown-menu';
-import { ChevronsUpDown, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '@note/desktop/hooks/use-auth';
 import { LogoutDialog } from './logout-dialog';
 import { cn } from '@note/ui/lib/utils';
@@ -44,7 +44,7 @@ export function UserButton({ className, ...props }: UserButtonProps) {
           )}
           {...props}
         >
-          <Avatar>
+          <Avatar className="size-7">
             {image && <AvatarImage src={image} />}
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>

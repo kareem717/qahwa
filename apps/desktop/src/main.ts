@@ -63,6 +63,10 @@ function createWindow() {
       preload: preload,
     },
     titleBarStyle: "hidden",
+    trafficLightPosition: {
+      x: 16,
+      y: 12,
+    },
   });
   registerListeners(mainWindow);
 
