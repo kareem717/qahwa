@@ -2,17 +2,15 @@ import React from "react";
 import { Header } from "../components/header";
 import { Badge } from "@note/ui/components/badge";
 import { UserButton } from "../components/auth/user-button";
-import { Button, buttonVariants } from "@note/ui/components/button";
+import { Button } from "@note/ui/components/button";
 import { useAuth } from "../hooks/use-auth";
 import { LoginButton } from "../components/auth/login-button";
 import { LogoutDialog } from "../components/auth/logout-dialog";
-import { Link } from "@tanstack/react-router";
-import { cn } from "@note/ui/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getClient } from "../lib/api";
 import { router } from "../routes/router";
-
+import { ScrollArea } from "@note/ui/components/scroll-area";
 export default function BaseLayout({
   children,
 }: {
@@ -82,7 +80,11 @@ export default function BaseLayout({
           <UserButton />
         </div>
       </Header>
-      <main className={"h-full pt-[41.5px]"}>{children}</main>
+      <main className="fixed top-[41.5px] w-full h-[calc(100vh-41.5px)] p-1">
+        <ScrollArea className="h-full rounded-md border">
+          {children}
+        </ScrollArea>
+      </main>
     </div>
   );
 }

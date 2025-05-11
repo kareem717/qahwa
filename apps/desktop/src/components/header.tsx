@@ -9,7 +9,7 @@ interface HeaderProps extends React.ComponentProps<"header"> {
 
 export function Header({ className, leftTag, children = (<></>), ...props }: HeaderProps) {
   return (
-    <header className={cn("h-[41.5px] pl-22 pr-2 fixed top-0 left-0 right-0 border-b bg-background flex items-center justify-between", className)} {...props}>
+    <header className={cn("h-[41.5px] pl-22 pr-2 fixed top-0 left-0 right-0 bg-background flex items-center justify-between", className)} {...props}>
       <div className="flex items-center gap-2">
         <NavigateBack />
         {leftTag}

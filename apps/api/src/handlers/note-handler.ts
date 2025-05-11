@@ -6,7 +6,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { getDb } from '@note/db';
 import { notes } from '@note/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 
 export const noteHandler = () => new Hono()
   .use("*", withAuth())
@@ -36,7 +36,7 @@ export const noteHandler = () => new Hono()
           and(
             eq(notes.userId, Number(id))
           )
-        ) ?? []
+        ).orderBy(desc(notes.updatedAt)) ?? []
 
       return c.json({
         notes: userNotes,

@@ -47,7 +47,7 @@ export function SearchCommandBar({ className, ...props }: React.ComponentProps<t
 
   return (
     <>
-      <Button variant="secondary" className={cn("h-7 w-sm relative", className)} {...props} onClick={handleClick}>
+      <Button variant="secondary" className={cn("h-7  hidden sm:flex w-70 md:w-sm relative", className)} {...props} onClick={handleClick}>
         <div className="flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
           <Search className="size-3 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Search</span>
