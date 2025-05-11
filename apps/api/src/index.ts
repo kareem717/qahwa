@@ -3,6 +3,7 @@ import { env } from 'cloudflare:workers'
 import { cors } from 'hono/cors'
 import { authHandler } from './handlers/auth-handler'
 import { transcriptionHandler } from './handlers/transcription-handler'
+import { noteHandler } from './handlers/note-handler'
 
 const app = new Hono()
   .use(
@@ -15,5 +16,6 @@ const app = new Hono()
   )
   .route('/auth', authHandler())
   .route('/transcription', transcriptionHandler())
+  .route('/note', noteHandler())
 
 export default app

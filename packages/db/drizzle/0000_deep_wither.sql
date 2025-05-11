@@ -14,6 +14,30 @@ CREATE TABLE "accounts" (
 	"updated_at" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "api_keys" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text,
+	"start" text,
+	"prefix" text,
+	"key" text NOT NULL,
+	"user_id" integer NOT NULL,
+	"refill_interval" integer,
+	"refill_amount" integer,
+	"last_refill_at" timestamp,
+	"enabled" boolean,
+	"rate_limit_enabled" boolean,
+	"rate_limit_time_window" integer,
+	"rate_limit_max" integer,
+	"request_count" integer,
+	"remaining" integer,
+	"last_request" timestamp,
+	"expires_at" timestamp,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL,
+	"permissions" text,
+	"metadata" text
+);
+--> statement-breakpoint
 CREATE TABLE "sessions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"expires_at" timestamp NOT NULL,
@@ -47,7 +71,8 @@ CREATE TABLE "verifications" (
 );
 --> statement-breakpoint
 CREATE TABLE "notes" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
 	"title" text NOT NULL,
 	"transcript" jsonb NOT NULL,
 	"user_notes" jsonb,
@@ -63,4 +88,6 @@ CREATE TABLE "waitlist_email" (
 );
 --> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notes" ADD CONSTRAINT "notes_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
