@@ -61,10 +61,7 @@ function RouteComponent() {
       setKey(apiKey.key)
       setIsLoading(false)
     }
-
-
-    // window.location.href = `${import.meta.env.VITE_DESKTOP_PROTOCOL}://auth?key=${key}`
-
+    
     getApiKey()
   }, [])
 

@@ -13,6 +13,8 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'electron',
+        '@note/osx-audio',
+        'bindings',
         ...builtinModules,
         ...builtinModules.map(m => `node:${m}`),
       ],

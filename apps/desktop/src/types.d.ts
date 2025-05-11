@@ -4,6 +4,9 @@
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
+// Import types from the osx-audio package
+import type { PermissionResult, DeviceType } from "@note/osx-audio";
+
 // Preload types
 interface ThemeModeContext {
   toggle: () => Promise<boolean>;
@@ -26,8 +29,18 @@ interface ElectronAuth {
   handleAuthCallback: (callback: (url: string) => void) => () => void;
 }
 
-declare interface Window {
-  themeMode: ThemeModeContext;
-  electronWindow: ElectronWindow;
-  electronAuth: ElectronAuth;
+interface ElectronSystemAudio {
+  getPermissions: () => Promise<PermissionResult>;
+  startCapture: (callback: (data: ArrayBuffer) => void) => (() => void);
+  stopCapture: () => void;
+  requestPermissions: (deviceType: DeviceType) => Promise<PermissionResult>;
+}
+
+declare global {
+  interface Window {
+    themeMode: ThemeModeContext;
+    electronWindow: ElectronWindow;
+    electronAuth: ElectronAuth;
+    electronSystemAudio: ElectronSystemAudio;
+  }
 }

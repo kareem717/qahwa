@@ -6,7 +6,7 @@
 #include <CoreAudio/AudioHardwareTapping.h>
 
 // Constants for audio format
-static const Float64 kTargetSampleRate = 22050.0;
+static const Float64 kTargetSampleRate = 48000.0;
 static const UInt32 kTargetChannelCount = 1;
 static const UInt32 kBitsPerChannel = 32;
 static const UInt32 kPreferredBufferSize = 4096;  // Added preferred buffer size (samples)
@@ -361,6 +361,32 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return resampledBuffer;
 }
 
+- (int16_t *)convertFloat32BufferToInt16:(Float32 *)floatBuffer numFrames:(UInt32)numFrames {
+    if (!floatBuffer || numFrames == 0) {
+        Log("convertFloat32BufferToInt16: Received null or empty buffer", "warning");
+        return NULL;
+    }
+
+    int16_t *int16Buffer = (int16_t *)calloc(numFrames, sizeof(int16_t));
+    if (!int16Buffer) {
+        Log("convertFloat32BufferToInt16: Failed to allocate memory for int16 buffer", "error");
+        return NULL;
+    }
+
+    for (UInt32 i = 0; i < numFrames; i++) {
+        // Scale float from -1.0 to 1.0 to 16-bit integer range -32768 to 32767
+        float val = floatBuffer[i] * 32767.0f;
+        // Clamp values to the 16-bit range
+        if (val > 32767.0f) {
+            val = 32767.0f;
+        } else if (val < -32768.0f) {
+            val = -32768.0f;
+        }
+        int16Buffer[i] = (int16_t)roundf(val); // Use roundf for better rounding
+    }
+    return int16Buffer;
+}
+
 - (void)handleAudioInput:(const AudioBufferList *)bufferList {
     if (!_isCapturing) {
         Log("Skipping audio input - not capturing", "debug");
@@ -424,10 +450,19 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                 return;
             }
             
-            // Create NSData safely
-            NSData *audioData = [[NSData alloc] initWithBytes:resampledBuffer 
-                                                     length:resampledFrameLength * sizeof(Float32)];
-            free(resampledBuffer);
+            // Convert the resampled Float32 buffer to Int16 PCM
+            int16_t *pcm16Buffer = [self convertFloat32BufferToInt16:resampledBuffer numFrames:resampledFrameLength];
+            free(resampledBuffer); // Original float buffer is no longer needed
+
+            if (!pcm16Buffer) {
+                Log("Failed to convert resampled buffer to PCM16", "error");
+                return;
+            }
+            
+            // Create NSData safely using the PCM16 data
+            NSData *audioData = [[NSData alloc] initWithBytes:pcm16Buffer
+                                                     length:resampledFrameLength * sizeof(int16_t)]; // Use sizeof(int16_t)
+            free(pcm16Buffer); // PCM16 buffer is copied into NSData, so it can be freed
             
             if (audioData) {
                 dispatch_async(_audioQueue, ^{

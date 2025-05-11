@@ -4,3 +4,4 @@ node_modules
 .clangd
 .clangd.template
 recordings
+dist

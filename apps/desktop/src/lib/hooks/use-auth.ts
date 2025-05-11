@@ -7,7 +7,7 @@ export function useAuth() {
     queryFn: async () => {
       const api = await getClient()
 
-      const response = await api.auth.session.$get()
+      const response = await api.auth["get-session"].$get()
       const body = await response.json()
 
       return body

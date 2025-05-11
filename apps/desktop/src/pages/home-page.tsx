@@ -1,6 +1,7 @@
 import { Button } from "@note/ui/components/button";
 import React from "react";
 import { useAuth } from "../lib/hooks/use-auth";
+import { AudioTap } from "../components/audio-tap-button";
 
 export default function HomePage() {
   const { data } = useAuth()
@@ -16,6 +17,7 @@ export default function HomePage() {
           }}>
             Logout
           </Button>
+          <AudioTap />
         </div>
       ) : (
         <Button onClick={() => window.electronAuth.openSignInWindow()}>
