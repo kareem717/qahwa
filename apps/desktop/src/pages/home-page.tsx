@@ -1,23 +1,26 @@
 import React from "react";
-import { useAuth } from "../hooks/use-auth";
-import { AudioTap } from "@note/desktop/components/audio-tap-button";
-import { LoginButton } from "@note/desktop/components/auth/login-button";
-import { UserButton } from "../components/auth/user-button";
+import { useUserNotes } from "../hooks/use-note";
 
 export default function HomePage() {
-  const { data } = useAuth()
+  const { data, isLoading } = useUserNotes()
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      {data ? (
-        <div className="flex flex-col items-center justify-center">
-          <pre>{JSON.stringify(data, null, 2)}</pre>
-          {/* <LogoutButton /> */}
-          <UserButton />
-          <AudioTap />
-        </div>
+      {isLoading ? (
+        <div>Loading notes...</div>
+      ) : data && data.length > 0 ? (
+        <>
+          NOTES:
+          <div className="flex flex-col gap-4">
+            {data?.map((note) => (
+              <div key={note.id}>
+                <h1>{note.title}</h1>
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
-        <LoginButton />
+        <div>No notes found</div>
       )}
     </div>
   );
