@@ -1,25 +1,22 @@
-import { Button, buttonVariants } from "@note/ui/components/button";
+import { Button } from "@note/ui/components/button";
 import React from "react";
-// import { AudioRecorder } from "@note/desktop/components/audio-recorder";
+import { useAuth } from "../lib/hooks/use-auth";
 
 export default function HomePage() {
-  const [jwt, setJwt] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    window.electronAuth.getToken().then(token => {
-      setJwt(token)
-    })
-  }, [])
+  const { data } = useAuth()
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      {jwt ? (
-        <Button onClick={() => {
-          window.electronAuth.removeToken()
-          window.location.reload()
-        }}>
-          Logout
-        </Button>
+      {data ? (
+        <div className="flex flex-col items-center justify-center">
+          <pre>{JSON.stringify(data, null, 2)}</pre>
+          <Button onClick={() => {
+            window.electronAuth.removeToken()
+            window.location.reload()
+          }}>
+            Logout
+          </Button>
+        </div>
       ) : (
         <Button onClick={() => window.electronAuth.openSignInWindow()}>
           Sign in

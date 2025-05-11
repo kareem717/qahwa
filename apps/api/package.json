@@ -21,6 +21,7 @@
     "wrangler": "^4.4.0"
   },
   "exports": {
-    "./auth": "./src/lib/auth.ts"
+    "./auth": "./src/lib/auth.ts",
+    "./type": "./src/type.ts"
   }
 }

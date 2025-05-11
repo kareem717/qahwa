@@ -2,7 +2,7 @@ import { getDb } from '@note/db'
 import { auth as AuthSchema } from '@note/db/schema'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { bearer, jwt, openAPI } from 'better-auth/plugins'
+import { openAPI, apiKey } from 'better-auth/plugins'
 import { reactStartCookies } from 'better-auth/react-start'
 import { env } from 'cloudflare:workers'
 
@@ -50,16 +50,10 @@ export const createAuth = () => {
       }
     },
     plugins: [
-      openAPI(),
-      bearer(),
-      jwt({
-        jwks: {
-          keyPairConfig: {
-            alg: "EdDSA",
-            crv: "Ed25519"
-          }
-        }
+      openAPI({
+        path: "/docs",
       }),
+      apiKey(),
       reactStartCookies() // Has to be the last plugin
     ],
   })

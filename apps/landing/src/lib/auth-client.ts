@@ -1,7 +1,7 @@
 import type { AuthType } from "@note/api/auth";
 import {
   inferAdditionalFields,
-  magicLinkClient,
+  apiKeyClient,
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react"; // make sure to import from better-auth/react
 
@@ -11,7 +11,7 @@ export const authClient = createAuthClient({
   fetchOptions: {
     credentials: "include",
   },
-  plugins: [inferAdditionalFields<AuthType>(), magicLinkClient()],
+  plugins: [inferAdditionalFields<AuthType>(), apiKeyClient()],
 });
 
 export const { signIn, signOut, signUp, useSession, getSession } = authClient;

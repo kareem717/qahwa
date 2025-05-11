@@ -15,6 +15,20 @@
       "when": 1746849163655,
       "tag": "0001_aberrant_kronos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746922970443,
+      "tag": "0002_blue_marrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1746924119725,
+      "tag": "0003_special_komodo",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { app, BrowserWindow, shell } from "electron";
-import registerListeners from "./helpers/ipc/listeners-register";
+import registerListeners from "./lib/helpers/ipc/listeners-register";
 // "electron-squirrel-startup" seems broken when packaging with vite
 //import started from "electron-squirrel-startup";
 import path from "path";
@@ -16,7 +16,7 @@ let mainWindow: BrowserWindow | null = null;
 
 // Helper function to handle the deep link URL
 function handleDeepLinkUrl(url: string | undefined) {
-  if (!url || !url.startsWith(`${PROTOCOL}://auth?jwt=`)) return; // Check if it's our auth callback
+  if (!url || !url.startsWith(`${PROTOCOL}://auth?key=`)) return; // Check if it's our auth callback
   console.log("Auth callback URL received:", url);
 
   // Parse the URL to get the token/data Clerk sends back

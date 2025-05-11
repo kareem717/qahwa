@@ -2,7 +2,7 @@ import {
   closeWindow,
   maximizeWindow,
   minimizeWindow,
-} from "@note/desktop/helpers/window_helpers";
+} from "@note/desktop/lib/helpers/window_helpers";
 import React, { type ReactNode } from "react";
 
 interface DragWindowRegionProps {

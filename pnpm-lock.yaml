@@ -156,6 +156,9 @@ importers:
       '@electron/fuses':
         specifier: ^1.8.0
         version: 1.8.0
+      '@note/api':
+        specifier: workspace:*
+        version: link:../api
       '@playwright/test':
         specifier: ^1.52.0
         version: 1.52.0
