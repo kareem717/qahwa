@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNote } from "../hooks/use-note";
-import { useParams } from "@tanstack/react-router";
 import { Note } from "@note/db/types";
+import { NoteRoute } from "../routes/routes";
 
 export default function NotePage() {
-  const { id } = useParams({ from: "/note/$id", strict: true })
+  const { id } = NoteRoute.useSearch()
+  console.log(id)
+  const { data, isLoading } = useNote({
+    noteId: id || 0,
+    enabled: id !== undefined,
+  })
 
-  // technically should note fail since it's electron
-  const noteId = parseInt(id)
-
-  // Should be better to get from state
-  const { data, isLoading } = useNote(noteId)
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
@@ -24,7 +24,9 @@ export default function NotePage() {
           </div>
         </>
       ) : (
-        <div>No notes found</div>
+        <div>
+          New Note
+        </div>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 import { useUserNotes } from "../hooks/use-note";
-import { NoteButton } from "../components/note-button";
+import { NoteButton, SimpleNote } from "../components/note-button";
 import { Note } from "@note/db/types";
 import { useAuth } from "../hooks/use-auth";
 
@@ -28,9 +28,9 @@ function formatDate(dateString: string | null) {
 };
 
 // Helper function to group notes by date
-function groupNotesByDate(notes: Note[]): Record<string, Note[]> {
+function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
   if (!notes || notes.length === 0) return {};
-  return notes.reduce((acc: Record<string, Note[]>, note: Note) => {
+  return notes.reduce((acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
     const dateKey = formatDate(note.updatedAt);
     if (!acc[dateKey]) {
       acc[dateKey] = [];
@@ -64,7 +64,7 @@ export default function HomePage() {
                 {dateKey}
               </h2>
               <div className="flex flex-col">
-                {groupedNotes[dateKey].map((note: Note) => (
+                {groupedNotes[dateKey].map((note: SimpleNote) => (
                   <NoteButton key={note.id} note={note} />
                 ))}
               </div>

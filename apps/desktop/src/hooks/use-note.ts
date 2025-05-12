@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { getClient } from "../lib/api"
 
+export const NOTE_QUERY_KEY = "note"
+
 export function useUserNotes() {
   return useQuery({
-    queryKey: ["note"],
+    queryKey: [NOTE_QUERY_KEY],
     queryFn: async () => {
       const api = await getClient()
 
@@ -15,20 +17,27 @@ export function useUserNotes() {
   })
 }
 
-export function useNote(noteId: number) {
+export function useNote({
+  noteId,
+  enabled = true,
+}: {
+  noteId: number
+  enabled?: boolean
+}) {
   return useQuery({
-    queryKey: ["note", noteId],
+    queryKey: [NOTE_QUERY_KEY, noteId],
     queryFn: async () => {
       const api = await getClient()
 
       const response = await api.note[":id"].$get({
         param: {
-          id: `${noteId}`,
+          id: noteId.toString(),
         },
       })
 
       const body = await response.json()
       return body.note || undefined
-    }
+    },
+    enabled,
   })
 }

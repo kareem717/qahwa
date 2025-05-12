@@ -7,11 +7,11 @@ export const notes = pgTable(
   {
     id: serial("id").primaryKey(),
     userId: integer("user_id").notNull().references(() => users.id),
-    title: text(),
+    title: text().notNull(),
     transcript: jsonb().$type<{
       me: string,
       them: string,
-    }[]>(),
+    }[]>().notNull().default([]),
     userNotes: jsonb(),
     generatedNotes: jsonb(),
     createdAt: timestamp(
@@ -27,7 +27,7 @@ export const notes = pgTable(
         withTimezone: true,
         mode: "string",
       }
-    ).$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+    ).notNull().$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
   }
 );
 
@@ -49,7 +49,7 @@ export const waitlistEmail = pgTable(
         withTimezone: true,
         mode: "string",
       }
-    ).$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
+    ).notNull().$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
   }
 );
 
