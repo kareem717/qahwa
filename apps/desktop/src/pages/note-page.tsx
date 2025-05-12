@@ -1,32 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNote } from "../hooks/use-note";
-import { Note } from "@note/db/types";
 import { NoteRoute } from "../routes/routes";
+import { Skeleton } from "@note/ui/components/skeleton";
+import NoteEditor from "../components/note-editor";
 
 export default function NotePage() {
   const { id } = NoteRoute.useSearch()
-  console.log(id)
   const { data, isLoading } = useNote({
     noteId: id || 0,
     enabled: id !== undefined,
   })
 
-
   return (
-    <div className="flex h-full flex-col items-center justify-center">
+    <div className="flex h-full flex-col items-center justify-center w-full">
       {isLoading ? (
-        <div>Loading notes...</div>
-      ) : data ? (
-        <>
-          NOTE PAGE:
-          <div className="flex flex-col gap-4">
-            {JSON.stringify(data)}
-          </div>
-        </>
+        <Skeleton className="w-md h-80" />
       ) : (
-        <div>
-          New Note
-        </div>
+        <NoteEditor initialData={data} />
       )}
     </div>
   );
