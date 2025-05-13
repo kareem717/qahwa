@@ -63,14 +63,16 @@ function createWindow() {
       preload: preload,
     },
     frame: false,
-    ...(process.platform !== 'darwin' && {
+    ...(process.platform !== 'darwin' ? {
       titleBarOverlay: true
+    } : {
+      trafficLightPosition: { x: 16, y: 12 },
+      titleBarStyle: 'hidden',
     })
-  });
+  })
   registerListeners(mainWindow);
 
   mainWindow.setWindowButtonVisibility(true);
-  // TODO: move the traffic lights to { x: 16, y: 12 }
 
   // Add this handler to open links in the default browser
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -81,10 +83,13 @@ function createWindow() {
     return { action: 'deny' }; // Prevents Electron from opening a new window
   });
 
+  // @ts-expect-error 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  // @ts-expect-error 
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     mainWindow.loadFile(
+      // @ts-expect-error
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
   }
