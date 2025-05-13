@@ -10,6 +10,7 @@ import { cn } from '@note/ui/lib/utils';
 interface UserButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
 }
 
+// TODO: not sure why image not showing up
 export function UserButton({ className, ...props }: UserButtonProps) {
   const { data, isLoading } = useAuth()
 
@@ -27,6 +28,7 @@ export function UserButton({ className, ...props }: UserButtonProps) {
     image,
     email
   } } = data
+  console.log("IMAGE", image)
 
   const firstName = name.split(" ")[0]
   const lastName = name.split(" ").slice(1).join(" ")
@@ -45,7 +47,7 @@ export function UserButton({ className, ...props }: UserButtonProps) {
           {...props}
         >
           <Avatar className="size-7">
-            {image && <AvatarImage src={image} />}
+            {!!image && <AvatarImage src={image} />}
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           {/* <ChevronsUpDown className="ml-auto size-4" /> */}

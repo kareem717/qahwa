@@ -1,5 +1,4 @@
 import React from "react";
-import BaseLayout from "@note/desktop/layouts/BaseLayout";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import "@note/desktop/styles/app.css";
 
@@ -9,8 +8,6 @@ export const RootRoute = createRootRoute({
 
 function Root() {
   return (
-    <BaseLayout>
-      <Outlet />
-    </BaseLayout>
+    <Outlet />
   );
 }

@@ -31,7 +31,7 @@ interface ElectronAuth {
 
 interface ElectronSystemAudio {
   getPermissions: () => Promise<PermissionResult>;
-  startCapture: (callback: (data: ArrayBuffer) => void) => (() => void);
+  startCapture: (systemCallback: (data: ArrayBuffer) => void) => () => void;
   stopCapture: () => void;
   requestPermissions: (deviceType: DeviceType) => Promise<PermissionResult>;
 }

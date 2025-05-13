@@ -3,11 +3,12 @@ import { withAuth } from '../lib/middleware/with-auth';
 import { HTTPException } from 'hono/http-exception';
 import { env } from 'cloudflare:workers';
 import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import { getDb } from '@note/db';
 import { notes } from '@note/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { Note } from '@note/db/types';
+import { InsertNoteSchema } from '@note/db/validation';
+import { z } from 'zod';
 
 export const noteHandler = () => new Hono()
   .use("*", withAuth())
@@ -51,7 +52,7 @@ export const noteHandler = () => new Hono()
   .get(
     "/:id",
     zValidator("param", z.object({
-      id: z.coerce.number(),
+      id: z.coerce.number()
     })),
     async (c) => {
       const session = c.get("session")
@@ -89,7 +90,7 @@ export const noteHandler = () => new Hono()
   .delete(
     "/:id",
     zValidator("param", z.object({
-      id: z.coerce.number(),
+      id: z.coerce.number()
     })),
     async (c) => {
       const session = c.get("session")
@@ -135,14 +136,11 @@ export const noteHandler = () => new Hono()
   )
   .put(
     "/",
-    zValidator("json", z.object({
-      id: z.coerce.number(),
-      title: z.string().min(1),
-      transcript: z.array(z.object({
-        me: z.string().min(1),
-        them: z.string().min(1),
-      })),
-      userNotes: z.any(),
+    zValidator("json", InsertNoteSchema.pick({
+      id: true,
+      title: true,
+      transcript: true,
+      userNotes: true,
     }).partial()),
     async (c) => {
       const session = c.get("session")

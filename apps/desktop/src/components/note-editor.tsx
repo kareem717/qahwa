@@ -27,7 +27,7 @@ interface NoteEditorProps extends React.ComponentPropsWithoutRef<"div"> {
   initialData?: Note;
 }
 
-export default function NoteEditor({ initialData, className, ...props }: NoteEditorProps) {
+export function NoteEditor({ initialData, className, ...props }: NoteEditorProps) {
   const [note, setNote] = React.useState<Note>(initialData || {});
   const [debouncedNote] = useDebounce(note, 500);
   const queryClient = useQueryClient()

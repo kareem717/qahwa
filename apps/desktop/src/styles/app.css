@@ -1,6 +1,11 @@
 @import "@note/ui/styles/globals.css";
-/* 
-breaks button interaction
-body {
+
+/* Makes thing drag the app */
+.drag-area {
     -webkit-app-region: drag;
-} */
+}
+
+/* Prevent children from being draggable */
+.drag-area * {
+    -webkit-app-region: no-drag;
+}

@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { buttonVariants } from "@note/ui/components/button";
 import { cn } from "@note/ui/lib/utils";
 
-export default function BaseLayout({
+export function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -16,28 +16,29 @@ export default function BaseLayout({
   return (
     <div className="h-screen relative">
       <Header
-        leftTag={(
-          <Badge variant="outline" className="text-muted-foreground tracking-wide font-mono text-xs px-1 h-5 rounded-sm">
+        leftTag={
+          <Badge
+            variant="outline"
+            className="text-muted-foreground h-5 rounded-sm px-1 font-mono text-xs tracking-wide"
+          >
             <span className="text-xs">BETA</span>
           </Badge>
-        )}
+        }
       >
         <div className="flex items-center gap-1">
           <Link
             to="/note"
-            className={
-              cn(
-                buttonVariants({
-                  variant: "secondary",
-                  size: "sm"
-                }),
-                "h-7 font-normal text-xs"
-              )
-            }
+            className={cn(
+              buttonVariants({
+                variant: "secondary",
+                size: "sm",
+              }),
+              "h-7 text-xs font-normal",
+            )}
           >
             New Note
           </Link>
-          <UserButton />
+          {/* <UserButton /> */}
         </div>
       </Header>
       <main className="fixed top-[41.5px] w-full h-[calc(100vh-41.5px)] p-1">

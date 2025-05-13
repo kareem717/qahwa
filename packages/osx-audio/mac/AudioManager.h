@@ -64,13 +64,12 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 
   // State
   BOOL _isCapturing;
-  BOOL _isSetup;
 
   // Queue for audio operations
   dispatch_queue_t _audioQueue;
 
   // Callback for audio data
-  void (^_audioDataCallback)(NSData *audioData);
+  void (^_systemAudioDataCallback)(NSData *audioData);
 
   // Tap properties
   NSUUID *_tapUID;
@@ -108,7 +107,7 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
  * @param callback Block that will be called with captured audio data.
  * @note The callback is invoked on a dedicated audio queue thread.
  */
-- (void)setAudioDataCallback:(void (^)(NSData *audioData))callback;
+- (void)setSystemAudioDataCallback:(void (^)(NSData *audioData))callback;
 
 /**
  * @name Permission Methods

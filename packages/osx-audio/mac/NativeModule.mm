@@ -110,7 +110,7 @@ private:
       _tsfn = tsfn;
 
       // Set up the audio data callback
-      [audioManager setAudioDataCallback:^(NSData *audioData) {
+      [audioManager setSystemAudioDataCallback:^(NSData *audioData) {
         auto callback = [audioData](Napi::Env env, Napi::Function jsCallback) {
           try {
             // Create an ArrayBuffer from the raw PCM data
@@ -176,7 +176,7 @@ private:
       }
 
       // Clear the audio data callback
-      [audioManager setAudioDataCallback:nil];
+      [audioManager setSystemAudioDataCallback:nil];
 
       // Release the ThreadSafeFunction
       if (_tsfn) {

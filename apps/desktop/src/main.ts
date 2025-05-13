@@ -62,13 +62,15 @@ function createWindow() {
       nodeIntegrationInSubFrames: false,
       preload: preload,
     },
-    titleBarStyle: "hidden",
-    trafficLightPosition: {
-      x: 16,
-      y: 12,
-    },
+    frame: false,
+    ...(process.platform !== 'darwin' && {
+      titleBarOverlay: true
+    })
   });
   registerListeners(mainWindow);
+
+  mainWindow.setWindowButtonVisibility(true);
+  // TODO: move the traffic lights to { x: 16, y: 12 }
 
   // Add this handler to open links in the default browser
   mainWindow.webContents.setWindowOpenHandler((details) => {

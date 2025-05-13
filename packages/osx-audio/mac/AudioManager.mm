@@ -44,11 +44,10 @@ static AudioManager *sharedInstance = nil;
         
         // Initialize audio properties
         _isCapturing = NO;
-        _isSetup = NO;
         _audioQueue = dispatch_queue_create("audio-manager-queue", DISPATCH_QUEUE_SERIAL);
         _aggregateDeviceID = kAudioDeviceUnknown;
         _deviceProcID = NULL;
-        _audioDataCallback = nil;  // Explicitly initialize callback to nil
+        _systemAudioDataCallback = nil;  // Renamed from _audioDataCallback and initialized
         
         // Set up target format
         _targetFormat.mSampleRate = kTargetSampleRate;
@@ -80,7 +79,7 @@ static AudioManager *sharedInstance = nil;
     
     // Ensure we're on the audio queue for thread safety
     dispatch_sync(_audioQueue, ^{
-        self->_audioDataCallback = nil;
+        self->_systemAudioDataCallback = nil;
     });
     
     [self stopDeviceMonitoring];
@@ -305,8 +304,12 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     return monoBuffer;
 }
 
-- (Float32 *)resampleBuffer:(Float32 *)inputBuffer inputFrames:(UInt32)inputFrames outputFrames:(UInt32 *)outputFrames {
-    Float64 sourceRate = _sourceFormat.mSampleRate;
+- (Float32 *)resampleBuffer:(Float32 *)inputBuffer inputFrames:(UInt32)inputFrames outputFrames:(UInt32 *)outputFrames sourceRate:(Float64)sourceRate {
+    if (sourceRate <= 0) {
+        Log("Invalid source sample rate for resampling", "error");
+        return NULL;
+    }
+    
     Float64 ratio = sourceRate / kTargetSampleRate;
     UInt32 newFrameLength = (UInt32)(inputFrames / ratio);
     
@@ -396,7 +399,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     // Get a local copy of the callback on the audio queue
     __block void (^callback)(NSData *) = nil;
     dispatch_sync(_audioQueue, ^{
-        callback = [_audioDataCallback copy];
+        callback = [_systemAudioDataCallback copy];
     });
     
     if (!callback) {
@@ -442,7 +445,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
             
             // Resample
             UInt32 resampledFrameLength = 0;
-            Float32 *resampledBuffer = [self resampleBuffer:monoBuffer inputFrames:numFrames outputFrames:&resampledFrameLength];
+            Float32 *resampledBuffer = [self resampleBuffer:monoBuffer inputFrames:numFrames outputFrames:&resampledFrameLength sourceRate:_sourceFormat.mSampleRate];
             free(monoBuffer);
             
             if (!resampledBuffer) {
@@ -540,7 +543,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
     Log("Got output device ID: " + std::to_string(outputDeviceID));
     
     // Get device UIDs
-    CFStringRef inputUID, outputUID;
+    CFStringRef inputUID = NULL, outputUID = NULL;
     AudioObjectPropertyAddress uidPropertyAddress = {
         .mSelector = kAudioDevicePropertyDeviceUID,
         .mScope = kAudioObjectPropertyScopeGlobal,
@@ -573,7 +576,7 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                       &dataSize,
                                       &outputUID);
     if (status != noErr) {
-        CFRelease(inputUID);
+        if (inputUID) CFRelease(inputUID);
         if (error) {
             *error = [NSError errorWithDomain:@"audio-manager"
                                        code:status
@@ -601,8 +604,8 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                       &dataSize,
                                       &inputSampleRate);
     if (status != noErr) {
-        CFRelease(inputUID);
-        CFRelease(outputUID);
+        if (inputUID) CFRelease(inputUID);
+        if (outputUID) CFRelease(outputUID);
         if (error) {
             *error = [NSError errorWithDomain:@"audio-manager"
                                        code:status
@@ -620,8 +623,8 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
                                       &dataSize,
                                       &outputSampleRate);
     if (status != noErr) {
-        CFRelease(inputUID);
-        CFRelease(outputUID);
+        if (inputUID) CFRelease(inputUID);
+        if (outputUID) CFRelease(outputUID);
         if (error) {
             *error = [NSError errorWithDomain:@"audio-manager"
                                        code:status
@@ -900,18 +903,18 @@ static OSStatus HandleAudioDeviceIOProc(AudioDeviceID inDevice,
 
 #pragma mark - Audio Data Callback
 
-- (void)setAudioDataCallback:(void (^)(NSData *audioData))callback {
-    Log("Setting audio data callback", "debug");
+- (void)setSystemAudioDataCallback:(void (^)(NSData *audioData))callback {
+    Log("Setting system audio data callback", "debug");
     
     // Ensure we're on the audio queue for thread safety
-    dispatch_async(_audioQueue, ^{
+    dispatch_sync(_audioQueue, ^{
         if (callback) {
             // Copy the callback to ensure it's retained
-            self->_audioDataCallback = [callback copy];
-            Log("Audio data callback set successfully", "debug");
+            self->_systemAudioDataCallback = [callback copy];
+            Log("System audio data callback set successfully", "debug");
         } else {
-            Log("Clearing audio data callback", "debug");
-            self->_audioDataCallback = nil;
+            Log("Clearing system audio data callback", "debug");
+            self->_systemAudioDataCallback = nil;
         }
     });
 }

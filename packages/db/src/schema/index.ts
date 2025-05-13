@@ -9,8 +9,9 @@ export const notes = pgTable(
     userId: integer("user_id").notNull().references(() => users.id),
     title: text().notNull(),
     transcript: jsonb().$type<{
-      me: string,
-      them: string,
+      timestamp: string,
+      sender: "me" | "them",
+      text: string,
     }[]>().notNull().default([]),
     userNotes: jsonb(),
     generatedNotes: jsonb(),

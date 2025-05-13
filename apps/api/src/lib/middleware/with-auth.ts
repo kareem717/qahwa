@@ -24,16 +24,21 @@ export const getSession = (c: Context) => {
 export const withAuth = () => createMiddleware(async (c, next) => {
   const auth = createAuthClient()
 
-  const resp = await auth.api.getSession({ headers: c.req.raw.headers })
+  try {
+    const resp = await auth.api.getSession({ headers: c.req.raw.headers })
 
-  if (resp) {
-    c.set("user", resp.user)
-    c.set("session", resp.session)
-    return await next()
+    if (resp) {
+      c.set("user", resp.user)
+      c.set("session", resp.session)
+      return await next()
+    }
+
+    c.set("user", null)
+    c.set("session", null)
+  } catch (e) {
+    console.error(e)
+    //TODO: handle error
+    return c.json({ error: "Unauthorized" }, 401)
   }
 
-  c.set("user", null)
-  c.set("session", null)
-
-  await next();
 });

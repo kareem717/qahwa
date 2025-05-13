@@ -1,9 +1,12 @@
-import { createRoute } from "@tanstack/react-router";
+import { createRoute, redirect } from "@tanstack/react-router";
 import { RootRoute } from "./__root";
 import HomePage from "../pages/home-page";
 import NotePage from "../pages/note-page";
 import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from "zod";
+import SignInPage from "../pages/sign-in-page";
+import { AuthenticatedLayout } from "../layouts/authenticated-layout";
+import { getClient } from "../lib/api";
 
 // TODO: Steps to add a new route:
 // 1. Create a new page component in the '../pages/' directory (e.g., NewPage.tsx)
@@ -24,6 +27,22 @@ import { z } from "zod";
 // 4. Add to routeTree: RootRoute.addChildren([HomeRoute, NewRoute, ...])
 // 5. Add Link: <Link to="/new">New Page</Link>
 
+export const AuthenticatedLayoutRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/_authenticated",
+  component: AuthenticatedLayout,
+  beforeLoad: async ({ context }) => {
+    const api = await getClient()
+
+    const response = await api.auth["get-session"].$get()
+    const body = await response.json()
+
+    if (!body) {
+      throw redirect({ to: "/sign-in" })
+    }
+  },
+});
+
 export const HomeRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: "/",
@@ -32,11 +51,17 @@ export const HomeRoute = createRoute({
 
 export const NoteRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: "/note",
+  path: "/_authenticated/note",
   validateSearch: zodValidator(z.object({
     id: z.number().optional(),
   })),
   component: NotePage,
 });
 
-export const rootTree = RootRoute.addChildren([HomeRoute, NoteRoute]);
+export const SignInRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: "/sign-in",
+  component: SignInPage,
+});
+
+export const rootTree = RootRoute.addChildren([HomeRoute, NoteRoute, SignInRoute, AuthenticatedLayoutRoute,]);
