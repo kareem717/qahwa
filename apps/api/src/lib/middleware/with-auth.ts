@@ -2,27 +2,32 @@ import { createMiddleware } from 'hono/factory'
 import { createAuthClient } from '../auth';
 import { Context } from 'hono';
 import { AuthType } from '@note/auth/types';
+import { HTTPException } from 'hono/http-exception';
 
-/**
- * Extends Hono's Context to include user and account objects
- */
-declare module "hono" {
-  interface ContextVariableMap {
-    user: AuthType["Variables"]["user"]
-    session: AuthType["Variables"]["session"]
+export const getAuth = (c: Context) => {
+  const client = c.get("authClient")
+  const session = c.get("session")
+  const user = c.get("user")
+
+  if (!client || !session || !user) {
+    return {
+      client: null,
+      session: null,
+      user: null,
+    }
+  }
+
+  return {
+    client: client as ReturnType<typeof createAuthClient>,
+    session: session as AuthType["Variables"]["session"],
+    user: user as AuthType["Variables"]["user"],
   }
 }
 
-export const getUser = (c: Context) => {
-  return c.get("user");
-};
-
-export const getSession = (c: Context) => {
-  return c.get("session");
-};
-
 export const withAuth = () => createMiddleware(async (c, next) => {
   const auth = createAuthClient()
+
+  c.set("authClient", auth)
 
   try {
     const resp = await auth.api.getSession({ headers: c.req.raw.headers })
@@ -32,13 +37,14 @@ export const withAuth = () => createMiddleware(async (c, next) => {
       c.set("session", resp.session)
       return await next()
     }
-
-    c.set("user", null)
-    c.set("session", null)
   } catch (e) {
     console.error(e)
-    //TODO: handle error
-    return c.json({ error: "Unauthorized" }, 401)
+
+    
+    throw new HTTPException(500, {
+      message: "Failed to get session",
+    })
   }
 
+  return await next()
 });

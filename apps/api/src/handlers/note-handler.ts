@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { withAuth } from '../lib/middleware/with-auth';
+import { withAuth, getAuth } from '../lib/middleware/with-auth';
 import { HTTPException } from 'hono/http-exception';
 import { env } from 'cloudflare:workers';
 import { zValidator } from '@hono/zod-validator';
@@ -15,8 +15,7 @@ export const noteHandler = () => new Hono()
   .get(
     "/",
     async (c) => {
-      const session = c.get("session")
-      const user = c.get("user")
+      const { session, user } = getAuth(c)
 
       if (!session || !user) {
         throw new HTTPException(401, {
@@ -55,8 +54,7 @@ export const noteHandler = () => new Hono()
       id: z.coerce.number()
     })),
     async (c) => {
-      const session = c.get("session")
-      const user = c.get("user")
+      const { session, user } = getAuth(c)
 
       if (!session || !user) {
         throw new HTTPException(401, {
@@ -93,8 +91,7 @@ export const noteHandler = () => new Hono()
       id: z.coerce.number()
     })),
     async (c) => {
-      const session = c.get("session")
-      const user = c.get("user")
+      const { session, user } = getAuth(c)
 
       if (!session || !user) {
         throw new HTTPException(401, {
@@ -143,8 +140,7 @@ export const noteHandler = () => new Hono()
       userNotes: true,
     }).partial()),
     async (c) => {
-      const session = c.get("session")
-      const user = c.get("user")
+      const { session, user } = getAuth(c)
 
       if (!session || !user) {
         throw new HTTPException(401, {

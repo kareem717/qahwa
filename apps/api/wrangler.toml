@@ -6,3 +6,15 @@ minify = true
 
 [dev]
 port = 8080
+
+[vars]
+LANDING_URL = "http://localhost:3000"
+ELECTRON_URL = "http://localhost:5173"
+DESKTOP_APP_PROTOCOL = "note-app"
+BETTER_AUTH_URL = "http://localhost:8080"
+
+[env.production.vars]
+LANDING_URL = "https://app.note.app"
+ELECTRON_URL = "https://app.note.app"
+DESKTOP_APP_PROTOCOL = "note-app"
+BETTER_AUTH_URL = "https://api.note.app"

@@ -1,10 +1,10 @@
 import React from "react";
-import { LoginButton } from "../components/auth/login-button";
+import { SignInForm } from "../components/auth/sign-in-form";
 
 export default function SignInPage() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <LoginButton />
+    <div className="flex flex-col items-center justify-center h-screen bg-accent">
+      <SignInForm />
     </div>
   );
 }

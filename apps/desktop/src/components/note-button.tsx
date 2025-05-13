@@ -44,7 +44,7 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
   return (
     <Link
       {...props}
-      to="/_authenticated/note"
+      to="/note"
       search={{
         id: note.id,
       }}

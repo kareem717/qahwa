@@ -3,8 +3,8 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@note/ui/components/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@note/ui/components/dropdown-menu';
 import { LogOut } from 'lucide-react';
-import { useAuth } from '@note/desktop/hooks/use-auth';
-import { LogoutDialog } from './logout-dialog';
+import { useAuth } from '../../components/providers/auth-provider';
+import { SignOutDialog } from './sign-out-dialog';
 import { cn } from '@note/ui/lib/utils';
 
 interface UserButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
@@ -12,22 +12,17 @@ interface UserButtonProps extends React.ComponentPropsWithoutRef<typeof Button> 
 
 // TODO: not sure why image not showing up
 export function UserButton({ className, ...props }: UserButtonProps) {
-  const { data, isLoading } = useAuth()
+  const { user } = useAuth()
 
-  // shouldn't be loading if caching is implemented
-  if (isLoading) {
-    return null
+  if (!user) {
+    throw new Error("UserButton: no user")
   }
 
-  if (!data) {
-    throw new Error("UserButton: no data")
-  }
-
-  const { user: {
+  const {
     name,
     image,
     email
-  } } = data
+  } = user
   console.log("IMAGE", image)
 
   const firstName = name.split(" ")[0]
@@ -76,20 +71,19 @@ export function UserButton({ className, ...props }: UserButtonProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <LogoutDialog>
-            {/* TODO: this shouldn't be this bad */}
+          <SignOutDialog>
             <Button variant="ghost" size="sm" className="w-full justify-start font-normal" >
               <LogOut className="size-4" />
-              Logout
+              Sign out
             </Button>
-          </LogoutDialog>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          {/* TODO: notice how different this is from the logout button */}
-          Control
+          </SignOutDialog>
         </DropdownMenuItem>
         {/* <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          TODO: notice how different this is from the logout button
+          Control
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <ModeToggle className="w-full" /> */}
       </DropdownMenuContent>
     </DropdownMenu>

@@ -85,7 +85,7 @@ function createWindow() {
 
   // @ts-expect-error 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-  // @ts-expect-error 
+    // @ts-expect-error 
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     mainWindow.loadFile(

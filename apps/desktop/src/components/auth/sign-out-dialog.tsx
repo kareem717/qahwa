@@ -1,0 +1,55 @@
+import { Button } from '@note/ui/components/button';
+import React from 'react';
+import { useAuth } from '../providers/auth-provider';
+import { Loader2 } from 'lucide-react';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogTrigger, DialogFooter } from '@note/ui/components/dialog';
+
+interface SignOutDialogProps extends React.ComponentPropsWithoutRef<typeof Dialog> {
+  onLogout?: () => void;
+  contentProps?: React.ComponentPropsWithoutRef<typeof DialogContent>;
+  children?: React.ReactNode;
+}
+
+export function SignOutDialog({ onLogout, contentProps, children, ...props }: SignOutDialogProps) {
+  const { signOut, isSigningOut } = useAuth()
+  const [isOpen, setIsOpen] = React.useState(false)
+
+  async function handleLogout() {
+    const { success } = await signOut()
+
+    if (success) {
+      // TODO: would like to avoid reloading the page
+      window.location.reload()
+      onLogout?.()
+      setIsOpen(false)
+    }
+  }
+
+  function toggleOpen() {
+    setIsOpen(!isOpen)
+    props.onOpenChange?.(isOpen)
+  }
+
+  return (
+    <Dialog {...props} open={isOpen} onOpenChange={toggleOpen}>
+      <DialogTrigger asChild>
+        {children ? children : <Button variant="outline">Sign out</Button>}
+      </DialogTrigger>
+      <DialogContent {...contentProps}>
+        <DialogHeader>
+          <DialogTitle>Are you absolutely sure?</DialogTitle>
+          <DialogDescription>
+            This will sign you out of your account.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button onClick={() => toggleOpen()}>Cancel</Button>
+          <Button onClick={handleLogout} disabled={isSigningOut} variant="secondary">
+            {isSigningOut && <Loader2 className="size-4 animate-spin mr-2" />}
+            Sign out
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
