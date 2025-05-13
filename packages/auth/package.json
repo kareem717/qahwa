@@ -1,0 +1,20 @@
+{
+  "name": "@note/auth",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "@note/db": "workspace:*"
+  },
+  "exports": {
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts",
+    "./types": "./src/types.ts"
+  },
+  "dependencies": {
+    "better-auth": "^1.2.7"
+  }
+}

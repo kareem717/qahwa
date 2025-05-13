@@ -1,16 +1,18 @@
 import { signIn } from "@note/landing/lib/auth-client"; //import the auth client
 import { Button } from "@note/ui/components/button";
-import { ComponentPropsWithRef } from "react";
-import { cn } from "@note/ui/lib/utils";
+import { ComponentPropsWithRef, useState } from "react";
 
-interface LoginButtonProps extends ComponentPropsWithRef<typeof Button> {
+interface SignInButtonProps extends ComponentPropsWithRef<typeof Button> {
   provider: "google";
-  redirect?: "web" | "desktop"
+  redirect?: string
 }
 
-export function LoginButton({ className, provider, redirect = "web", ...props }: LoginButtonProps) {
+export function SignInButton({ className, provider, redirect, children = "Sign In", ...props }: SignInButtonProps) {
+  const [isLoading, setIsLoading] = useState(false)
+
   async function handleLogin() {
-    const callbackURL = import.meta.env.VITE_APP_URL + (redirect === "web" ? "" : "/app-redirect")
+    setIsLoading(true)
+    const callbackURL = import.meta.env.VITE_APP_URL + (redirect || "/")
 
     await signIn.social({
       /**
@@ -36,8 +38,23 @@ export function LoginButton({ className, provider, redirect = "web", ...props }:
        * @default false
        */
       // disableRedirect: true,
+      fetchOptions: {
+        onError: (error) => {
+          setIsLoading(false)
+          console.error(error)
+        }
+      }
     });
   }
 
-  return <Button onClick={handleLogin} className={cn(className)} {...props}>Login</Button>;
+  return (
+    <Button
+      onClick={handleLogin}
+      className={className}
+      {...props}
+      disabled={isLoading}
+    >
+      {children}
+    </Button>
+  );
 }

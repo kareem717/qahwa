@@ -11,22 +11,16 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as SignInImport } from './routes/sign-in'
-import { Route as AppRedirectImport } from './routes/app-redirect'
+import { Route as AuthRouteImport } from './routes/_auth/route'
 import { Route as IndexImport } from './routes/index'
-import { Route as AuthAppImport } from './routes/auth.app'
+import { Route as AuthSignOutImport } from './routes/_auth/sign-out'
+import { Route as AuthSignInImport } from './routes/_auth/sign-in'
+import { Route as AuthAppRedirectImport } from './routes/_auth/app-redirect'
 
 // Create/Update Routes
 
-const SignInRoute = SignInImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AppRedirectRoute = AppRedirectImport.update({
-  id: '/app-redirect',
-  path: '/app-redirect',
+const AuthRouteRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -36,10 +30,22 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AuthAppRoute = AuthAppImport.update({
-  id: '/auth/app',
-  path: '/auth/app',
-  getParentRoute: () => rootRoute,
+const AuthSignOutRoute = AuthSignOutImport.update({
+  id: '/sign-out',
+  path: '/sign-out',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+
+const AuthSignInRoute = AuthSignInImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+
+const AuthAppRedirectRoute = AuthAppRedirectImport.update({
+  id: '/app-redirect',
+  path: '/app-redirect',
+  getParentRoute: () => AuthRouteRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -53,75 +59,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/app-redirect': {
-      id: '/app-redirect'
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_auth/app-redirect': {
+      id: '/_auth/app-redirect'
       path: '/app-redirect'
       fullPath: '/app-redirect'
-      preLoaderRoute: typeof AppRedirectImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthAppRedirectImport
+      parentRoute: typeof AuthRouteImport
     }
-    '/sign-in': {
-      id: '/sign-in'
+    '/_auth/sign-in': {
+      id: '/_auth/sign-in'
       path: '/sign-in'
       fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthSignInImport
+      parentRoute: typeof AuthRouteImport
     }
-    '/auth/app': {
-      id: '/auth/app'
-      path: '/auth/app'
-      fullPath: '/auth/app'
-      preLoaderRoute: typeof AuthAppImport
-      parentRoute: typeof rootRoute
+    '/_auth/sign-out': {
+      id: '/_auth/sign-out'
+      path: '/sign-out'
+      fullPath: '/sign-out'
+      preLoaderRoute: typeof AuthSignOutImport
+      parentRoute: typeof AuthRouteImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AuthRouteRouteChildren {
+  AuthAppRedirectRoute: typeof AuthAppRedirectRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignOutRoute: typeof AuthSignOutRoute
+}
+
+const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthAppRedirectRoute: AuthAppRedirectRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  AuthSignOutRoute: AuthSignOutRoute,
+}
+
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
+  AuthRouteRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app-redirect': typeof AppRedirectRoute
-  '/sign-in': typeof SignInRoute
-  '/auth/app': typeof AuthAppRoute
+  '': typeof AuthRouteRouteWithChildren
+  '/app-redirect': typeof AuthAppRedirectRoute
+  '/sign-in': typeof AuthSignInRoute
+  '/sign-out': typeof AuthSignOutRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app-redirect': typeof AppRedirectRoute
-  '/sign-in': typeof SignInRoute
-  '/auth/app': typeof AuthAppRoute
+  '': typeof AuthRouteRouteWithChildren
+  '/app-redirect': typeof AuthAppRedirectRoute
+  '/sign-in': typeof AuthSignInRoute
+  '/sign-out': typeof AuthSignOutRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/app-redirect': typeof AppRedirectRoute
-  '/sign-in': typeof SignInRoute
-  '/auth/app': typeof AuthAppRoute
+  '/_auth': typeof AuthRouteRouteWithChildren
+  '/_auth/app-redirect': typeof AuthAppRedirectRoute
+  '/_auth/sign-in': typeof AuthSignInRoute
+  '/_auth/sign-out': typeof AuthSignOutRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app-redirect' | '/sign-in' | '/auth/app'
+  fullPaths: '/' | '' | '/app-redirect' | '/sign-in' | '/sign-out'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app-redirect' | '/sign-in' | '/auth/app'
-  id: '__root__' | '/' | '/app-redirect' | '/sign-in' | '/auth/app'
+  to: '/' | '' | '/app-redirect' | '/sign-in' | '/sign-out'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/_auth/app-redirect'
+    | '/_auth/sign-in'
+    | '/_auth/sign-out'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRedirectRoute: typeof AppRedirectRoute
-  SignInRoute: typeof SignInRoute
-  AuthAppRoute: typeof AuthAppRoute
+  AuthRouteRoute: typeof AuthRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRedirectRoute: AppRedirectRoute,
-  SignInRoute: SignInRoute,
-  AuthAppRoute: AuthAppRoute,
+  AuthRouteRoute: AuthRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -135,22 +169,31 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/app-redirect",
-        "/sign-in",
-        "/auth/app"
+        "/_auth"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/app-redirect": {
-      "filePath": "app-redirect.tsx"
+    "/_auth": {
+      "filePath": "_auth/route.tsx",
+      "children": [
+        "/_auth/app-redirect",
+        "/_auth/sign-in",
+        "/_auth/sign-out"
+      ]
     },
-    "/sign-in": {
-      "filePath": "sign-in.tsx"
+    "/_auth/app-redirect": {
+      "filePath": "_auth/app-redirect.tsx",
+      "parent": "/_auth"
     },
-    "/auth/app": {
-      "filePath": "auth.app.tsx"
+    "/_auth/sign-in": {
+      "filePath": "_auth/sign-in.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/sign-out": {
+      "filePath": "_auth/sign-out.tsx",
+      "parent": "/_auth"
     }
   }
 }

@@ -1,6 +1,7 @@
 import { createMiddleware } from 'hono/factory'
-import { AuthType, createAuth } from '../auth';
+import { createAuthClient } from '../auth';
 import { Context } from 'hono';
+import { AuthType } from '@note/auth/types';
 
 /**
  * Extends Hono's Context to include user and account objects
@@ -21,13 +22,9 @@ export const getSession = (c: Context) => {
 };
 
 export const withAuth = () => createMiddleware(async (c, next) => {
-  const auth = createAuth()
+  const auth = createAuthClient()
 
   const resp = await auth.api.getSession({ headers: c.req.raw.headers })
-
-  // console.log(await auth.api.getSession({ headers: c.req.raw.headers }))
-  // console.log(c.req.raw.headers.get("authorization"))
-
 
   if (resp) {
     c.set("user", resp.user)

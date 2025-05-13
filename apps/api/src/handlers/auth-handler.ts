@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
-import { createAuth } from '../lib/auth';
+import { createAuthClient } from '../lib/auth';
 import { withAuth } from '../lib/middleware/with-auth';
+
+const APP_API_KEY_NAME = "app"
 
 export const authHandler = () => new Hono()
   .use("*", withAuth())
@@ -15,4 +17,77 @@ export const authHandler = () => new Hono()
         user,
       }) : c.json(null)
     })
-  .on(["POST", "GET"], "/*", (c) => createAuth().handler(c.req.raw))
+  .get(
+    "/key",
+    async (c) => {
+      const session = c.get("session")
+      const user = c.get("user")
+      console.log("HERE", session, user, !session)
+
+      if (!session) {
+        return c.json({
+          error: "Unauthorized",
+        }, 401)
+      }
+
+      const authClient = createAuthClient()
+
+      let existingApiKeys = []
+      try {
+        existingApiKeys = await authClient.api.listApiKeys({
+          headers: c.req.raw.headers
+        })
+      } catch (error) {
+        console.error(error)
+
+        return c.json({
+          error: "Failed to list API keys",
+        }, 500)
+      }
+      console.log("EXISTING API KEYS", existingApiKeys)
+
+      const existingAppKey = existingApiKeys.find((key) => key.name === APP_API_KEY_NAME)
+
+      if (existingAppKey) {
+        try {
+          // We delete the original one because better auth doesn't expose the actual key value
+          // we can access it through drizzle but I think that's bad practice
+          await authClient.api.deleteApiKey({
+            body: {
+              keyId: existingAppKey.id,
+            },
+            headers: c.req.raw.headers
+          })
+
+          console.log("DELETED KEY", existingAppKey)
+        } catch (error) {
+          console.error(error)
+
+          return c.json({
+            error: "Failed to delete API key",
+          }, 500)
+        }
+      }
+
+      try {
+        const newApiKey = await authClient.api.createApiKey({
+          body: {
+            name: APP_API_KEY_NAME,
+            userId: session.userId,
+          }
+        })
+
+        console.log("NEW KEY", newApiKey)
+        return c.json({
+          key: newApiKey.key,
+        })
+      } catch (error) {
+        console.error(error)
+
+        return c.json({
+          error: "Failed to create API key",
+        }, 500)
+      }
+    }
+  )
+  .on(["POST", "GET"], "/*", (c) => createAuthClient().handler(c.req.raw))

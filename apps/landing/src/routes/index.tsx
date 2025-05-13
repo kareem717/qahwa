@@ -1,37 +1,50 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { WaitlistForm } from '@note/landing/components/waitlist-form'
-import { LoginButton } from '@note/landing/components/auth/login-button'
-import { useSession, signOut } from '../lib/auth-client'
-import { Button, buttonVariants } from '@note/ui/components/button'
-
-
+import { createFileRoute } from '@tanstack/react-router'
+import { Typewriter } from '@note/ui/components/ui/typewriter'
+import { XIcon } from '../components/icons'
+import { DownloadTeaser } from '../components/download-teaser'
 export const Route = createFileRoute('/')({
   component: HomeComponent,
 })
 
 function HomeComponent() {
-  const { data, isPending } = useSession()
-
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <header className="mb-10 text-center">
-        <h1 className="text-5xl font-bold mb-3">Note</h1>
-        <p className="text-xl text-muted-foreground">
-          Best way to take notes.
+    <div className="flex flex-col items-center justify-between h-screen relative p-4 container mx-auto">
+      <header className="w-full font-bold text-2xl tracking-wide">text.</header>
+      <section className="flex flex-col items-center justify-center">
+        <h1 className="text-5xl font-bold mb-3">note.</h1>
+        <p className="text-xl text-muted-foreground flex items-center gap-1">
+          <span>AI note compiler for</span>
+          <Typewriter
+            text={[
+              "sales calls",
+              "standups",
+              "lectures",
+              "meetings"
+            ]}
+            speed={70}
+            className="text-primary"
+            waitTime={1500}
+            deleteSpeed={40}
+            cursorChar={"_"}
+          />
         </p>
-      </header>
-      <div className="flex flex-col items-center justify-center gap-4">
-        <p className="text-xl">
-          Get notified when we launch.
+        <div className="grid grid-cols-2 gap-2 w-xs mx-auto mt-12">
+          <DownloadTeaser>
+            MAC
+          </DownloadTeaser>
+          <DownloadTeaser>
+            WINDOWS
+          </DownloadTeaser>
+        </div>
+      </section>
+      <footer className="flex items-center justify-between gap-4 w-full px-4">
+        <p className="text-muted-foreground text-xs">
+          © {new Date().getFullYear()} the text company.
         </p>
-        <WaitlistForm />
-      </div>
-      <div className="flex flex-col items-center justify-center gap-4">
-        {isPending ? <p>Loading...</p> : data?.session ?
-          <Button onClick={() => signOut()}>Sign out</Button> :
-          <Link to="/sign-in" className={buttonVariants()}>Sign in</Link>
-        }
-      </div>
+        <a href="https://x.com/bootbig76" target="_blank" rel="noopener noreferrer">
+          <XIcon className="size-4" />
+        </a>
+      </footer>
     </div>
   )
 }

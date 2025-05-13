@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-router'
 
 import appCss from "@note/ui/styles/globals.css?url";
+import { Toaster } from "sonner";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -36,6 +37,7 @@ function RootComponent() {
   return (
     <RootDocument>
       <Outlet />
+      <Toaster />
     </RootDocument>
   )
 }
