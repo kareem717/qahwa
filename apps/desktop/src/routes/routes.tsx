@@ -1,11 +1,10 @@
-import { createRoute, redirect } from "@tanstack/react-router";
+import { createRoute } from "@tanstack/react-router";
 import { RootRoute } from "./__root";
 import HomePage from "../pages/home-page";
 import NotePage from "../pages/note-page";
 import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from "zod";
 import SignInPage from "../pages/sign-in-page";
-import { AuthenticatedLayout } from "../layouts/authenticated-layout";
 
 // TODO: Steps to add a new route:
 // 1. Create a new page component in the '../pages/' directory (e.g., NewPage.tsx)
@@ -36,7 +35,8 @@ export const NoteRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: "/note",
   validateSearch: zodValidator(z.object({
-    id: z.number().optional(),
+    id: z.coerce.number().optional().default(0),
+    title: z.string().optional().default(""),
   })),
   component: NotePage,
 });

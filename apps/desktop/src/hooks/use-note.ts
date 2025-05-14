@@ -18,26 +18,43 @@ export function useUserNotes() {
 }
 
 export function useNote({
-  noteId,
-  enabled = true,
+  id,
+  title,
+  enabled = false,
 }: {
-  noteId: number
-  enabled?: boolean
+  id: number
+  title: string
+  enabled: boolean
 }) {
   return useQuery({
-    queryKey: [NOTE_QUERY_KEY, noteId],
+    queryKey: [NOTE_QUERY_KEY, id],
     queryFn: async () => {
+      if (!id) {
+        return undefined
+      }
+
       const api = await getClient()
 
       const response = await api.note[":id"].$get({
         param: {
-          id: noteId.toString(),
+          id: id.toString(),
         },
       })
 
       const body = await response.json()
-      return body.note || undefined
+      return body.note
     },
     enabled,
+    initialData: {
+      id: id,
+      userId: 0,
+      title: title || "",
+      transcript: [],
+      userNotes: "" as never,
+      generatedNotes: "" as never,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    staleTime: 60 * 1000,
   })
 }

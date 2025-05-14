@@ -47,6 +47,7 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
       to="/note"
       search={{
         id: note.id,
+        title: note.title,
       }}
       className={
         cn(

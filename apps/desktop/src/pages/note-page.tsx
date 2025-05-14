@@ -9,10 +9,11 @@ import { ScrollArea } from "@note/ui/components/scroll-area";
 import { AuthenticatedLayout } from "../layouts/authenticated-layout";
 
 export default function NotePage() {
-  const { id } = NoteRoute.useSearch()
+  const search = NoteRoute.useSearch()
+
   const { data, isLoading } = useNote({
-    noteId: id || 0,
-    enabled: id !== undefined,
+    ...search,
+    enabled: search.id > 0,
   })
 
   return (
@@ -27,10 +28,7 @@ export default function NotePage() {
               <div className="flex flex-col items-center justify-center h-full w-full relative">
                 <NoteEditor initialData={data} />
                 <TranscriptRecorder
-                  initialData={{
-                    transcript: data?.transcript,
-                    id: data?.id
-                  }}
+                  initialData={data}
                   className="fixed bottom-6 -translate-x-1/2 left-1/2 z-10"
                 />
               </div>
