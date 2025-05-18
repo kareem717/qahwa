@@ -5,6 +5,8 @@ import NotePage from "../pages/note-page";
 import { zodValidator } from '@tanstack/zod-adapter'
 import { z } from "zod";
 import SignInPage from "../pages/sign-in-page";
+import { fullNoteCollection } from "../lib/collections/notes";
+import { preloadCollection } from "@tanstack/react-db";
 
 // TODO: Steps to add a new route:
 // 1. Create a new page component in the '../pages/' directory (e.g., NewPage.tsx)

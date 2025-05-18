@@ -1,8 +1,10 @@
 import React from "react"
 import { getClient } from "../lib/api"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { NOTE_QUERY_KEY } from "./use-note"
 import { toast } from "sonner"
+import { fullNoteCollection } from "../lib/collections/notes"
+import { useLiveQuery } from "@tanstack/react-db";
+import { asyncDebounce } from "@tanstack/pacer";
+import { useOptimisticMutation } from "@tanstack/react-db";
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -83,7 +85,7 @@ function stopMicAudioCapture(state: MicAudioRecorderState) {
 
 async function getAssemblyAiToken() {
   const client = await getClient();
-  const tokenResponse = await client.transcription.token.$get();
+  const tokenResponse = await client.note.transcribe.$get();
   const { token } = await tokenResponse.json();
   if (!token) {
     throw new Error("Failed to retrieve AssemblyAI token.");
@@ -129,26 +131,62 @@ function cleanupAudioIpc(audioIpcCleanupRef: React.MutableRefObject<(() => void)
   }
 }
 
-export type UseTranscriptProps = {
-  transcript?: {
-    timestamp: string
-    text: string
-    sender: "me" | "them"
-    // channel: "system" | "mic"
-  }[]
-  id?: number
-}
-
-export function useTranscript(initialData?: UseTranscriptProps) {
-  // State
-  const [data, setData] = React.useState<UseTranscriptProps>({
-    transcript: initialData?.transcript ?? [],
-    id: initialData?.id ?? undefined,
+const updateNote = asyncDebounce(async (id: number, transcript: {
+  timestamp: string
+  text: string
+  sender: "me" | "them"
+}[]) => {
+  const api = await getClient()
+  await api.note[":id"].$patch({
+    param: {
+      id: id.toString()
+    },
+    json: {
+      transcript: transcript
+    }
   })
+}, {
+  wait: 1500, // too low causes data inconsistency between collections
+})
+
+export function useTranscript(noteId: number) {
+  const noteCollection = fullNoteCollection(noteId)
+
+  const { data } = useLiveQuery((query) =>
+    query
+      .from({ noteCollection })
+      .select("@transcript", "@id")
+      .keyBy("@id")
+  )
+  const transcript = data[0]?.transcript ?? []
   const [partialTranscript, setPartialTranscript] = React.useState<{
     them: string
     me: string
   }>({ them: "", me: "" })
+
+  const { mutate } = useOptimisticMutation({
+    mutationFn: async ({ transaction }) => {
+      const { changes: note } = transaction.mutations[0]!
+
+      await updateNote(noteId, note.transcript as any)
+
+      // TODO: causes all of the notes in the collection to get the same updatedAt - or atleast I think its coming from here
+      await noteCollection.invalidate()
+    },
+  })
+
+  function handleTranscriptChange(transcript: {
+    timestamp: string
+    text: string
+    sender: "me" | "them"
+  }[]) {
+    mutate(() => {
+      noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
+        draft.transcript = [...(draft.transcript ?? []), ...transcript]
+      })
+    })
+  }
+
   const [isLoading, setIsLoading] = React.useState(false)
   const [isRecording, setIsRecording] = React.useState(false)
 
@@ -158,47 +196,8 @@ export function useTranscript(initialData?: UseTranscriptProps) {
   const audioIpcCleanupRef = React.useRef<(() => void) | null>(null); // To store cleanup from startCapture
   const micRecorderRef = React.useRef<MicAudioRecorderState | null>(null);
 
-  // React Query
-  const queryClient = useQueryClient()
-  const { mutateAsync: upsertNote } = useMutation({
-    mutationFn: async () => {
-      const api = await getClient()
-      // Only send transcript if it has content
-      const transcriptToSend = data.transcript?.length ? data.transcript : undefined;
-      if (!data.id && !transcriptToSend) {
-        console.log("Skipping upsert: No ID and no transcript content.");
-        return { note: { id: undefined } }; // Return dummy response if nothing to save
-      }
-      const response = await api.note.$put({
-        json: {
-          id: data.id ?? undefined,
-          transcript: transcriptToSend,
-        },
-      })
-      return await response.json()
-    },
-    onMutate: () => {
-      if (data.transcript?.length || data.id) { // Only show toast if something is being saved
-        toast.success("Saving transcript...")
-      }
-    },
-    onSuccess: ({ note }) => {
-      if (note.id) { // Check if an ID was returned (meaning save happened)
-        toast.success("Transcript saved")
-        setData((prev) => ({
-          ...prev,
-          id: note.id,
-        }))
-        queryClient.invalidateQueries({ queryKey: [NOTE_QUERY_KEY, note.id] })
-      }
-    },
-    onError: () => {
-      toast.error("Failed to save transcript")
-    },
-  })
 
   // --- Main Recording Logic ---
-
   const stopRecording = React.useCallback(() => {
     console.log("Stopping recording...");
     setIsLoading(false); // Ensure loading is false when stopped
@@ -320,11 +319,7 @@ export function useTranscript(initialData?: UseTranscriptProps) {
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, them: "" }));
-                  setData((prev) => ({
-                    ...prev,
-                    transcript: [...(prev.transcript ?? []), { text: message.text, sender: "them", timestamp: new Date().toISOString() }],
-                  }));
-                  upsertNote();
+                  handleTranscriptChange([{ text: message.text, sender: "them", timestamp: new Date().toISOString() }])
                 }
                 break;
               case "SessionTerminated":
@@ -380,11 +375,7 @@ export function useTranscript(initialData?: UseTranscriptProps) {
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, me: "" }));
-                  setData((prev) => ({
-                    ...prev,
-                    transcript: [...(prev.transcript ?? []), { text: message.text, sender: "me", timestamp: new Date().toISOString() }],
-                  }));
-                  upsertNote();
+                  handleTranscriptChange([{ text: message.text, sender: "me", timestamp: new Date().toISOString() }])
                 }
                 break;
               case "SessionTerminated":
@@ -420,7 +411,7 @@ export function useTranscript(initialData?: UseTranscriptProps) {
       toast.error(`Error starting recording: ${error instanceof Error ? error.message : String(error)}`);
       stopRecording();
     }
-  }, [isRecording, isLoading, upsertNote, stopRecording, audioIpcCleanupRef, systemSocketRef, micSocketRef, micRecorderRef]);
+  }, [isRecording, isLoading, stopRecording, audioIpcCleanupRef, systemSocketRef, micSocketRef, micRecorderRef]);
 
   // Effect for automatic cleanup on unmount
   React.useEffect(() => {
@@ -434,14 +425,12 @@ export function useTranscript(initialData?: UseTranscriptProps) {
     };
   }, [stopRecording]); // Dependency on stopRecording
 
-
   return {
-    transcript: data.transcript,
+    transcript,
     partialTranscript,
     isRecording, // Use the combined state
     isLoading,   // Use the combined state
     startRecording,
-    stopRecording,
-    transcriptId: data.id // Expose the ID
+    stopRecording
   }
 }

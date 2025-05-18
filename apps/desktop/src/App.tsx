@@ -6,11 +6,10 @@ import "./lib/localization/i18n";
 import { updateAppLanguage } from "./lib/helpers/language_helpers";
 import { router } from "./routes/router";
 import { RouterProvider } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner"
 import { AuthProvider } from "./components/providers/auth-provider";
-
-const queryClient = new QueryClient()
+import { getQueryClient } from "./lib/query-client";
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -42,7 +41,7 @@ export default function App() {
   }, [i18n]);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={getQueryClient()}>
       <AuthProvider>
         <RouterProvider router={router} />
       </AuthProvider>

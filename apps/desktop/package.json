@@ -60,11 +60,16 @@
     "vitest": "^3.1.2"
   },
   "dependencies": {
+    "@electric-sql/d2ts": "^0.1.5",
     "@note/osx-audio": "workspace:*",
-    "@note/ui": "workspace:*",
     "@note/sdk": "workspace:*",
+    "@note/ui": "workspace:*",
     "@tailwindcss/vite": "^4.1.4",
+    "@tanstack/db": "^0.0.2",
+    "@tanstack/db-collections": "^0.0.2",
     "@tanstack/history": "^1.115.0",
+    "@tanstack/pacer": "^0.6.0",
+    "@tanstack/react-db": "^0.0.2",
     "@tanstack/react-query": "^5.74.7",
     "@tanstack/react-router": "^1.117.1",
     "@tanstack/react-store": "^0.7.0",

@@ -36,6 +36,13 @@
       "when": 1747008751831,
       "tag": "0004_tough_felicia_hardy",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747447455981,
+      "tag": "0005_solid_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

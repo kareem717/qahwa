@@ -1,5 +1,4 @@
 import React from "react";
-import { useUserNotes } from "../hooks/use-note";
 import { NoteButton, SimpleNote } from "../components/note-button";
 import { Header } from "../components/header";
 import { Badge } from "@note/ui/components/badge";
@@ -10,6 +9,8 @@ import { UserButton } from "../components/auth/user-button";
 import { ScrollArea } from "@note/ui/components/scroll-area";
 import { useAuth } from "../components/providers/auth-provider";
 import { AuthenticatedLayout } from "../layouts/authenticated-layout";
+import { useLiveQuery } from "@tanstack/react-db";
+import { notesCollection } from "../lib/collections/notes";
 
 const today = new Date();
 const yesterday = new Date(today);
@@ -20,7 +21,7 @@ function formatDate(dateString: string | null) {
   if (!dateString) return "Unknown Date"; // Handle null dateString
   const date = new Date(dateString);
 
-
+  // TODO: does not show year
   if (date.toDateString() === today.toDateString()) {
     return "Today";
   } else if (date.toDateString() === yesterday.toDateString()) {
@@ -36,6 +37,7 @@ function formatDate(dateString: string | null) {
 
 // Helper function to group notes by date
 function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
+  
   if (!notes || notes.length === 0) return {};
   return notes.reduce((acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
     const dateKey = formatDate(note.updatedAt);
@@ -48,9 +50,17 @@ function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
 };
 
 export default function HomePage() {
-  const { data, isLoading } = useUserNotes();
+  // const { data, isLoading } = useUserNotes();
+  const { data: notes } = useLiveQuery((query) =>
+    query
+      .from({ notesCollection })
+      .select("@*")
+      .keyBy("@id")
+  )
+
   const { user } = useAuth();
-  const groupedNotes = groupNotesByDate(data || []);
+
+  const groupedNotes = groupNotesByDate(notes);
   const dateKeys = Object.keys(groupedNotes);
 
   // TODO: this shouldn't be full screen but scroll-view in the base layout makes h-full not work
@@ -91,9 +101,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex h-full flex-col items-center bg-accent/50 py-12 px-8">
-              {isLoading ? (
-                <div className="w-full text-center">Loading notes...</div>
-              ) : data && data.length > 0 ?
+              {notes.length > 0 ?
                 (dateKeys.map((dateKey) => (
                   <div key={dateKey} className="flex flex-col gap-2 container mx-auto mb-8 last:mb-0">
                     <h2 className="text-xl font-semibold">

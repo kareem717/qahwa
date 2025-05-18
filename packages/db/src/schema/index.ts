@@ -13,8 +13,8 @@ export const notes = pgTable(
       sender: "me" | "them",
       text: string,
     }[]>().notNull().default([]),
-    userNotes: jsonb(),
-    generatedNotes: jsonb(),
+    userNotes: text(),
+    generatedNotes: text(),
     createdAt: timestamp(
       {
         withTimezone: true,

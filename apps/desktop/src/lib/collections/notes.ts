@@ -1,0 +1,85 @@
+import { createQueryCollection, QueryCollection } from "@tanstack/db-collections"
+import type { Note } from "@note/db/types"
+import { SelectNoteSchema } from "@note/db/validation"
+import { getClient } from "../api"
+import { getQueryClient } from "../query-client"
+import { useLiveQuery } from "@tanstack/react-db"
+
+export const NOTES_COLLECTION_KEY = "notes"
+
+export const notesCollection = createQueryCollection<Pick<Note, "id" | "title" | "updatedAt">>({
+  queryClient: getQueryClient(),
+  id: NOTES_COLLECTION_KEY,
+  queryKey: [NOTES_COLLECTION_KEY],
+  queryFn: async () => {
+    const api = await getClient()
+    const response = await api.note.$get()
+
+    if (!response.ok) {
+      console.error("Error fetching notes", response)
+      throw new Error("Error fetching notes")
+    }
+
+    const { notes } = await response.json()
+
+    return notes
+  },
+  getId: (item) => String(item.id),
+  schema: SelectNoteSchema.pick({ id: true, title: true, updatedAt: true }), // any standard schema
+})
+
+const FULL_NOTE_COLLECTION_KEY = "full-note"
+
+// Define the maximum size for the cache
+const MAX_FULL_NOTE_CACHE_SIZE = 2; // Example: Max 50 items
+
+const fullNoteCollectionCache = new Map<number, QueryCollection<Note>>()
+
+export const fullNoteCollection = (id: number) => {
+  if (fullNoteCollectionCache.has(id)) {
+    const collection = fullNoteCollectionCache.get(id)!
+    // For LRU: remove and re-set to mark as most recently used
+    fullNoteCollectionCache.delete(id)
+    fullNoteCollectionCache.set(id, collection)
+    return collection
+  }
+
+
+  const collection = createQueryCollection<Note>({
+    queryClient: getQueryClient(),
+    id: FULL_NOTE_COLLECTION_KEY,
+    queryKey: [FULL_NOTE_COLLECTION_KEY, id],
+    queryFn: async () => {
+      const api = await getClient()
+      const response = await api.note[":id"].$get({
+        param: { id: id.toString() },
+      })
+
+      if (!response.ok) {
+        throw new Error("Error fetching notes")
+      }
+
+      const { note } = await response.json()
+
+      return [note]
+    },
+    getId: (item) => String(item.id),
+    schema: SelectNoteSchema, // any standard schema
+  })
+
+  // Before adding the new item, check if the cache is at or over its max size
+  // Note: We check >= because we are about to add one more item.
+  // If size is currently 49 and MAX is 50, after adding it will be 50 (ok).
+  // If size is currently 50 and MAX is 50, after adding it will be 51 (needs eviction).
+  if (fullNoteCollectionCache.size >= MAX_FULL_NOTE_CACHE_SIZE) {
+    // Evict the least recently used item (the first item in iteration order for a Map)
+    const oldestKey = fullNoteCollectionCache.keys().next().value
+    if (oldestKey !== undefined) { // Ensure the cache wasn't empty or became empty concurrently
+      fullNoteCollectionCache.delete(oldestKey)
+    }
+  }
+
+  fullNoteCollectionCache.set(id, collection)
+
+  return collection
+}

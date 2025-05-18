@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import { env } from 'cloudflare:workers'
 import { cors } from 'hono/cors'
 import { authHandler } from './handlers/auth-handler'
-import { transcriptionHandler } from './handlers/transcription-handler'
 import { noteHandler } from './handlers/note-handler'
 import { waitlistEmail } from '@note/db/schema'
 import { zValidator } from '@hono/zod-validator';
@@ -18,7 +17,6 @@ const app = new Hono()
     })
   )
   .route('/auth', authHandler())
-  .route('/transcription', transcriptionHandler())
   .route('/note', noteHandler())
   .post(
     '/waitlist',

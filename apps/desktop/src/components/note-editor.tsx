@@ -3,101 +3,90 @@ import { Textarea } from "@note/ui/components/textarea";
 import { cn } from "@note/ui/lib/utils";
 import { Input } from "@note/ui/components/input";
 import { Note as NoteType } from "@note/db/types";
-import { useDebounce } from "use-debounce";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { NOTE_QUERY_KEY } from "../hooks/use-note";
-import { toast } from "sonner";
 import { getClient } from "../lib/api";
-
-type Note = Partial<Pick<NoteType, "title" | "userNotes" | "transcript" | "id">>
-
-// Helper function to compare relevant parts of the note
-function relevantNotePartsAreEqual(noteA: Note | undefined, noteB: Note | undefined): boolean {
-  if (!noteA && !noteB) return true;
-  if (!noteA || !noteB) return false;
-  // Compare only fields that are part of the upsert operation
-  if (noteA.title !== noteB.title) return false;
-  if (noteA.userNotes !== noteB.userNotes) return false;
-  // For transcript array, a common pragmatic check if elements are simple and order matters:
-  if (JSON.stringify(noteA.transcript) !== JSON.stringify(noteB.transcript)) return false;
-  return true;
-}
+import { useLiveQuery, useOptimisticMutation } from "@tanstack/react-db";
+import { fullNoteCollection, notesCollection } from "../lib/collections/notes";
+import { asyncDebounce } from '@tanstack/pacer'
 
 interface NoteEditorProps extends React.ComponentPropsWithoutRef<"div"> {
-  initialData?: Note;
+  noteId: number
 }
 
-export function NoteEditor({ initialData, className, ...props }: NoteEditorProps) {
-  const [note, setNote] = React.useState<Note>(initialData || {});
-  const [debouncedNote] = useDebounce(note, 500);
-  const queryClient = useQueryClient()
-  const initialDataAtMountRef = React.useRef<Note>(initialData || {});
-  const hasLoadedAndDebouncedOnceRef = React.useRef(false);
-
-  const { mutateAsync: upsertNote, isPending } = useMutation({
-    mutationFn: async (currentDebouncedNote: Note) => {
-      const api = await getClient()
-      const { id, title, userNotes, transcript } = currentDebouncedNote
-      const response = await api.note.$put({
-        json: {
-          id: id ?? undefined,
-          title: title ?? undefined,
-          userNotes: userNotes ?? undefined,
-          transcript: transcript ?? undefined,
-        },
-      })
-      return await response.json()
+const updateNote = asyncDebounce(async (id: number, note: Partial<Pick<NoteType, "title" | "userNotes" | "transcript">>) => {
+  const api = await getClient()
+  const resp = await api.note[":id"].$patch({
+    param: {
+      id: id.toString(),
     },
-    onMutate: () => {
-      toast.success("Saving note...")
+    json: {
+      title: note.title ?? undefined,
+      userNotes: note.userNotes ?? undefined,
+      transcript: note.transcript ?? undefined,
     },
-    onSuccess: ({ note }) => {
-      toast.success("Note saved")
-      queryClient.invalidateQueries({ queryKey: [NOTE_QUERY_KEY, note.id] })
-    },
-    onError: () => {
-      toast.error("Failed to save note")
-    }
   })
 
-  //TODO: implement abort
-  React.useEffect(() => {
-    // const source = axios.CancelToken.source();
-    // if (debouncedNote) {
-    //   // getCountries(debouncedNote, source.token)
-    //   //   .then(setCountries)
-    //   //   .catch((e) => {
-    //   //     if (axios.isCancel(source)) {
-    //   //       return;
-    //   //     }
-    //   //     setCountries([]);
-    //   //   });
-    // } else {
-    //   setCountries([]);
-    // }x
-    if (!hasLoadedAndDebouncedOnceRef.current) {
-      hasLoadedAndDebouncedOnceRef.current = true;
-      // Skip upsert on the very first debounce after mount
-      return;
-    }
+  const body = await resp.json()
 
-    // Only upsert if the relevant content has actually changed from the initial state
-    if (relevantNotePartsAreEqual(debouncedNote, initialDataAtMountRef.current)) {
-      // Content is the same as initial (and it's not the first load's debounce), so don't save.
-      return;
-    }
+  return body.note
+}, {
+  wait: 1500, // too low causes data inconsistency between collections
+})
 
-    if (debouncedNote) {
-      upsertNote(debouncedNote)
-    }
-    // return () => {
-    //   // source.cancel(
-    //   //   "Canceled because of component unmounted or debounce Text changed"
-    //   // );
-    // };
-  }, [debouncedNote, upsertNote]); // Added upsertNote to dependency array
+export function NoteEditor({ className, noteId, ...props }: NoteEditorProps) {
+  const noteCollection = fullNoteCollection(noteId)
+  const [isLoading, setIsLoading] = React.useState(true)
+  noteCollection.stateWhenReady().then((state) => {
+    setIsLoading(false)
+  })
 
-  // console.log(debouncedNote)
+  const { data } = useLiveQuery((query) =>
+    query
+      .from({ noteCollection })
+      .select("@*")
+      .keyBy("@id")
+  )
+
+  const { mutate } = useOptimisticMutation({
+    mutationFn: async ({ transaction }) => {
+      const { changes: note } = transaction.mutations[0]!
+
+      await updateNote(noteId, note)
+
+      // TODO: causes all of the notes in the collection to get the same updatedAt - or atleast I think its coming from here
+      await noteCollection.invalidate()
+
+      //TODO: For some reason this always chops a letter off the end of the title
+      // seems to happe when the `wait` is set too low (i.e. 500ms)
+      await notesCollection.invalidate()
+    },
+  })
+
+
+  // TODO: handle this better
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        Loading...
+      </div>
+    )
+  }
+
+  function handleChange(title?: string, userNotes?: string) {
+    mutate(() => {
+      noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
+        title ? draft.title = title : undefined
+        userNotes ? draft.userNotes = userNotes : undefined
+      })
+      if (title) {
+        notesCollection.update(notesCollection.state.get(noteId.toString())!, (draft) => {
+          draft.title = title
+          draft.updatedAt = new Date().toISOString() // for sorting
+        })
+      }
+    })
+  }
+
+  const note = data[0]!
   return (
     <div
       className={cn(className)}
@@ -107,13 +96,13 @@ export function NoteEditor({ initialData, className, ...props }: NoteEditorProps
         placeholder="Title"
         className="w-full"
         value={note.title}
-        onChange={(e) => setNote((prev) => ({ ...prev, title: e.target.value }))}
+        onChange={(e) => handleChange(e.target.value)}
       />
       <Textarea
-        value={note.userNotes as string}
-        onChange={(e) => setNote((prev) => ({ ...prev, userNotes: e.target.value }))}
+        value={note.userNotes ?? ""}
+        onChange={(e) => handleChange(undefined, e.target.value)}
       />
-      {isPending && <div>Saving...</div>}
+      {/* {isPending && <div>Saving...</div>} */}
     </div>
 
   );

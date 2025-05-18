@@ -7,7 +7,9 @@ import { toast } from "sonner"
 import { Link } from "@tanstack/react-router"
 import { getClient } from "../lib/api"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { NOTE_QUERY_KEY } from "../hooks/use-note"
+import { fullNoteCollection, notesCollection } from "../lib/collections/notes"
+import { PendingMutation } from "@tanstack/react-db"
+import { useOptimisticMutation } from "@tanstack/react-db"
 export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">
 
 interface NoteButtonProps extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
@@ -16,23 +18,19 @@ interface NoteButtonProps extends Omit<React.ComponentPropsWithoutRef<typeof Lin
 
 // TODO: doesn't shrink all the way
 export function NoteButton({ className, note, ...props }: NoteButtonProps) {
-  const queryClient = useQueryClient()
-  const { mutateAsync: deleteNote, isPending } = useMutation({
+  const deleteNote = useOptimisticMutation({
     mutationFn: async () => {
       const api = await getClient()
+
+      //todo: error handling
       await api.note[":id"].$delete({
         param: {
           id: note.id.toString()
         }
       })
+
+      notesCollection.invalidate()
     },
-    onSuccess: () => {
-      toast.success("Note deleted")
-      queryClient.invalidateQueries({ queryKey: [NOTE_QUERY_KEY] })
-    },
-    onError: () => {
-      toast.error("Failed to delete note")
-    }
   })
 
   const updatedClockTime = new Date(note.updatedAt)
@@ -71,11 +69,17 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
           size="icon"
           onClick={(e) => {
             e.stopPropagation()
-            deleteNote()
+            e.preventDefault()
+            deleteNote.mutate(() => {
+              notesCollection.delete(
+                Array.from(notesCollection.state.values()).find(
+                  (t) => t.id === note.id
+                )!
+              )
+            }
+            )
           }}
-          disabled={isPending}
         >
-          {isPending && <Loader2 className="size-4 animate-spin mr-2" />}
           <Trash className="size-4" />
         </Button>
         <ChevronRight className="size-4 hover:text-accent-foreground" />
