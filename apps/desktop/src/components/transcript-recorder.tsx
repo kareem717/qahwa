@@ -29,12 +29,7 @@ function TranscriptItem({ sender, text, type = "full" }: { sender: "me" | "them"
   )
 }
 
-interface TranscriptRecorderProps extends React.ComponentPropsWithoutRef<"div"> {
-  noteId?: number
-}
-
-
-export function TranscriptRecorder({ className, noteId, ...props }: TranscriptRecorderProps) {
+export function TranscriptRecorder({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const {
     isRecording,
     startRecording,
@@ -42,7 +37,7 @@ export function TranscriptRecorder({ className, noteId, ...props }: TranscriptRe
     transcript,
     isLoading,
     partialTranscript
-  } = useTranscript(noteId);
+  } = useTranscript();
 
   return (
     <div

@@ -35,6 +35,17 @@ const MAX_FULL_NOTE_CACHE_SIZE = 2; // Example: Max 50 items
 const fullNoteCollectionCache = new Map<number, QueryCollection<Note>>()
 
 export const fullNoteCollection = (id: number) => {
+  if (id < 1) {
+    return createQueryCollection<Note>({
+      queryClient: getQueryClient(),
+      id: `${FULL_NOTE_COLLECTION_KEY}-${id}`, // Make collection id specific to the note id
+      queryKey: [FULL_NOTE_COLLECTION_KEY, id],
+      queryFn: async () => [],
+      getId: (item) => String(item.id),
+      schema: SelectNoteSchema, // any standard schema
+    })
+  }
+
   if (fullNoteCollectionCache.has(id)) {
     const collection = fullNoteCollectionCache.get(id)!
     // For LRU: remove and re-set to mark as most recently used

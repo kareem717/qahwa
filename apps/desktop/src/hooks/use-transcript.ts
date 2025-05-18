@@ -3,9 +3,10 @@ import { getClient } from "../lib/api"
 import { toast } from "sonner"
 import { fullNoteCollection } from "../lib/collections/notes"
 import { useLiveQuery } from "@tanstack/react-db";
-import { asyncDebounce } from "@tanstack/pacer";
 import { useOptimisticMutation } from "@tanstack/react-db";
-import { nanoid } from 'nanoid'
+import { noteIdStore, DEFAULT_NOTE_ID, setNoteId } from "./use-note-id";
+import { nanoid } from "nanoid"
+import { useStore } from "@tanstack/react-store";
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -132,51 +133,26 @@ function cleanupAudioIpc(audioIpcCleanupRef: React.MutableRefObject<(() => void)
   }
 }
 
-const upsertNote = asyncDebounce(async (transcript: {
-  timestamp: string
-  text: string
-  sender: "me" | "them"
-}[], noteId: number) => {
-  const api = await getClient()
-  const response = await api.note.$put({
-    json: {
-      id: noteId === TEMP_NOTE_ID ? undefined : Number(noteId),
-      transcript: transcript,
-    }
-  })
+export function useTranscript() {
+  const noteId = useStore(noteIdStore, (state) => state.noteId);
 
-  if (!response.ok) {
-    console.error("Error upserting note", response)
-    throw new Error("Error upserting note")
-  }
-
-  const { note } = await response.json()
-  console.log("upsertNote", note)
-  return note
-}, {
-  wait: 1500, // too low causes data inconsistency between collections
-})
-
-const TEMP_NOTE_ID = 0
-export function useTranscript(noteId?: number) {
-  const [internalNoteId, setInternalNoteId] = React.useState<number>(noteId || TEMP_NOTE_ID)
-  const internalNoteIdRef = React.useRef(internalNoteId);
+  const internalNoteIdRef = React.useRef(noteId);
   const transcriptRef = React.useRef<typeof transcript>([]);
 
   const isCreatingNoteRef = React.useRef(false);
   const pendingTranscriptEntriesRef = React.useRef<typeof transcript>([]);
 
   React.useEffect(() => {
-    internalNoteIdRef.current = internalNoteId;
-    if (noteId && noteId !== TEMP_NOTE_ID) {
+    internalNoteIdRef.current = noteId;
+    if (noteId !== DEFAULT_NOTE_ID) {
       isCreatingNoteRef.current = false;
       pendingTranscriptEntriesRef.current = [];
     }
-  }, [internalNoteId, noteId]);
+  }, [noteId]);
 
   const liveQueryCollection = React.useMemo(() => {
-    return fullNoteCollection(internalNoteId);
-  }, [internalNoteId]);
+    return fullNoteCollection(noteId);
+  }, [noteId]);
 
   const { data } = useLiveQuery((query) =>
     query
@@ -200,12 +176,12 @@ export function useTranscript(noteId?: number) {
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
       const fnId = nanoid()
-      console.debug(`[useOptimisticMutation - ${fnId}] Called with internalNoteId: ${internalNoteIdRef.current} at ${new Date().toISOString()}`)
+      console.debug(`[useOptimisticMutation - ${fnId}] Called with noteId: ${internalNoteIdRef.current} at ${new Date().toISOString()}`)
       const { changes, original } = transaction.mutations[0]!
 
       const api = await getClient()
       const payload = {
-        id: internalNoteIdRef.current === TEMP_NOTE_ID ? undefined : internalNoteIdRef.current,
+        id: internalNoteIdRef.current === DEFAULT_NOTE_ID ? undefined : internalNoteIdRef.current,
         transcript: changes.transcript as any,
       }
       console.debug(`[useOptimisticMutation - ${fnId}] Sending payload to API, payload: ${JSON.stringify(payload)} at ${new Date().toISOString()}`)
@@ -215,7 +191,7 @@ export function useTranscript(noteId?: number) {
 
       if (!response.ok) {
         console.error("Error upserting note", response)
-        if (internalNoteIdRef.current === TEMP_NOTE_ID) {
+        if (internalNoteIdRef.current === DEFAULT_NOTE_ID) {
           isCreatingNoteRef.current = false; // Reset on creation failure
         }
         throw new Error("Error upserting note")
@@ -224,26 +200,26 @@ export function useTranscript(noteId?: number) {
       const { note } = await response.json()
       console.debug(`[useOptimisticMutation - ${fnId}] API response: ${JSON.stringify(note)} at ${new Date().toISOString()}`)
 
-      if (internalNoteIdRef.current === TEMP_NOTE_ID && note && note.id) {
+      if (internalNoteIdRef.current === DEFAULT_NOTE_ID && note && note.id) {
         const newNoteId = note.id
         console.debug(`[useOptimisticMutation - ${fnId}] Setting internal note id to: ${newNoteId} at ${new Date().toISOString()}`)
         // Order: Set ID, then invalidate, then allow useEffect to flush.
-        setInternalNoteId(newNoteId) // This updates internalNoteIdRef via its own useEffect.
+        setNoteId(newNoteId) // This updates internalNoteIdRef via its own useEffect.
         // This will also trigger the flushing useEffect if pending entries exist.
         await fullNoteCollection(newNoteId).invalidate() // This will update transcriptRef via useLiveQuery and its useEffect.
         console.debug(`[useOptimisticMutation - ${fnId}] Invalidated new collection for id: ${newNoteId}. isCreatingNoteRef will be set to false. at ${new Date().toISOString()}`)
-        isCreatingNoteRef.current = false; // Mark creation as finished. IMPORTANT: Do this after setInternalNoteId & invalidate.
-        // Pending entries will be handled by the useEffect watching internalNoteId and transcript.
+        isCreatingNoteRef.current = false; // Mark creation as finished. IMPORTANT: Do this after setNoteId & invalidate.
+        // Pending entries will be handled by the useEffect watching noteId and transcript.
       } else {
         if (note && note.id) {
           console.debug(`[useOptimisticMutation - ${fnId}] Invalidating existing collection for id ${note.id} at ${new Date().toISOString()}`)
           await fullNoteCollection(note.id).invalidate();
-        } else if (internalNoteIdRef.current !== TEMP_NOTE_ID) {
+        } else if (internalNoteIdRef.current !== DEFAULT_NOTE_ID) {
           console.debug(`[useOptimisticMutation - ${fnId}] Invalidating existing collection for id ${internalNoteIdRef.current} (from ref) as note ID was not in response at ${new Date().toISOString()}`)
           await fullNoteCollection(internalNoteIdRef.current).invalidate();
         }
         // If it was an update (not creation), ensure isCreatingNoteRef is false.
-        if (internalNoteIdRef.current !== TEMP_NOTE_ID) {
+        if (internalNoteIdRef.current !== DEFAULT_NOTE_ID) {
           isCreatingNoteRef.current = false;
         }
       }
@@ -254,7 +230,7 @@ export function useTranscript(noteId?: number) {
   // This useEffect MUST be defined AFTER 'mutate' is defined.
   React.useEffect(() => {
     const currentActualNoteId = internalNoteIdRef.current;
-    if (currentActualNoteId !== TEMP_NOTE_ID && pendingTranscriptEntriesRef.current.length > 0) {
+    if (currentActualNoteId !== DEFAULT_NOTE_ID && pendingTranscriptEntriesRef.current.length > 0) {
       const entriesToFlush = [...pendingTranscriptEntriesRef.current];
       pendingTranscriptEntriesRef.current = []; // Clear buffer immediately
 
@@ -278,7 +254,7 @@ export function useTranscript(noteId?: number) {
               transcript: entriesToFlush,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-              userId: TEMP_NOTE_ID,
+              userId: DEFAULT_NOTE_ID,
               title: "",
               userNotes: "",
               generatedNotes: ""
@@ -290,9 +266,9 @@ export function useTranscript(noteId?: number) {
         }
       });
     }
-    // Depend on internalNoteId (to trigger when it changes from TEMP) and transcript (to ensure transcriptRef is updated from liveQuery)
+    // Depend on noteId (to trigger when it changes from TEMP) and transcript (to ensure transcriptRef is updated from liveQuery)
     // mutate is stable and included as a dependency for the mutate call.
-  }, [internalNoteId, transcript, mutate]);
+  }, [noteId, transcript, mutate]);
 
   const handleTranscriptChange = React.useCallback((newTranscriptEntries: {
     timestamp: string
@@ -301,9 +277,9 @@ export function useTranscript(noteId?: number) {
   }[]) => {
     const fnId = nanoid()
     const currentNoteIdVal = internalNoteIdRef.current;
-    console.debug(`[handleTranscriptChange - ${fnId}] Called with internalNoteId: ${currentNoteIdVal}, isCreatingNote: ${isCreatingNoteRef.current} at ${new Date().toISOString()}`)
+    console.debug(`[handleTranscriptChange - ${fnId}] Called with noteId: ${currentNoteIdVal}, isCreatingNote: ${isCreatingNoteRef.current} at ${new Date().toISOString()}`)
 
-    if (currentNoteIdVal === TEMP_NOTE_ID) {
+    if (currentNoteIdVal === DEFAULT_NOTE_ID) {
       if (isCreatingNoteRef.current) {
         pendingTranscriptEntriesRef.current.push(...newTranscriptEntries);
         console.debug(`[handleTranscriptChange - ${fnId}] Buffered ${newTranscriptEntries.length} entries as note creation is in progress. Buffer size: ${pendingTranscriptEntriesRef.current.length} at ${new Date().toISOString()}`);
@@ -313,14 +289,14 @@ export function useTranscript(noteId?: number) {
         isCreatingNoteRef.current = true;
         console.debug(`[handleTranscriptChange - ${fnId}] Initiating note creation with ${newTranscriptEntries.length} entries at ${new Date().toISOString()}`);
         mutate(() => {
-          const collectionForInsert = fullNoteCollection(TEMP_NOTE_ID); // Operate on TEMP_ID collection
-          console.debug(`[handleTranscriptChange - ${fnId}] Inserting temp note optimistically with ID: ${TEMP_NOTE_ID} at ${new Date().toISOString()}`);
+          const collectionForInsert = fullNoteCollection(DEFAULT_NOTE_ID); // Operate on TEMP_ID collection
+          console.debug(`[handleTranscriptChange - ${fnId}] Inserting temp note optimistically with ID: ${DEFAULT_NOTE_ID} at ${new Date().toISOString()}`);
           collectionForInsert.insert([{
-            id: TEMP_NOTE_ID,
+            id: DEFAULT_NOTE_ID,
             transcript: newTranscriptEntries,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            userId: TEMP_NOTE_ID,
+            userId: DEFAULT_NOTE_ID,
             title: "",
             userNotes: "",
             generatedNotes: "",
@@ -328,7 +304,7 @@ export function useTranscript(noteId?: number) {
         });
       }
     } else {
-      // Standard update: internalNoteId is a real ID
+      // Standard update: noteId is a real ID
       console.debug(`[handleTranscriptChange - ${fnId}] Updating existing note ${currentNoteIdVal} with ${newTranscriptEntries.length} entries at ${new Date().toISOString()}`);
       mutate(() => {
         const collectionForUpdate = fullNoteCollection(currentNoteIdVal);
