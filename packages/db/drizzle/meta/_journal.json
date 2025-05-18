@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1746995108656,
-      "tag": "0000_deep_wither",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1746997689735,
-      "tag": "0001_worthless_frog_thor",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1746997728904,
-      "tag": "0002_gigantic_whistler",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1747008678903,
-      "tag": "0003_dry_snowbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1747008751831,
-      "tag": "0004_tough_felicia_hardy",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1747447455981,
-      "tag": "0005_solid_hellfire_club",
+      "when": 1747589273210,
+      "tag": "0000_daily_wendigo",
       "breakpoints": true
     }
   ]

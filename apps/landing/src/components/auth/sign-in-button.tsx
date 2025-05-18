@@ -13,6 +13,7 @@ export function SignInButton({ className, provider, redirect, children = "Sign I
   async function handleLogin() {
     setIsLoading(true)
     const callbackURL = import.meta.env.VITE_APP_URL + (redirect || "/")
+    console.log("callbackURL", callbackURL)
 
     await signIn.social({
       /**

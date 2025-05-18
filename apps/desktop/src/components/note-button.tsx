@@ -3,12 +3,9 @@ import { ChevronRight, FileText, Loader2, Trash } from "lucide-react"
 import { Note } from "@note/db/types"
 import { Button } from "@note/ui/components/button"
 import { cn } from "@note/ui/lib/utils"
-import { toast } from "sonner"
 import { Link } from "@tanstack/react-router"
 import { getClient } from "../lib/api"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { fullNoteCollection, notesCollection } from "../lib/collections/notes"
-import { PendingMutation } from "@tanstack/react-db"
+import { notesCollection } from "../lib/collections/notes"
 import { useOptimisticMutation } from "@tanstack/react-db"
 export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">
 
@@ -17,7 +14,7 @@ interface NoteButtonProps extends Omit<React.ComponentPropsWithoutRef<typeof Lin
 }
 
 // TODO: doesn't shrink all the way
-export function NoteButton({ className, note, ...props }: NoteButtonProps) {
+export function NoteButton({ className, note: { id, title, updatedAt }, ...props }: NoteButtonProps) {
   const deleteNote = useOptimisticMutation({
     mutationFn: async () => {
       const api = await getClient()
@@ -25,7 +22,7 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
       //todo: error handling
       await api.note[":id"].$delete({
         param: {
-          id: note.id.toString()
+          id: id.toString()
         }
       })
 
@@ -33,7 +30,7 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
     },
   })
 
-  const updatedClockTime = new Date(note.updatedAt)
+  const updatedClockTime = new Date(updatedAt)
     .toLocaleTimeString(
       'en-US',
       { hour: '2-digit', minute: '2-digit' }
@@ -44,8 +41,8 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
       {...props}
       to="/note"
       search={{
-        id: note.id,
-        title: note.title,
+        id,
+        title,
       }}
       className={
         cn(
@@ -59,7 +56,7 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
           <FileText className="text-primary size-5 stroke-[1.5px]" />
         </div>
         <div className="flex-1 overflow-hidden min-w-0">
-          <p className="font-medium truncate min-w-0">{note.title}</p>
+          <p className="font-medium truncate min-w-0">{title}</p>
           <p className="text-xs text-muted-foreground">{updatedClockTime}</p>
         </div>
       </div>
@@ -73,7 +70,7 @@ export function NoteButton({ className, note, ...props }: NoteButtonProps) {
             deleteNote.mutate(() => {
               notesCollection.delete(
                 Array.from(notesCollection.state.values()).find(
-                  (t) => t.id === note.id
+                  (t) => t.id === id
                 )!
               )
             }

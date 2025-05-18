@@ -5,6 +5,7 @@ import { fullNoteCollection } from "../lib/collections/notes"
 import { useLiveQuery } from "@tanstack/react-db";
 import { asyncDebounce } from "@tanstack/pacer";
 import { useOptimisticMutation } from "@tanstack/react-db";
+import { nanoid } from 'nanoid'
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -131,34 +132,66 @@ function cleanupAudioIpc(audioIpcCleanupRef: React.MutableRefObject<(() => void)
   }
 }
 
-const updateNote = asyncDebounce(async (id: number, transcript: {
+const upsertNote = asyncDebounce(async (transcript: {
   timestamp: string
   text: string
   sender: "me" | "them"
-}[]) => {
+}[], noteId: number) => {
   const api = await getClient()
-  await api.note[":id"].$patch({
-    param: {
-      id: id.toString()
-    },
+  const response = await api.note.$put({
     json: {
-      transcript: transcript
+      id: noteId === TEMP_NOTE_ID ? undefined : Number(noteId),
+      transcript: transcript,
     }
   })
+
+  if (!response.ok) {
+    console.error("Error upserting note", response)
+    throw new Error("Error upserting note")
+  }
+
+  const { note } = await response.json()
+  console.log("upsertNote", note)
+  return note
 }, {
   wait: 1500, // too low causes data inconsistency between collections
 })
 
-export function useTranscript(noteId: number) {
-  const noteCollection = fullNoteCollection(noteId)
+const TEMP_NOTE_ID = 0
+export function useTranscript(noteId?: number) {
+  const [internalNoteId, setInternalNoteId] = React.useState<number>(noteId || TEMP_NOTE_ID)
+  const internalNoteIdRef = React.useRef(internalNoteId);
+  const transcriptRef = React.useRef<typeof transcript>([]);
+
+  const isCreatingNoteRef = React.useRef(false);
+  const pendingTranscriptEntriesRef = React.useRef<typeof transcript>([]);
+
+  React.useEffect(() => {
+    internalNoteIdRef.current = internalNoteId;
+    if (noteId && noteId !== TEMP_NOTE_ID) {
+      isCreatingNoteRef.current = false;
+      pendingTranscriptEntriesRef.current = [];
+    }
+  }, [internalNoteId, noteId]);
+
+  const liveQueryCollection = React.useMemo(() => {
+    return fullNoteCollection(internalNoteId);
+  }, [internalNoteId]);
 
   const { data } = useLiveQuery((query) =>
     query
-      .from({ noteCollection })
+      .from({ noteCollection: liveQueryCollection }) // Use memoized collection for live query
       .select("@transcript", "@id")
-      .keyBy("@id")
-  )
+      .keyBy("@id"),
+    [liveQueryCollection] // Depend on the collection instance
+  );
+
   const transcript = data[0]?.transcript ?? []
+
+  React.useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
+
   const [partialTranscript, setPartialTranscript] = React.useState<{
     them: string
     me: string
@@ -166,26 +199,154 @@ export function useTranscript(noteId: number) {
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
-      const { changes: note } = transaction.mutations[0]!
+      const fnId = nanoid()
+      console.debug(`[useOptimisticMutation - ${fnId}] Called with internalNoteId: ${internalNoteIdRef.current} at ${new Date().toISOString()}`)
+      const { changes, original } = transaction.mutations[0]!
 
-      await updateNote(noteId, note.transcript as any)
+      const api = await getClient()
+      const payload = {
+        id: internalNoteIdRef.current === TEMP_NOTE_ID ? undefined : internalNoteIdRef.current,
+        transcript: changes.transcript as any,
+      }
+      console.debug(`[useOptimisticMutation - ${fnId}] Sending payload to API, payload: ${JSON.stringify(payload)} at ${new Date().toISOString()}`)
+      const response = await api.note.$put({
+        json: payload
+      })
 
-      // TODO: causes all of the notes in the collection to get the same updatedAt - or atleast I think its coming from here
-      await noteCollection.invalidate()
+      if (!response.ok) {
+        console.error("Error upserting note", response)
+        if (internalNoteIdRef.current === TEMP_NOTE_ID) {
+          isCreatingNoteRef.current = false; // Reset on creation failure
+        }
+        throw new Error("Error upserting note")
+      }
+
+      const { note } = await response.json()
+      console.debug(`[useOptimisticMutation - ${fnId}] API response: ${JSON.stringify(note)} at ${new Date().toISOString()}`)
+
+      if (internalNoteIdRef.current === TEMP_NOTE_ID && note && note.id) {
+        const newNoteId = note.id
+        console.debug(`[useOptimisticMutation - ${fnId}] Setting internal note id to: ${newNoteId} at ${new Date().toISOString()}`)
+        // Order: Set ID, then invalidate, then allow useEffect to flush.
+        setInternalNoteId(newNoteId) // This updates internalNoteIdRef via its own useEffect.
+        // This will also trigger the flushing useEffect if pending entries exist.
+        await fullNoteCollection(newNoteId).invalidate() // This will update transcriptRef via useLiveQuery and its useEffect.
+        console.debug(`[useOptimisticMutation - ${fnId}] Invalidated new collection for id: ${newNoteId}. isCreatingNoteRef will be set to false. at ${new Date().toISOString()}`)
+        isCreatingNoteRef.current = false; // Mark creation as finished. IMPORTANT: Do this after setInternalNoteId & invalidate.
+        // Pending entries will be handled by the useEffect watching internalNoteId and transcript.
+      } else {
+        if (note && note.id) {
+          console.debug(`[useOptimisticMutation - ${fnId}] Invalidating existing collection for id ${note.id} at ${new Date().toISOString()}`)
+          await fullNoteCollection(note.id).invalidate();
+        } else if (internalNoteIdRef.current !== TEMP_NOTE_ID) {
+          console.debug(`[useOptimisticMutation - ${fnId}] Invalidating existing collection for id ${internalNoteIdRef.current} (from ref) as note ID was not in response at ${new Date().toISOString()}`)
+          await fullNoteCollection(internalNoteIdRef.current).invalidate();
+        }
+        // If it was an update (not creation), ensure isCreatingNoteRef is false.
+        if (internalNoteIdRef.current !== TEMP_NOTE_ID) {
+          isCreatingNoteRef.current = false;
+        }
+      }
     },
   })
 
-  function handleTranscriptChange(transcript: {
+  // Effect to flush pending entries once note ID is established and transcript is updated
+  // This useEffect MUST be defined AFTER 'mutate' is defined.
+  React.useEffect(() => {
+    const currentActualNoteId = internalNoteIdRef.current;
+    if (currentActualNoteId !== TEMP_NOTE_ID && pendingTranscriptEntriesRef.current.length > 0) {
+      const entriesToFlush = [...pendingTranscriptEntriesRef.current];
+      pendingTranscriptEntriesRef.current = []; // Clear buffer immediately
+
+      console.debug(`[useEffect - Flush] Flushing ${entriesToFlush.length} pending entries for note ${currentActualNoteId}. Base transcriptRef: ${JSON.stringify(transcriptRef.current)}`);
+
+      mutate(() => {
+        const collectionForFlush = fullNoteCollection(currentActualNoteId);
+        const noteToUpdate = collectionForFlush.state.get(String(currentActualNoteId));
+        if (noteToUpdate) {
+          collectionForFlush.update(noteToUpdate, (draft) => {
+            // Ensure we are building on the most recent transcript from the live query
+            draft.transcript = [...(transcriptRef.current ?? []), ...entriesToFlush];
+            console.debug(`[useEffect - Flush] Updated note optimistically for ID: ${currentActualNoteId}. New draft.transcript: ${JSON.stringify(draft.transcript)}`);
+          });
+        } else {
+          console.warn(`[useEffect - Flush] Note ${currentActualNoteId} not found for appending buffered entries. This might indicate a timing issue or that the note was deleted. Entries will be lost if not handled. Attempting to insert if transcriptRef is empty.`);
+          // Fallback: if transcriptRef is empty and note doesn't exist, maybe it was the first entry that failed to get in before invalidation picked it up.
+          if ((transcriptRef.current ?? []).length === 0) {
+            collectionForFlush.insert([{
+              id: currentActualNoteId,
+              transcript: entriesToFlush,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              userId: TEMP_NOTE_ID,
+              title: "",
+              userNotes: "",
+              generatedNotes: ""
+            }]);
+            console.debug(`[useEffect - Flush] Fallback: Inserted entries for ${currentActualNoteId} as transcriptRef was empty.`);
+          } else {
+            console.error(`[useEffect - Flush] Fallback failed: Note ${currentActualNoteId} not found and transcriptRef was not empty. Entries lost: ${JSON.stringify(entriesToFlush)}`);
+          }
+        }
+      });
+    }
+    // Depend on internalNoteId (to trigger when it changes from TEMP) and transcript (to ensure transcriptRef is updated from liveQuery)
+    // mutate is stable and included as a dependency for the mutate call.
+  }, [internalNoteId, transcript, mutate]);
+
+  const handleTranscriptChange = React.useCallback((newTranscriptEntries: {
     timestamp: string
     text: string
     sender: "me" | "them"
-  }[]) {
-    mutate(() => {
-      noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
-        draft.transcript = [...(draft.transcript ?? []), ...transcript]
-      })
-    })
-  }
+  }[]) => {
+    const fnId = nanoid()
+    const currentNoteIdVal = internalNoteIdRef.current;
+    console.debug(`[handleTranscriptChange - ${fnId}] Called with internalNoteId: ${currentNoteIdVal}, isCreatingNote: ${isCreatingNoteRef.current} at ${new Date().toISOString()}`)
+
+    if (currentNoteIdVal === TEMP_NOTE_ID) {
+      if (isCreatingNoteRef.current) {
+        pendingTranscriptEntriesRef.current.push(...newTranscriptEntries);
+        console.debug(`[handleTranscriptChange - ${fnId}] Buffered ${newTranscriptEntries.length} entries as note creation is in progress. Buffer size: ${pendingTranscriptEntriesRef.current.length} at ${new Date().toISOString()}`);
+        // UI for partials could be updated here from pendingTranscriptEntriesRef if needed
+        return; // Don't call mutate for these entries yet
+      } else {
+        isCreatingNoteRef.current = true;
+        console.debug(`[handleTranscriptChange - ${fnId}] Initiating note creation with ${newTranscriptEntries.length} entries at ${new Date().toISOString()}`);
+        mutate(() => {
+          const collectionForInsert = fullNoteCollection(TEMP_NOTE_ID); // Operate on TEMP_ID collection
+          console.debug(`[handleTranscriptChange - ${fnId}] Inserting temp note optimistically with ID: ${TEMP_NOTE_ID} at ${new Date().toISOString()}`);
+          collectionForInsert.insert([{
+            id: TEMP_NOTE_ID,
+            transcript: newTranscriptEntries,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            userId: TEMP_NOTE_ID,
+            title: "",
+            userNotes: "",
+            generatedNotes: "",
+          }]);
+        });
+      }
+    } else {
+      // Standard update: internalNoteId is a real ID
+      console.debug(`[handleTranscriptChange - ${fnId}] Updating existing note ${currentNoteIdVal} with ${newTranscriptEntries.length} entries at ${new Date().toISOString()}`);
+      mutate(() => {
+        const collectionForUpdate = fullNoteCollection(currentNoteIdVal);
+        const noteToUpdate = collectionForUpdate.state.get(String(currentNoteIdVal));
+        if (noteToUpdate) {
+          console.debug(`[handleTranscriptChange - ${fnId}] Updating note: Base transcript from transcriptRef: ${JSON.stringify(transcriptRef.current)} at ${new Date().toISOString()}`);
+          collectionForUpdate.update(noteToUpdate, (draft) => {
+            draft.transcript = [...(transcriptRef.current ?? []), ...newTranscriptEntries];
+            console.debug(`[handleTranscriptChange - ${fnId}] Updated note optimistically for ID: ${currentNoteIdVal}. New draft.transcript: ${JSON.stringify(draft.transcript)} at ${new Date().toISOString()}`);
+          });
+        } else {
+          console.warn(`[handleTranscriptChange - ${fnId}] Note with ID ${currentNoteIdVal} not found in collection for update. Current transcriptRef: ${JSON.stringify(transcriptRef.current)} at ${new Date().toISOString()}`);
+          // Potentially insert if note disappeared but we have an ID? Or rely on sync to fix.
+          // For now, just log. If this happens, it implies a desync not handled by current optimistic flow.
+        }
+      });
+    }
+  }, [mutate]); // Dependencies: mutate (stable), refs are accessed directly.
 
   const [isLoading, setIsLoading] = React.useState(false)
   const [isRecording, setIsRecording] = React.useState(false)
@@ -200,25 +361,19 @@ export function useTranscript(noteId: number) {
   // --- Main Recording Logic ---
   const stopRecording = React.useCallback(() => {
     console.log("Stopping recording...");
-    setIsLoading(false); // Ensure loading is false when stopped
-    setIsRecording(false); // Set recording state immediately
+    setIsLoading(false);
+    setIsRecording(false);
 
-    // 1. Stop native audio capture in main process
     window.electronSystemAudio.stopCapture();
-
-    // 2. Clean up IPC listeners
     cleanupAudioIpc(audioIpcCleanupRef);
-
-    // 3. Close System Audio WebSocket
     closeAndClearWebSocket(systemSocketRef);
-    console.log("System audio WebSocket resources actioned.");
-
-    // 4. Close Mic Audio WebSocket
     closeAndClearWebSocket(micSocketRef);
-    console.log("Mic audio WebSocket resources actioned.");
-
-    // 5. Reset partial transcripts
     setPartialTranscript({ them: "", me: "" });
+
+    // Reset creation-specific state
+    isCreatingNoteRef.current = false;
+    pendingTranscriptEntriesRef.current = [];
+    console.log("Cleared pending transcript entries and creation state.");
 
   }, [audioIpcCleanupRef, systemSocketRef, micSocketRef]);
 
@@ -319,6 +474,7 @@ export function useTranscript(noteId: number) {
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, them: "" }));
+                  console.debug("Calling handleTranscriptChange for system audio with full msg", new Date().toISOString())
                   handleTranscriptChange([{ text: message.text, sender: "them", timestamp: new Date().toISOString() }])
                 }
                 break;
@@ -375,6 +531,7 @@ export function useTranscript(noteId: number) {
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, me: "" }));
+                  console.debug("Calling handleTranscriptChange for mic audio with full msg", new Date().toISOString())
                   handleTranscriptChange([{ text: message.text, sender: "me", timestamp: new Date().toISOString() }])
                 }
                 break;

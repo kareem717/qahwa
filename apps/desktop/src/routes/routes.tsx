@@ -37,8 +37,8 @@ export const NoteRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: "/note",
   validateSearch: zodValidator(z.object({
-    id: z.coerce.number().optional().default(0),
-    title: z.string().optional().default(""),
+    id: z.coerce.number().optional(),
+    title: z.string().optional(),
   })),
   component: NotePage,
 });

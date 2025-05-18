@@ -6,20 +6,20 @@ import { generateText, streamText } from "ai";
 type Transcript = Pick<Note, "transcript">["transcript"]
 
 
-
-export const generateTitle = async (transcript: Transcript) => {
+export const generateTitle = async (transcript: Transcript, userNotes?: string) => {
   const google = createGoogleGenerativeAI({
     apiKey: env.GOOGLE_API_KEY,
   })
   
-  const { text } = await generateText({
-    model: google('gemini-2.5-pro-exp-03-25'),
-    prompt: "Generate a title for the following transcript:" +
-      "Output only the title and nothing else" +
-      "Transcript: " + JSON.stringify(transcript)
-  });
+  // const { text } = await generateText({
+  //   model: google('gemini-2.5-pro-exp-03-25'),
+  //   prompt: "Generate a title for the following transcript:" +
+  //     "Output only the title and nothing else" +
+  //     "Transcript: " + JSON.stringify(transcript) +
+  //     userNotes ? "User notes: " + userNotes : undefined,
+  // });
 
-  return text
+  return "GENERATED TITLE"
 }
 
 

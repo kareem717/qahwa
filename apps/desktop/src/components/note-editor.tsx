@@ -9,7 +9,7 @@ import { fullNoteCollection, notesCollection } from "../lib/collections/notes";
 import { asyncDebounce } from '@tanstack/pacer'
 
 interface NoteEditorProps extends React.ComponentPropsWithoutRef<"div"> {
-  noteId: number
+  noteId?: number
 }
 
 const updateNote = asyncDebounce(async (id: number, note: Partial<Pick<NoteType, "title" | "userNotes" | "transcript">>) => {
@@ -60,7 +60,6 @@ export function NoteEditor({ className, noteId, ...props }: NoteEditorProps) {
       await notesCollection.invalidate()
     },
   })
-
 
   // TODO: handle this better
   if (isLoading) {

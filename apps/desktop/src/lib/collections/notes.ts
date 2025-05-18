@@ -3,7 +3,6 @@ import type { Note } from "@note/db/types"
 import { SelectNoteSchema } from "@note/db/validation"
 import { getClient } from "../api"
 import { getQueryClient } from "../query-client"
-import { useLiveQuery } from "@tanstack/react-db"
 
 export const NOTES_COLLECTION_KEY = "notes"
 
@@ -44,12 +43,12 @@ export const fullNoteCollection = (id: number) => {
     return collection
   }
 
-
   const collection = createQueryCollection<Note>({
     queryClient: getQueryClient(),
-    id: FULL_NOTE_COLLECTION_KEY,
+    id: `${FULL_NOTE_COLLECTION_KEY}-${id}`, // Make collection id specific to the note id
     queryKey: [FULL_NOTE_COLLECTION_KEY, id],
     queryFn: async () => {
+
       const api = await getClient()
       const response = await api.note[":id"].$get({
         param: { id: id.toString() },

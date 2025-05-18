@@ -1,12 +1,12 @@
 import { sql } from "drizzle-orm";
-import { jsonb, pgTable, timestamp, text, serial, varchar, integer } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, timestamp, text, serial, varchar } from "drizzle-orm/pg-core";
 import { users } from "./auth";
 
 export const notes = pgTable(
   "notes",
   {
     id: serial("id").primaryKey(),
-    userId: integer("user_id").notNull().references(() => users.id),
+    userId: serial("user_id").notNull().references(() => users.id),
     title: text().notNull(),
     transcript: jsonb().$type<{
       timestamp: string,

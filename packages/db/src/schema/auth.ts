@@ -1,7 +1,7 @@
-import { pgTable, text, timestamp, boolean, integer, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, serial, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-  id: serial('id').primaryKey(),
+  id: serial("id").primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull(),
@@ -11,21 +11,21 @@ export const users = pgTable("users", {
 });
 
 export const sessions = pgTable("sessions", {
-  id: serial('id').primaryKey(),
+  id: serial("id").primaryKey(),
   expiresAt: timestamp('expires_at').notNull(),
   token: text('token').notNull().unique(),
   createdAt: timestamp('created_at').notNull(),
   updatedAt: timestamp('updated_at').notNull(),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' })
+  userId: serial('user_id').notNull().references(() => users.id, { onDelete: 'cascade' })
 });
 
 export const accounts = pgTable("accounts", {
-  id: serial('id').primaryKey(),
+  id: serial("id").primaryKey(),
   accountId: text('account_id').notNull(),
   providerId: text('provider_id').notNull(),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: serial('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   accessToken: text('access_token'),
   refreshToken: text('refresh_token'),
   idToken: text('id_token'),
@@ -38,7 +38,7 @@ export const accounts = pgTable("accounts", {
 });
 
 export const verifications = pgTable("verifications", {
-  id: serial('id').primaryKey(),
+  id: serial("id").primaryKey(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
@@ -48,12 +48,12 @@ export const verifications = pgTable("verifications", {
 
 
 export const apikey = pgTable("api_keys", {
-  id: serial('id').primaryKey(),
+  id: serial("id").primaryKey(),
   name: text('name'),
   start: text('start'),
   prefix: text('prefix'),
   key: text('key').notNull(),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: serial('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   refillInterval: integer('refill_interval'),
   refillAmount: integer('refill_amount'),
   lastRefillAt: timestamp('last_refill_at'),

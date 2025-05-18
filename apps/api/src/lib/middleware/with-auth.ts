@@ -19,7 +19,7 @@ export const getAuth = (c: Context) => {
 
   return {
     client: client as ReturnType<typeof createAuthClient>,
-    session: session as AuthType["Variables"]["session"],
+    session: session as AuthType["Variables"]["session"] ,
     user: user as AuthType["Variables"]["user"],
   }
 }

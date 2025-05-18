@@ -13,7 +13,8 @@ const app = new Hono()
     "*",
     cors({
       origin: [env.LANDING_URL, env.ELECTRON_URL, `${env.DESKTOP_APP_PROTOCOL}://`],
-      // credentials: true,
+      
+      credentials: true,
     })
   )
   .route('/auth', authHandler())

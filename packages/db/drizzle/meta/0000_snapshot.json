@@ -1,5 +1,5 @@
 {
-  "id": "59766a7f-bbfc-4fba-9a53-22c8a3ad68aa",
+  "id": "74eb621f-b7bf-4c90-990b-5fce1444f0b5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -28,7 +28,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": false,
           "notNull": true
         },
@@ -145,7 +145,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": false,
           "notNull": true
         },
@@ -310,7 +310,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": false,
           "notNull": true
         }
@@ -469,7 +469,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "serial",
           "primaryKey": false,
           "notNull": true
         },
@@ -483,17 +483,18 @@
           "name": "transcript",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "user_notes": {
           "name": "user_notes",
-          "type": "jsonb",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "generated_notes": {
           "name": "generated_notes",
-          "type": "jsonb",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -508,7 +509,7 @@
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
@@ -554,7 +555,7 @@
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},

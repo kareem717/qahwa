@@ -30,11 +30,11 @@ function TranscriptItem({ sender, text, type = "full" }: { sender: "me" | "them"
 }
 
 interface TranscriptRecorderProps extends React.ComponentPropsWithoutRef<"div"> {
-  noteId: number
+  noteId?: number
 }
 
 
-export function TranscriptRecorder({ className,noteId, ...props }: TranscriptRecorderProps) {
+export function TranscriptRecorder({ className, noteId, ...props }: TranscriptRecorderProps) {
   const {
     isRecording,
     startRecording,
@@ -43,44 +43,6 @@ export function TranscriptRecorder({ className,noteId, ...props }: TranscriptRec
     isLoading,
     partialTranscript
   } = useTranscript(noteId);
-  // const [debouncedTranscript] = useDebounce(transcript, 1000)
-  // // console.log("Debounced transcript", debouncedTranscript)
-  // const isFirstRender = React.useRef(true)
-  // // React Query
-  // const queryClient = useQueryClient()
-  // const { mutateAsync: upsertNote } = useMutation({
-  //   mutationFn: async () => {
-  //     const api = await getClient()
-  //     // Only send transcript if it has content
-  //     const transcriptToSend = transcript?.length ? transcript : undefined;
-  //     if (!id && !transcriptToSend) {
-  //       console.log("Skipping upsert: No ID and no transcript content.");
-  //       return { note: { id: undefined } }; // Return dummy response if nothing to save
-  //     }
-  //     const response = await api.note.$put({
-  //       json: {
-  //         id: id ?? undefined,
-  //         transcript: transcriptToSend,
-  //       },
-  //     })
-  //     return await response.json()
-  //   },
-  //   onMutate: () => {
-  //     if (debouncedTranscript?.length || id) { // Only show toast if something is being saved
-  //       toast.success("Saving transcript...")
-  //     }
-  //   },
-  //   onSuccess: ({ note }) => {
-  //     if (note.id) { // Check if an ID was returned (meaning save happened)
-  //       toast.success("Transcript saved")
-  //       setNote(note)
-  //       queryClient.invalidateQueries({ queryKey: [NOTE_QUERY_KEY, note.id] })
-  //     }
-  //   },
-  //   onError: () => {
-  //     toast.error("Failed to save transcript")
-  //   },
-  // })
 
   return (
     <div
@@ -104,7 +66,7 @@ export function TranscriptRecorder({ className,noteId, ...props }: TranscriptRec
                 <TranscriptItem key={item.text} sender={item.sender} text={item.text} />
               ))
             ) : (
-              <p className="text-sm">No tradfnscript</p>
+              <p className="text-sm">No transcript</p>
             )}
             {partialTranscript.me && (
               <TranscriptItem sender="me" text={partialTranscript.me} type="partial" />
