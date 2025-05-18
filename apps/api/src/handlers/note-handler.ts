@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { generateNotes, generateTitle } from '../lib/ai/notes';
 import { AssemblyAI } from 'assemblyai';
 import { Note } from '@note/db/types';
+import { stream, streamText } from 'hono/streaming';
 
 export const noteHandler = () => new Hono()
   .use("*", withAuth())
@@ -147,40 +148,6 @@ export const noteHandler = () => new Hono()
       return c.body(null, 204)
     }
   )
-  // .post(
-  //   "/",
-  //   zValidator("json", InsertNoteSchema.omit({
-  //     id: true,
-  //     generatedNotes: true,
-  //     userId: true, 
-  //   }).partial()),
-  //   async (c) => {
-  //     const { session, user } = getAuth(c)
-
-  //     if (!session || !user) {
-  //       throw new HTTPException(401, {
-  //         message: "Unauthorized",
-  //       })
-  //     }
-
-  //     const db = getDb(env.DATABASE_URL)
-
-  //     let params = c.req.valid("json")
-
-  //     if (!params.title && (params.transcript || params.userNotes)) {
-  //       params.title = await generateTitle(params.transcript, params.userNotes ?? undefined)
-  //     }
-
-  //     const [note] = await db.insert(notes).values({
-  //       ...params,
-  //       userId: Number(user.id),
-  //     }).returning()
-
-  //     return c.json({
-  //       note,
-  //     })
-  //   }
-  // )
   .put(
     "/",
     // zValidator("param", z.object({
@@ -293,36 +260,45 @@ export const noteHandler = () => new Hono()
         })
       }
 
-      let generatedNotes: string
+      let generatedNotes: string // This variable seems unused now, can be removed if not needed elsewhere
       try {
-        // send stream to client
-        const result = generateNotes(note.transcript)
-        // Mark the response as a v1 data stream:
-        c.header('X-Vercel-AI-Data-Stream', 'v1');
+        // Get the full result from generateNotes, which includes textStream and the full text promise
+        const aiStreamResult = generateNotes(note.transcript, note.userNotes ?? undefined);
+
+        // For immediate streaming to the client
+        const byteStream = aiStreamResult.textStream.pipeThrough(new TextEncoderStream());
+
         c.header('Content-Type', 'text/plain; charset=utf-8');
+        c.header('Content-Encoding', 'Identity'); // Important for Cloudflare Workers
 
-        return result.toDataStreamResponse();
+        // Schedule background task to save to DB after stream completion
+        c.executionCtx.waitUntil((async () => {
+          try {
+            const fullGeneratedText = await aiStreamResult.text; // Wait for the full text
+            if (fullGeneratedText) {
+              const db = getDb(env.DATABASE_URL);
+              await db.update(notes).set({
+                generatedNotes: fullGeneratedText, // Save the full text
+              }).where(eq(notes.id, id));
+              console.log(`Generated notes saved to DB for note ID: ${id}`);
+            } else {
+              console.log(`No text generated to save for note ID: ${id}`);
+            }
+          } catch (dbError) {
+            console.error(`Failed to save generated notes to DB for note ID: ${id}`, dbError);
+          }
+        })()); // IIFE to immediately invoke and pass the promise
 
-        //wait for stream to finish and use to save in db
-        // generatedNotes = await text
+        // Pipe the byteStream into Hono's stream helper for client response
+        return stream(c, async (honoStream) => {
+          await honoStream.pipe(byteStream);
+        });
+
       } catch (error) {
+        console.error("Error in /:id/generate stream handling or DB save scheduling:", error);
         throw new HTTPException(500, {
           message: "Failed to generate notes",
         })
       }
-
-
-      // try {
-      //   await db.update(notes).set({
-      //     generatedNotes: generatedNotes,
-      //   }).where(eq(notes.id, id))
-
-      //   return c.status(200)
-      // } catch (error) {
-      //   throw new HTTPException(500, {
-      //     message: "Failed to update note",
-      //   })
-      // }
-
     }
   )

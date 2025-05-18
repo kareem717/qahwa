@@ -5,6 +5,8 @@ import { ScrollArea } from "@note/ui/components/scroll-area";
 import { AuthenticatedLayout } from "../layouts/authenticated-layout";
 import { TranscriptRecorder } from "../components/transcript-recorder";
 import { setNoteId } from "../hooks/use-note-id";
+import { NoteGenerator } from "../components/note-generator";
+import { useNoteGenerator } from "../hooks/use-note-generator";
 
 export default function NotePage() {
   const search = NoteRoute.useSearch()
@@ -12,6 +14,8 @@ export default function NotePage() {
     setNoteId(search.id)
   }
 
+  const { generatedNotes } = useNoteGenerator()
+  console.log("generatedNotes", generatedNotes)
   return (
     <AuthenticatedLayout>
       <div className="relative h-screen ">
@@ -21,12 +25,13 @@ export default function NotePage() {
             {JSON.stringify(search)}
             {/* <NoteEditor noteId={noteId} /> */}
             <div className="flex gap-2 justify-center items-center">
-                    <TranscriptRecorder
-                      className="fixed bottom-6 -translate-x-1/2 left-1/2 z-10"
-                      // noteId={noteId}
-                    />
-                    {/* <NoteGenerator noteId={noteId}/> */}
-                  </div>
+              <TranscriptRecorder
+                className="fixed bottom-6 -translate-x-1/2 left-1/2 z-10"
+              // noteId={noteId}
+              />
+              {generatedNotes}
+              <NoteGenerator />
+            </div>
           </ScrollArea>
         </main>
       </div>
