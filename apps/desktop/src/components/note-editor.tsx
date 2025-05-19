@@ -1,43 +1,73 @@
 import React from "react";
-import { Textarea } from "@note/ui/components/textarea";
-import { cn } from "@note/ui/lib/utils";
-import { Input } from "@note/ui/components/input";
 import { Note as NoteType } from "@note/db/types";
 import { getClient } from "../lib/api";
 import { useLiveQuery, useOptimisticMutation } from "@tanstack/react-db";
 import { fullNoteCollection, notesCollection } from "../lib/collections/notes";
 import { asyncDebounce } from '@tanstack/pacer'
+import { useStore } from "@tanstack/react-store";
+import { noteIdStore, DEFAULT_NOTE_ID } from "../hooks/use-note-id";
+import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
 
-interface NoteEditorProps extends React.ComponentPropsWithoutRef<"div"> {
-  noteId?: number
-}
-
-const updateNote = asyncDebounce(async (id: number, note: Partial<Pick<NoteType, "title" | "userNotes" | "transcript">>) => {
+const updateNote = asyncDebounce(async (noteId: number, params: Partial<Pick<NoteType, "title" | "userNotes">>) => {
   const api = await getClient()
-  const resp = await api.note[":id"].$patch({
-    param: {
-      id: id.toString(),
-    },
+  const resp = await api.note.$put({
     json: {
-      title: note.title ?? undefined,
-      userNotes: note.userNotes ?? undefined,
-      transcript: note.transcript ?? undefined,
+      id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
+      ...params,
     },
   })
 
-  const body = await resp.json()
+  if (!resp.ok) {
+    throw new Error("Failed to update note")
+  }
 
-  return body.note
+  const { note } = await resp.json()
+
+  return note
 }, {
   wait: 1500, // too low causes data inconsistency between collections
 })
 
-export function NoteEditor({ className, noteId, ...props }: NoteEditorProps) {
+const extensions = [
+  StarterKit.configure({
+    orderedList: {
+      HTMLAttributes: {
+        class: "list-decimal",
+      },
+    },
+    bulletList: {
+      HTMLAttributes: {
+        class: "list-disc",
+      },
+    },
+    code: {
+      HTMLAttributes: {
+        class: "bg-accent rounded-md p-1",
+      },
+    },
+    horizontalRule: {
+      HTMLAttributes: {
+        class: "my-2",
+      },
+    },
+    codeBlock: {
+      HTMLAttributes: {
+        class: "bg-primary text-primary-foreground p-2 text-sm rounded-md p-1",
+      },
+    },
+    heading: {
+      levels: [1, 2, 3, 4],
+      HTMLAttributes: {
+        class: "tiptap-heading",
+      },
+    },
+  }),
+];
+
+export function NoteEditor({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+  const noteId = useStore(noteIdStore, store => store.noteId)
   const noteCollection = fullNoteCollection(noteId)
-  const [isLoading, setIsLoading] = React.useState(true)
-  noteCollection.stateWhenReady().then((state) => {
-    setIsLoading(false)
-  })
 
   const { data } = useLiveQuery((query) =>
     query
@@ -61,48 +91,36 @@ export function NoteEditor({ className, noteId, ...props }: NoteEditorProps) {
     },
   })
 
-  // TODO: handle this better
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        Loading...
-      </div>
-    )
-  }
+  const editor = useEditor({
+    extensions,
+    autofocus: "start",
+    immediatelyRender: false,
+    content: data?.[0]?.userNotes ?? undefined,
+    onUpdate(props) {
+      const html = props.editor.getHTML()
 
-  function handleChange(title?: string, userNotes?: string) {
-    mutate(() => {
-      noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
-        title ? draft.title = title : undefined
-        userNotes ? draft.userNotes = userNotes : undefined
-      })
-      if (title) {
-        notesCollection.update(notesCollection.state.get(noteId.toString())!, (draft) => {
-          draft.title = title
-          draft.updatedAt = new Date().toISOString() // for sorting
+      if (html) {
+        mutate(() => {
+          noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
+            html ? draft.userNotes = html : undefined
+          })
         })
       }
-    })
+    },
+  })
+
+  if (!editor) {
+    return null;
   }
 
-  const note = data[0]!
   return (
     <div
-      className={cn(className)}
-      {...props}
+      onClick={() => {
+        editor?.chain().focus().run();
+      }}
+      className="cursor-text min-h-[18rem] bg-none"
     >
-      <Input
-        placeholder="Title"
-        className="w-full"
-        value={note.title}
-        onChange={(e) => handleChange(e.target.value)}
-      />
-      <Textarea
-        value={note.userNotes ?? ""}
-        onChange={(e) => handleChange(undefined, e.target.value)}
-      />
-      {/* {isPending && <div>Saving...</div>} */}
+      <EditorContent className="outline-none" editor={editor} />
     </div>
-
   );
 }
