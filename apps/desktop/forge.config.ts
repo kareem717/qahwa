@@ -10,6 +10,9 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    osxSign: {
+      identity: process.env.APPLE_DEVELOPER_IDENTITY!,
+    }
   },
   rebuildConfig: {},
   makers: [
@@ -52,4 +55,4 @@ const config: ForgeConfig = {
   ],
 };
 
-export default config;
+export default config; 

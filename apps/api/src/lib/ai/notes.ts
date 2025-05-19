@@ -1,7 +1,7 @@
 import { Note } from "@note/db/types";
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { env } from "cloudflare:workers";
-import { generateText, streamText } from "ai";
+import { streamText } from "ai";
 
 type Transcript = Pick<Note, "transcript">["transcript"]
 
