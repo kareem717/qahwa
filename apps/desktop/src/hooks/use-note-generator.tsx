@@ -1,40 +1,20 @@
 import { getClient } from "../lib/api";
 import { noteIdStore } from "./use-note-id";
 import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/react-store";
-
-// ---- Store definition moved here ----
-const noteGeneratorStore = new Store({
-  generatedNotes: "",
-  isGenerating: false,
-});
-
-const setIsGenerating = (status: boolean) => {
-  noteGeneratorStore.setState((state) => ({
-    ...state,
-    isGenerating: status,
-  }));
-};
-
-const appendGeneratedNotes = (chunk: string) => {
-  noteGeneratorStore.setState((state) => ({
-    ...state,
-    generatedNotes: state.generatedNotes + chunk,
-  }));
-};
-
-const clearGeneratedNotes = () => {
-  noteGeneratorStore.setState((state) => ({
-    ...state,
-    generatedNotes: "",
-  }));
-};
-// ---- End of moved store definition ----
+import { fullNoteCollection } from "../lib/collections/notes";
+import React from "react";
+import { useOptimisticMutation } from "@tanstack/react-db";
 
 export function useNoteGenerator() {
   const noteId = useStore(noteIdStore, (state) => state.noteId);
-  const generatedNotes = useStore(noteGeneratorStore, (state) => state.generatedNotes);
-  const isGenerating = useStore(noteGeneratorStore, (state) => state.isGenerating);
+  const noteCollection = fullNoteCollection(noteId)
+  const [isGenerating, setIsGenerating] = React.useState(false)
+
+  const { mutate } = useOptimisticMutation({
+    mutationFn: async () => {
+      await noteCollection.invalidate()
+    }
+  })
 
   async function generate() {
     // Optional: Add validation for noteId if needed, e.g.,
@@ -44,7 +24,6 @@ export function useNoteGenerator() {
     // }
 
     setIsGenerating(true);
-    clearGeneratedNotes(); // Clear previous notes using store action
 
     try {
       const api = await getClient();
@@ -71,7 +50,11 @@ export function useNoteGenerator() {
         if (done) {
           break;
         }
-        appendGeneratedNotes(value); // Use store action to append chunk
+        mutate(() => {
+          noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
+            draft.generatedNotes = draft.generatedNotes ? draft.generatedNotes + value : value
+          })
+        })
       }
 
     } catch (error) {
@@ -84,7 +67,6 @@ export function useNoteGenerator() {
 
   return {
     noteId,
-    generatedNotes,
     isGenerating,
     generate,
     canGenerate: true, // This could also be derived from store state if needed

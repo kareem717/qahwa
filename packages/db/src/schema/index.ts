@@ -11,7 +11,7 @@ export const notes = pgTable(
     transcript: jsonb().$type<{
       timestamp: string,
       sender: "me" | "them",
-      text: string,
+      content: string,
     }[]>().notNull().default([]),
     userNotes: text(),
     generatedNotes: text(),

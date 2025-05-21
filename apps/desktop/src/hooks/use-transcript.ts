@@ -52,7 +52,6 @@ async function startMicAudioCapture(
       }
     };
   } catch (error) {
-    console.error("Error starting mic audio capture:", error);
     // Perform cleanup if any part of the start failed
     stopMicAudioCapture(state);
     throw error; // Re-throw the error to be handled by the caller
@@ -69,7 +68,9 @@ function stopMicAudioCapture(state: MicAudioRecorderState) {
     state.source.disconnect();
   }
   if (state.stream) {
-    state.stream.getTracks().forEach((track) => track.stop());
+    for (const track of state.stream.getTracks()) {
+      track.stop();
+    }
   }
   if (state.audioCtx && state.audioCtx.state !== "closed") {
     state.audioCtx.close();
@@ -117,9 +118,8 @@ function closeAndClearWebSocket(socketRef: React.MutableRefObject<WebSocket | nu
     try {
       socketRef.current.send(JSON.stringify({ terminate_session: true }));
       socketRef.current.close();
-      console.log("WebSocket closed and ref cleared.");
     } catch (e) {
-      console.error("Error closing WebSocket:", e);
+      // Handle error silently
     }
   }
   socketRef.current = null; // Clear the ref
@@ -129,7 +129,6 @@ function cleanupAudioIpc(audioIpcCleanupRef: React.MutableRefObject<(() => void)
   if (audioIpcCleanupRef.current) {
     audioIpcCleanupRef.current();
     audioIpcCleanupRef.current = null;
-    console.log("Cleaned up audio IPC listeners.");
   }
 }
 
@@ -175,22 +174,19 @@ export function useTranscript() {
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
-      const fnId = nanoid()
-      console.debug(`[useOptimisticMutation - ${fnId}] Called with noteId: ${internalNoteIdRef.current} at ${new Date().toISOString()}`)
-      const { changes, original } = transaction.mutations[0]!
+      const { changes } = transaction.mutations[0]
 
       const api = await getClient()
       const payload = {
         id: internalNoteIdRef.current === DEFAULT_NOTE_ID ? undefined : internalNoteIdRef.current,
-        transcript: changes.transcript as any,
+        transcript: changes.transcript,
       }
-      console.debug(`[useOptimisticMutation - ${fnId}] Sending payload to API, payload: ${JSON.stringify(payload)} at ${new Date().toISOString()}`)
       const response = await api.note.$put({
+        // @ts-expect-error - TODO: fix this
         json: payload
       })
 
       if (!response.ok) {
-        console.error("Error upserting note", response)
         if (internalNoteIdRef.current === DEFAULT_NOTE_ID) {
           isCreatingNoteRef.current = false; // Reset on creation failure
         }
@@ -198,27 +194,18 @@ export function useTranscript() {
       }
 
       const { note } = await response.json()
-      console.debug(`[useOptimisticMutation - ${fnId}] API response: ${JSON.stringify(note)} at ${new Date().toISOString()}`)
 
       if (internalNoteIdRef.current === DEFAULT_NOTE_ID && note && note.id) {
         const newNoteId = note.id
-        console.debug(`[useOptimisticMutation - ${fnId}] Setting internal note id to: ${newNoteId} at ${new Date().toISOString()}`)
-        // Order: Set ID, then invalidate, then allow useEffect to flush.
         setNoteId(newNoteId) // This updates internalNoteIdRef via its own useEffect.
-        // This will also trigger the flushing useEffect if pending entries exist.
         await fullNoteCollection(newNoteId).invalidate() // This will update transcriptRef via useLiveQuery and its useEffect.
-        console.debug(`[useOptimisticMutation - ${fnId}] Invalidated new collection for id: ${newNoteId}. isCreatingNoteRef will be set to false. at ${new Date().toISOString()}`)
         isCreatingNoteRef.current = false; // Mark creation as finished. IMPORTANT: Do this after setNoteId & invalidate.
-        // Pending entries will be handled by the useEffect watching noteId and transcript.
       } else {
-        if (note && note.id) {
-          console.debug(`[useOptimisticMutation - ${fnId}] Invalidating existing collection for id ${note.id} at ${new Date().toISOString()}`)
+        if (note?.id) {
           await fullNoteCollection(note.id).invalidate();
         } else if (internalNoteIdRef.current !== DEFAULT_NOTE_ID) {
-          console.debug(`[useOptimisticMutation - ${fnId}] Invalidating existing collection for id ${internalNoteIdRef.current} (from ref) as note ID was not in response at ${new Date().toISOString()}`)
           await fullNoteCollection(internalNoteIdRef.current).invalidate();
         }
-        // If it was an update (not creation), ensure isCreatingNoteRef is false.
         if (internalNoteIdRef.current !== DEFAULT_NOTE_ID) {
           isCreatingNoteRef.current = false;
         }
@@ -234,20 +221,14 @@ export function useTranscript() {
       const entriesToFlush = [...pendingTranscriptEntriesRef.current];
       pendingTranscriptEntriesRef.current = []; // Clear buffer immediately
 
-      console.debug(`[useEffect - Flush] Flushing ${entriesToFlush.length} pending entries for note ${currentActualNoteId}. Base transcriptRef: ${JSON.stringify(transcriptRef.current)}`);
-
       mutate(() => {
         const collectionForFlush = fullNoteCollection(currentActualNoteId);
         const noteToUpdate = collectionForFlush.state.get(String(currentActualNoteId));
         if (noteToUpdate) {
           collectionForFlush.update(noteToUpdate, (draft) => {
-            // Ensure we are building on the most recent transcript from the live query
             draft.transcript = [...(transcriptRef.current ?? []), ...entriesToFlush];
-            console.debug(`[useEffect - Flush] Updated note optimistically for ID: ${currentActualNoteId}. New draft.transcript: ${JSON.stringify(draft.transcript)}`);
           });
         } else {
-          console.warn(`[useEffect - Flush] Note ${currentActualNoteId} not found for appending buffered entries. This might indicate a timing issue or that the note was deleted. Entries will be lost if not handled. Attempting to insert if transcriptRef is empty.`);
-          // Fallback: if transcriptRef is empty and note doesn't exist, maybe it was the first entry that failed to get in before invalidation picked it up.
           if ((transcriptRef.current ?? []).length === 0) {
             collectionForFlush.insert([{
               id: currentActualNoteId,
@@ -259,66 +240,48 @@ export function useTranscript() {
               userNotes: "",
               generatedNotes: ""
             }]);
-            console.debug(`[useEffect - Flush] Fallback: Inserted entries for ${currentActualNoteId} as transcriptRef was empty.`);
-          } else {
-            console.error(`[useEffect - Flush] Fallback failed: Note ${currentActualNoteId} not found and transcriptRef was not empty. Entries lost: ${JSON.stringify(entriesToFlush)}`);
           }
         }
       });
     }
-    // Depend on noteId (to trigger when it changes from TEMP) and transcript (to ensure transcriptRef is updated from liveQuery)
-    // mutate is stable and included as a dependency for the mutate call.
-  }, [noteId, transcript, mutate]);
+  }, [mutate]);
 
   const handleTranscriptChange = React.useCallback((newTranscriptEntries: {
     timestamp: string
-    text: string
+    content: string
     sender: "me" | "them"
   }[]) => {
-    const fnId = nanoid()
     const currentNoteIdVal = internalNoteIdRef.current;
-    console.debug(`[handleTranscriptChange - ${fnId}] Called with noteId: ${currentNoteIdVal}, isCreatingNote: ${isCreatingNoteRef.current} at ${new Date().toISOString()}`)
 
     if (currentNoteIdVal === DEFAULT_NOTE_ID) {
       if (isCreatingNoteRef.current) {
         pendingTranscriptEntriesRef.current.push(...newTranscriptEntries);
-        console.debug(`[handleTranscriptChange - ${fnId}] Buffered ${newTranscriptEntries.length} entries as note creation is in progress. Buffer size: ${pendingTranscriptEntriesRef.current.length} at ${new Date().toISOString()}`);
-        // UI for partials could be updated here from pendingTranscriptEntriesRef if needed
         return; // Don't call mutate for these entries yet
-      } else {
-        isCreatingNoteRef.current = true;
-        console.debug(`[handleTranscriptChange - ${fnId}] Initiating note creation with ${newTranscriptEntries.length} entries at ${new Date().toISOString()}`);
-        mutate(() => {
-          const collectionForInsert = fullNoteCollection(DEFAULT_NOTE_ID); // Operate on TEMP_ID collection
-          console.debug(`[handleTranscriptChange - ${fnId}] Inserting temp note optimistically with ID: ${DEFAULT_NOTE_ID} at ${new Date().toISOString()}`);
-          collectionForInsert.insert([{
-            id: DEFAULT_NOTE_ID,
-            transcript: newTranscriptEntries,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            userId: DEFAULT_NOTE_ID,
-            title: "",
-            userNotes: "",
-            generatedNotes: "",
-          }]);
-        });
       }
+
+      isCreatingNoteRef.current = true;
+      mutate(() => {
+        const collectionForInsert = fullNoteCollection(DEFAULT_NOTE_ID); // Operate on TEMP_ID collection
+        collectionForInsert.insert([{
+          id: DEFAULT_NOTE_ID,
+          transcript: newTranscriptEntries,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          userId: DEFAULT_NOTE_ID,
+          title: "",
+          userNotes: "",
+          generatedNotes: "",
+        }]);
+      });
+
     } else {
-      // Standard update: noteId is a real ID
-      console.debug(`[handleTranscriptChange - ${fnId}] Updating existing note ${currentNoteIdVal} with ${newTranscriptEntries.length} entries at ${new Date().toISOString()}`);
       mutate(() => {
         const collectionForUpdate = fullNoteCollection(currentNoteIdVal);
         const noteToUpdate = collectionForUpdate.state.get(String(currentNoteIdVal));
         if (noteToUpdate) {
-          console.debug(`[handleTranscriptChange - ${fnId}] Updating note: Base transcript from transcriptRef: ${JSON.stringify(transcriptRef.current)} at ${new Date().toISOString()}`);
           collectionForUpdate.update(noteToUpdate, (draft) => {
             draft.transcript = [...(transcriptRef.current ?? []), ...newTranscriptEntries];
-            console.debug(`[handleTranscriptChange - ${fnId}] Updated note optimistically for ID: ${currentNoteIdVal}. New draft.transcript: ${JSON.stringify(draft.transcript)} at ${new Date().toISOString()}`);
           });
-        } else {
-          console.warn(`[handleTranscriptChange - ${fnId}] Note with ID ${currentNoteIdVal} not found in collection for update. Current transcriptRef: ${JSON.stringify(transcriptRef.current)} at ${new Date().toISOString()}`);
-          // Potentially insert if note disappeared but we have an ID? Or rely on sync to fix.
-          // For now, just log. If this happens, it implies a desync not handled by current optimistic flow.
         }
       });
     }
@@ -336,7 +299,6 @@ export function useTranscript() {
 
   // --- Main Recording Logic ---
   const stopRecording = React.useCallback(() => {
-    console.log("Stopping recording...");
     setIsLoading(false);
     setIsRecording(false);
 
@@ -349,25 +311,21 @@ export function useTranscript() {
     // Reset creation-specific state
     isCreatingNoteRef.current = false;
     pendingTranscriptEntriesRef.current = [];
-    console.log("Cleared pending transcript entries and creation state.");
 
-  }, [audioIpcCleanupRef, systemSocketRef, micSocketRef]);
+  }, []);
 
   const startRecording = React.useCallback(async () => {
     if (isRecording || isLoading) {
-      console.log("Recording is already in progress or loading.");
       return;
     }
 
     setIsLoading(true);
-    console.log("Starting recording process...");
 
     try {
       // 1. Get AssemblyAI Tokens
       const token = await getAssemblyAiToken();
       const systemToken = token; // Assuming same token for now
       const micToken = token;    // Assuming same token for now
-      console.log("AssemblyAI token retrieved.");
 
       // 2. Setup WebSockets
       const sampleRate = 48000; // Target sample rate for osx-audio
@@ -379,7 +337,6 @@ export function useTranscript() {
 
       const checkAndStartElectronCapture = () => {
         if (isSystemReady && isMicReady) {
-          console.log("Both WebSockets ready. Starting Electron capture...");
           try {
             const handleSystemData = (data: ArrayBuffer) => {
               if (systemSocketRef.current?.readyState === WebSocket.OPEN) {
@@ -398,8 +355,7 @@ export function useTranscript() {
                 .then(recorderState => {
                   micRecorderRef.current = recorderState;
                 })
-                .catch(error => {
-                  console.error("Failed to start mic audio capture:", error);
+                .catch(() => {
                   toast.error("Failed to start microphone capture.");
                   stopRecording(); // Critical failure, stop everything
                 });
@@ -409,20 +365,14 @@ export function useTranscript() {
                   stopMicAudioCapture(micRecorderRef.current);
                   micRecorderRef.current = null;
                 }
-                // No need to call window.electronSystemAudio.stopCapture() here,
-                // as it's handled by the main stopRecording function.
               };
             };
-            // Store the cleanup function that only stops the mic.
-            // The main electron capture is stopped by stopRecording.
             audioIpcCleanupRef.current = cleanupElectronAndMic();
 
-            console.log("Electron capture started, listening for audio data.");
             setIsLoading(false);
             setIsRecording(true);
 
           } catch (error) {
-            console.error("Error starting Electron audio capture:", error);
             toast.error("Failed to start audio capture.");
             stopRecording();
           }
@@ -433,16 +383,15 @@ export function useTranscript() {
       systemSocketRef.current = setupWebSocket({
         url: systemWsUrl,
         onOpen: () => {
-          console.log("System audio WebSocket opened.");
           isSystemReady = true;
           checkAndStartElectronCapture();
         },
         onMessage: (event) => {
           try {
             const message = JSON.parse(event.data as string);
+            console.log("message", message)
             switch (message.message_type) {
               case "SessionBegins":
-                console.log("System audio session began.");
                 break;
               case "PartialTranscript":
                 setPartialTranscript((prev) => ({ ...prev, them: message.text }));
@@ -450,36 +399,27 @@ export function useTranscript() {
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, them: "" }));
-                  console.debug("Calling handleTranscriptChange for system audio with full msg", new Date().toISOString())
-                  handleTranscriptChange([{ text: message.text, sender: "them", timestamp: new Date().toISOString() }])
+                  handleTranscriptChange([{ content: message.text, sender: "them", timestamp: new Date().toISOString() }])
                 }
                 break;
               case "SessionTerminated":
-                console.log("System audio session terminated by AssemblyAI.");
                 stopRecording();
                 break;
               case "error":
-                console.error("System audio WebSocket error:", message.error);
                 toast.error(`System Transcription Error: ${message.error}`);
                 stopRecording();
                 break;
             }
           } catch (e) {
-            console.error("Error parsing system audio WebSocket message:", event.data, e);
+            // Handle error silently
           }
         },
         onError: (errorEvent) => {
-          console.error("System audio WebSocket error:", errorEvent);
           toast.error("System connection error.");
           stopRecording();
         },
         onClose: (closeEvent) => {
-          console.log(`System audio WebSocket closed: ${closeEvent.code} ${closeEvent.reason}`);
-          // If the WebSocket closes unexpectedly and we are still "recording", stop everything.
-          // However, normal closure is handled by stopRecording.
-          // Check if it was an unexpected closure.
-          if (isRecording && closeEvent.code !== 1000) { // 1000 is normal closure
-            console.warn("System audio WebSocket closed unexpectedly.");
+          if (isRecording && closeEvent.code !== 1000) {
             stopRecording();
           }
         }
@@ -489,17 +429,14 @@ export function useTranscript() {
       micSocketRef.current = setupWebSocket({
         url: micWsUrl,
         onOpen: () => {
-          console.log("Mic audio WebSocket opened.");
           isMicReady = true;
           checkAndStartElectronCapture();
         },
         onMessage: (event) => {
-          // console.log("Mic message:", event.data);
           try {
             const message = JSON.parse(event.data as string);
             switch (message.message_type) {
               case "SessionBegins":
-                console.log("Mic audio session began.");
                 break;
               case "PartialTranscript":
                 setPartialTranscript((prev) => ({ ...prev, me: message.text }));
@@ -507,50 +444,43 @@ export function useTranscript() {
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, me: "" }));
-                  console.debug("Calling handleTranscriptChange for mic audio with full msg", new Date().toISOString())
-                  handleTranscriptChange([{ text: message.text, sender: "me", timestamp: new Date().toISOString() }])
+                  handleTranscriptChange([{ content: message.text, sender: "me", timestamp: new Date().toISOString() }])
                 }
                 break;
               case "SessionTerminated":
-                console.log("Mic audio session terminated by AssemblyAI.");
                 stopRecording();
                 break;
               case "error":
-                console.error("Mic audio WebSocket error:", message.error);
                 toast.error(`Mic Transcription Error: ${message.error}`);
                 stopRecording();
                 break;
             }
           } catch (e) {
-            console.error("Error parsing mic audio WebSocket message:", event.data, e);
+            // Handle error silently
           }
         },
-        onError: (errorEvent) => {
-          console.error("Mic audio WebSocket error:", errorEvent);
+        onError: () => {
           toast.error("Mic connection error.");
           stopRecording();
         },
         onClose: (closeEvent) => {
-          console.log(`Mic audio WebSocket closed: ${closeEvent.code} ${closeEvent.reason}`);
           if (isRecording && closeEvent.code !== 1000) {
-            console.warn("Mic audio WebSocket closed unexpectedly.");
             stopRecording();
           }
         }
       });
 
     } catch (error) {
-      console.error("Failed to start recording:", error);
       toast.error(`Error starting recording: ${error instanceof Error ? error.message : String(error)}`);
       stopRecording();
     }
-  }, [isRecording, isLoading, stopRecording, audioIpcCleanupRef, systemSocketRef, micSocketRef, micRecorderRef]);
+  }, [
+    isRecording, isLoading, stopRecording, handleTranscriptChange]);
 
   // Effect for automatic cleanup on unmount
   React.useEffect(() => {
     return () => {
       stopRecording();
-      // Ensure mic recorder is stopped on unmount if active
       if (micRecorderRef.current) {
         stopMicAudioCapture(micRecorderRef.current);
         micRecorderRef.current = null;
