@@ -49,31 +49,38 @@ const extensions = [
   Markdown,
 ];
 
-const updateNote = asyncDebounce(async (noteId: number, params: Partial<Pick<NoteType, "title" | "userNotes" | "generatedNotes">>) => {
-  const api = await getClient()
-  const resp = await api.note.$put({
-    json: {
-      id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
-      ...params,
-    },
-  })
+interface NoteEditorProps extends React.ComponentPropsWithoutRef<"div"> {
+  noteEditorProps?: Omit<React.ComponentPropsWithoutRef<typeof EditorContent>, "editor">
+}
 
-  if (!resp.ok) {
-    throw new Error("Failed to update note")
-  }
-
-  const { note } = await resp.json()
-
-  return note
-}, {
-  wait: 1500, // too low causes data inconsistency between collections
-})
-
-export function NoteEditor({ className, onClick, ...props }: Omit<React.ComponentPropsWithoutRef<typeof EditorContent>, "editor">) {
+export function NoteEditor({ className, noteEditorProps, ...props }: NoteEditorProps) {
   const noteId = useStore(noteIdStore, store => store.noteId)
   const noteCollection = fullNoteCollection(noteId)
   const mode = useStore(noteEditorModeStore, store => store.mode)
   const isProgrammaticUpdate = React.useRef(false)
+
+  const updateNote = React.useCallback(
+    asyncDebounce(async (noteId: number, params: Partial<Pick<NoteType, "title" | "userNotes" | "generatedNotes">>) => {
+      const api = await getClient()
+      const resp = await api.note.$put({
+        json: {
+          id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
+          ...params,
+        },
+      })
+
+      if (!resp.ok) {
+        throw new Error("Failed to update note")
+      }
+
+      const { note } = await resp.json()
+
+      return note
+    }, {
+      wait: 1500, // too low causes data inconsistency between collections
+    }),
+    []
+  )
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
@@ -96,7 +103,6 @@ export function NoteEditor({ className, onClick, ...props }: Omit<React.Componen
       .select("@*")
       .keyBy("@id")
   )
-
 
   const editor = useEditor({
     extensions,
@@ -124,9 +130,7 @@ export function NoteEditor({ className, onClick, ...props }: Omit<React.Componen
         }
         mutate(() => {
           noteCollection.update(updatableRecord, (draft) => {
-            if (html) {
-              draft.userNotes = html;
-            }
+            draft.userNotes = html;
           })
         })
       }
@@ -156,5 +160,23 @@ export function NoteEditor({ className, onClick, ...props }: Omit<React.Componen
     return null;
   }
 
-  return <EditorContent className={cn("outline-none cursor-text min-h-[18rem] bg-none", className)} editor={editor} {...props} />
+  function handleTitleChange(title: string) {
+    const updatableRecord = noteCollection.state.get(noteId.toString())
+    if (!updatableRecord) {
+      // throw new Error(`[NoteEditor] Note with ID of ${noteId} note found in the note collection`)
+      return;
+    }
+    mutate(() => {
+      noteCollection.update(updatableRecord, (draft) => {
+        draft.title = title
+      })
+    })
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-2", className)} {...props}>
+      <input type="text" value={data?.[0]?.title} onChange={e => handleTitleChange(e.target.value)} className="text-2xl font-bold outline-none" />
+      <EditorContent className={cn("outline-none cursor-text min-h-[18rem] bg-none", noteEditorProps?.className)} editor={editor} {...noteEditorProps} />
+    </div>
+  )
 }
