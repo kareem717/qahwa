@@ -1,6 +1,6 @@
 import React from "react"
 import { ChevronRight, FileText, Loader2, Trash } from "lucide-react"
-import { Note } from "@note/db/types"
+import type { Note } from "@note/db/types"
 import { Button } from "@note/ui/components/button"
 import { cn } from "@note/ui/lib/utils"
 import { Link } from "@tanstack/react-router"

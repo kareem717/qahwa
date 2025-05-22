@@ -1,5 +1,5 @@
 import React from "react";
-import { NoteButton, SimpleNote } from "../components/note-button";
+import { NoteButton, type SimpleNote } from "../components/note-button";
 import { Header } from "../components/header";
 import { Badge } from "@note/ui/components/badge";
 import { Link } from "@tanstack/react-router";
@@ -24,20 +24,22 @@ function formatDate(dateString: string | null) {
   // TODO: does not show year
   if (date.toDateString() === today.toDateString()) {
     return "Today";
-  } else if (date.toDateString() === yesterday.toDateString()) {
-    return "Yesterday";
-  } else {
-    return date.toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
   }
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  return date.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
 };
 
 // Helper function to group notes by date
 function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
-  
+
   if (!notes || notes.length === 0) return {};
   return notes.reduce((acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
     const dateKey = formatDate(note.updatedAt);

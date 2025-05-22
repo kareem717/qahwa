@@ -7,6 +7,9 @@ import { useTranscript } from "../hooks/use-transcript"
 import { nanoid } from "nanoid"
 import { useNoteGenerator } from "../hooks/use-note-generator"
 import { toast } from "sonner"
+import { setNoteEditorMode } from "../hooks/use-note-editor"
+import { useStore } from "@tanstack/react-store"
+import { noteEditorModeStore } from "../hooks/use-note-editor"
 
 function TranscriptItem({ sender, text, type = "full" }: { sender: "me" | "them", text: string, type?: "full" | "partial" }) {
   return (
@@ -40,6 +43,7 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
     partialTranscript
   } = useTranscript();
   const { canGenerate, isGenerating, generate } = useNoteGenerator();
+  const { mode } = useStore(noteEditorModeStore, store => store)
 
   // Auto-scroll to bottom when new transcript items appear
   React.useEffect(() => {
@@ -101,7 +105,7 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
       {...props}
       animate={
         menu !== 'closed' ? {
-          width: 320,
+          width: "fit-content",
           borderRadius: "var(--radius)"
         } : {}
       }
@@ -180,6 +184,12 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
             <Sparkles className="size-3" />
           )}
           Generate Note
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => setNoteEditorMode(mode === 'generated' ? 'user' : 'generated')}
+        >
+          {mode === 'generated' ? 'User Notes' : 'Generated Notes'}
         </Button>
       </div>
     </motion.div>

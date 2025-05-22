@@ -1,33 +1,16 @@
 import React from "react";
-import { Note as NoteType } from "@note/db/types";
+import type { Note as NoteType } from "@note/db/types";
 import { getClient } from "../lib/api";
 import { useLiveQuery, useOptimisticMutation } from "@tanstack/react-db";
 import { fullNoteCollection, notesCollection } from "../lib/collections/notes";
 import { asyncDebounce } from '@tanstack/pacer'
 import { useStore } from "@tanstack/react-store";
 import { noteIdStore, DEFAULT_NOTE_ID } from "../hooks/use-note-id";
-import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/react'
+import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-
-const updateNote = asyncDebounce(async (noteId: number, params: Partial<Pick<NoteType, "title" | "userNotes">>) => {
-  const api = await getClient()
-  const resp = await api.note.$put({
-    json: {
-      id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
-      ...params,
-    },
-  })
-
-  if (!resp.ok) {
-    throw new Error("Failed to update note")
-  }
-
-  const { note } = await resp.json()
-
-  return note
-}, {
-  wait: 1500, // too low causes data inconsistency between collections
-})
+import { Markdown } from "tiptap-markdown";
+import { cn } from "@note/ui/lib/utils";
+import { noteEditorModeStore } from "../hooks/use-note-editor";
 
 const extensions = [
   StarterKit.configure({
@@ -63,22 +46,38 @@ const extensions = [
       },
     },
   }),
+  Markdown,
 ];
 
-export function NoteEditor({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+const updateNote = asyncDebounce(async (noteId: number, params: Partial<Pick<NoteType, "title" | "userNotes" | "generatedNotes">>) => {
+  const api = await getClient()
+  const resp = await api.note.$put({
+    json: {
+      id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
+      ...params,
+    },
+  })
+
+  if (!resp.ok) {
+    throw new Error("Failed to update note")
+  }
+
+  const { note } = await resp.json()
+
+  return note
+}, {
+  wait: 1500, // too low causes data inconsistency between collections
+})
+
+export function NoteEditor({ className, onClick, ...props }: Omit<React.ComponentPropsWithoutRef<typeof EditorContent>, "editor">) {
   const noteId = useStore(noteIdStore, store => store.noteId)
   const noteCollection = fullNoteCollection(noteId)
-
-  const { data } = useLiveQuery((query) =>
-    query
-      .from({ noteCollection })
-      .select("@*")
-      .keyBy("@id")
-  )
+  const mode = useStore(noteEditorModeStore, store => store.mode)
+  const isProgrammaticUpdate = React.useRef(false)
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
-      const { changes: note } = transaction.mutations[0]!
+      const { changes: note } = transaction.mutations[0]
 
       await updateNote(noteId, note)
 
@@ -91,36 +90,71 @@ export function NoteEditor({ className, ...props }: React.ComponentPropsWithoutR
     },
   })
 
+  const { data } = useLiveQuery((query) =>
+    query
+      .from({ noteCollection })
+      .select("@*")
+      .keyBy("@id")
+  )
+
+
   const editor = useEditor({
     extensions,
     autofocus: "start",
-    immediatelyRender: false,
-    content: data?.[0]?.userNotes ?? undefined,
-    onUpdate(props) {
+    immediatelyRender: true,
+    // content: mode === 'user' ? (data?.[0]?.userNotes ?? undefined) : (data?.[0]?.generatedNotes ?? undefined),
+    editable: mode === 'user',
+    onUpdate: (props) => {
+      // Skip if this is a programmatic update (e.g., from mode switching)
+      if (isProgrammaticUpdate.current) {
+        return;
+      }
+
+      if (mode !== 'user') {
+        return;
+      }
+
       const html = props.editor.getHTML()
 
       if (html) {
+        const updatableRecord = noteCollection.state.get(noteId.toString())
+        if (!updatableRecord) {
+          // throw new Error(`[NoteEditor] Note with ID of ${noteId} note found in the note collection`)
+          return;
+        }
         mutate(() => {
-          noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
-            html ? draft.userNotes = html : undefined
+          noteCollection.update(updatableRecord, (draft) => {
+            if (html) {
+              draft.userNotes = html;
+            }
           })
         })
       }
     },
   })
 
+  // Update editor content when data or mode changes
+  React.useEffect(() => {
+    if (!editor || !data || !data[0]) return;
+
+    isProgrammaticUpdate.current = true;
+    editor.commands.setContent(mode === 'user' ? data[0].userNotes : data[0].generatedNotes);
+
+    // Reset the flag after a brief delay to allow the update to complete
+    setTimeout(() => {
+      isProgrammaticUpdate.current = false;
+    }, 0);
+  }, [data, mode, editor])
+
+  // Update editor editability when mode changes
+  React.useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(mode === 'user');
+  }, [mode, editor])
+
   if (!editor) {
     return null;
   }
 
-  return (
-    <div
-      onClick={() => {
-        editor?.chain().focus().run();
-      }}
-      className="cursor-text min-h-[18rem] bg-none"
-    >
-      <EditorContent className="outline-none" editor={editor} />
-    </div>
-  );
+  return <EditorContent className={cn("outline-none cursor-text min-h-[18rem] bg-none", className)} editor={editor} {...props} />
 }
