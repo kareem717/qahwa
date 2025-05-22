@@ -11,6 +11,7 @@ import { useAuth } from "../components/providers/auth-provider";
 import { AuthenticatedLayout } from "../layouts/authenticated-layout";
 import { useLiveQuery } from "@tanstack/react-db";
 import { notesCollection } from "../lib/collections/notes";
+import { setNoteId, DEFAULT_NOTE_ID } from "../hooks/use-note-id";
 
 const today = new Date();
 const yesterday = new Date(today);
@@ -82,6 +83,8 @@ export default function HomePage() {
           <div className="flex items-center gap-1">
             <Link
               to="/note"
+              // Clear the note id when the new note button is clicked
+              onClick={() => setNoteId(DEFAULT_NOTE_ID)}
               className={cn(
                 buttonVariants({
                   variant: "secondary",

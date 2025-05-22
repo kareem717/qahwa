@@ -3,10 +3,10 @@ import { NoteRoute } from "../routes/routes";
 import { Header } from "../components/header";
 import { ScrollArea } from "@note/ui/components/scroll-area";
 import { AuthenticatedLayout } from "../layouts/authenticated-layout";
-// import { TranscriptRecorder } from "../components/transcript-recordr";
 import { setNoteId } from "../hooks/use-note-id";
 import { NotePageMenuButton } from "../components/note-page-menu";
 import { NoteEditor } from "../components/note-editor";
+
 export default function NotePage() {
   const search = NoteRoute.useSearch()
   if (search.id) {
