@@ -9,16 +9,15 @@
     "configure": "node-gyp configure",
     "build:ts": "tsup src/index.ts --format cjs,esm --dts --sourcemap",
     "build:native": "pnpm dlx @electron/rebuild -f -m ./",
-    "build": "pnpm run build:ts && pnpm run build:native"
+    "build": "pnpm run build:ts && pnpm run build:native",
+    "postinstall": "pnpm run build:native"
   },
   "dependencies": {
     "@electron/rebuild": "4.0.1",
-    "bindings": "1.5.0",
     "electron": "36.2.0",
     "node-addon-api": "8.3.1"
   },
   "devDependencies": {
-    "@types/bindings": "^1.5.5",
     "@types/node": "^22.15.17",
     "node-gyp": "^11.2.0",
     "ts-node": "^10.9.2",
@@ -36,7 +35,7 @@
   "files": [
     "src",
     "dist",
-    "build/Release",
+    "build",
     "binding.gyp"
   ],
   "keywords": [],

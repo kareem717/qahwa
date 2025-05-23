@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import path from "path";
+import path from "node:path";
 import { builtinModules } from 'node:module';
 
 // https://vitejs.dev/config
@@ -13,8 +13,6 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'electron',
-        '@note/osx-audio',
-        'bindings',
         ...builtinModules,
         ...builtinModules.map(m => `node:${m}`),
       ],

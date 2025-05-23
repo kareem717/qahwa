@@ -6,12 +6,16 @@ import { MakerRpm } from "@electron-forge/maker-rpm";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
+import { AutoUnpackNativesPlugin } from "@electron-forge/plugin-auto-unpack-natives";
 
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    extraResource: [
+      "../../packages/osx-audio/build/Release/nativeAudioManager.node"
+    ],
     osxSign: {
-      identity: process.env.APPLE_DEVELOPER_IDENTITY!,
+      identity: process.env.APPLE_DEVELOPER_IDENTITY,
     }
   },
   rebuildConfig: {},
@@ -22,6 +26,7 @@ const config: ForgeConfig = {
     new MakerDeb({}),
   ],
   plugins: [
+    new AutoUnpackNativesPlugin({}),
     new VitePlugin({
       build: [
         {
