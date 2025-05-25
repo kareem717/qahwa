@@ -4,16 +4,41 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: # Workflow runs if EITHER API OR LANDING changes
       - 'apps/api/**'
       - 'apps/landing/**'
 
 jobs:
+  check-changes:
+    name: Check for Changed Files
+    runs-on: ubuntu-latest
+    outputs:
+      api_changed: ${{ steps.changed_files_api.outputs.any_changed }}
+      landing_changed: ${{ steps.changed_files_landing.outputs.any_changed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for tj-actions/changed-files to diff correctly
+
+      - name: Get changed files for API
+        id: changed_files_api
+        uses: tj-actions/changed-files@v44 # Using a specific version is good practice
+        with:
+          files: apps/api/**
+
+      - name: Get changed files for Landing
+        id: changed_files_landing
+        uses: tj-actions/changed-files@v44
+        with:
+          files: apps/landing/**
+
   deploy-api:
     name: Deploy API to Cloudflare Workers
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    if: contains(github.event.head_commit.modified, 'apps/api/') || contains(github.event.head_commit.added, 'apps/api/')
+    needs: check-changes # Depends on the check-changes job
+    if: needs.check-changes.outputs.api_changed == 'true' # Run only if API files changed
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,7 +68,8 @@ jobs:
     name: Deploy Landing Page to Cloudflare Pages
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: contains(github.event.head_commit.modified, 'apps/landing/') || contains(github.event.head_commit.added, 'apps/landing/')
+    needs: check-changes # Depends on the check-changes job
+    if: needs.check-changes.outputs.landing_changed == 'true' # Run only if landing files changed
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,7 +85,7 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Install Wrangler CLI
+      - name: Install Wrangler CLI 
         run: pnpm add -g wrangler@3.90.0
 
       - name: Install Landing App Dependencies
@@ -74,5 +100,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'apps/landing'
-          command: pages deploy ./dist
-          wranglerVersion: '3.90.0'
+          command: pages deploy ./dist --env production
+          wranglerVersion: '3.90.0' # This should make the action use the specified version
