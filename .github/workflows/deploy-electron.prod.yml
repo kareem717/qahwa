@@ -42,34 +42,6 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Cache PNPM store
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Cache Electron
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/electron
-            ~/.cache/electron-builder
-          key: ${{ runner.os }}-electron-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-
-
-      - name: Cache native dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            apps/desktop/node_modules/.cache
-            ~/.node-gyp
-          key: ${{ runner.os }}-native-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-native-
-
       - name: Import Code Signing Certificate
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -180,7 +152,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add apps/desktop/package.json
-          git commit -m "chore: bump electron app version to ${{ env.NEW_VERSION }}"
+          git commit -m "chore(desktop): bump version to ${{ env.NEW_VERSION }}"
           git push
 
       - name: Create Release
