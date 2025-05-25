@@ -12,9 +12,7 @@ interface ViteTypeOptions {
 }
 
 interface ImportMetaEnv {
-  readonly DATABASE_URL: string
   readonly VITE_API_URL: string,
-  readonly VITE_API_SECRET_KEY: string,
   readonly VITE_DESKTOP_PROTOCOL: string,
   readonly VITE_APP_URL: string,
 }

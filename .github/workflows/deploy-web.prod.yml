@@ -37,6 +37,7 @@ jobs:
     name: Deploy API to Cloudflare Workers
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    environment: production # Add this to access environment variables
     needs: check-changes # Depends on the check-changes job
     if: needs.check-changes.outputs.api_changed == 'true' # Run only if API files changed
     steps:
@@ -68,6 +69,7 @@ jobs:
     name: Deploy Landing Page to Cloudflare Pages
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: production # Add this to access environment variables
     needs: check-changes # Depends on the check-changes job
     if: needs.check-changes.outputs.landing_changed == 'true' # Run only if landing files changed
     steps:
@@ -92,7 +94,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Landing Page
-        run: cd apps/landing && pnpm run build
+        env:
+          NODE_ENV: production
+          VITE_APP_URL: '${{ vars.LANDING_URL }}'
+          VITE_API_URL: '${{ vars.API_URL }}'
+          VITE_DESKTOP_PROTOCOL: '${{ vars.DESKTOP_PROTOCOL }}'
+        run: |
+          cd apps/landing
+          pnpm run build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -100,5 +109,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'apps/landing'
-          command: pages deploy ./dist --env production
+          command: pages deploy ./dist
           wranglerVersion: '3.90.0' # This should make the action use the specified version

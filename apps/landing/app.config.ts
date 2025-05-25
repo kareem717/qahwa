@@ -23,6 +23,11 @@ const config = defineConfig({
         { find: '@note/ui', replacement: path.resolve(currentDir, '../../packages/ui/src') },
       ]
     },
+    define: {
+      __VITE_APP_URL__: JSON.stringify(process.env.VITE_APP_URL),
+      __VITE_API_URL__: JSON.stringify(process.env.VITE_API_URL),
+      __VITE_DESKTOP_PROTOCOL__: JSON.stringify(process.env.VITE_DESKTOP_PROTOCOL),
+    },
   },
   server: {
     preset: 'cloudflare-pages',

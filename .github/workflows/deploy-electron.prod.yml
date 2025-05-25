@@ -23,6 +23,7 @@ jobs:
     name: Build and Publish Electron App
     runs-on: macos-latest
     timeout-minutes: 90
+    environment: production # Add this to access environment variables
     permissions:
       contents: write # Required to create releases and push commits
     steps:
@@ -131,10 +132,10 @@ jobs:
         run: pnpm install && pnpm run publish
         working-directory: 'apps/desktop'
         env:
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET_NAME: '${{ vars.RELEASE_S3_BUCKET_NAME }}'
+          R2_ACCESS_KEY_ID: '${{ secrets.R2_ACCESS_KEY_ID }}'
+          R2_SECRET_ACCESS_KEY: '${{ secrets.R2_SECRET_ACCESS_KEY }}'
+          R2_ENDPOINT: '${{ vars.RELEASE_S3_ENDPOINT }}'
           # Code signing environment variables
           CSC_NAME: ${{ secrets.APPLE_DEVELOPER_IDENTITY }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
@@ -143,8 +144,8 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # App environment variables
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          VITE_SIGN_IN_URL: ${{ secrets.VITE_SIGN_IN_URL }}
+          VITE_API_URL: '${{ vars.API_URL }}'
+          VITE_SIGN_IN_URL: '${{ vars.LANDING_URL }}/app-redirect'
 
       - name: Commit version bump
         if: inputs.version_bump != 'none'
