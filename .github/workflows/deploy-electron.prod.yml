@@ -1,0 +1,213 @@
+name: Deploy Electron App
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - none
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
+
+jobs:
+  build-and-publish-electron:
+    name: Build and Publish Electron App
+    runs-on: macos-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write # Required to create releases and push commits
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Cache PNPM store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Cache Electron
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
+      - name: Cache native dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/desktop/node_modules/.cache
+            ~/.node-gyp
+          key: ${{ runner.os }}-native-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-native-
+
+      - name: Import Code Signing Certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # Import certificate from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Verify certificate
+          echo "Available code signing identities:"
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Version bump
+        if: inputs.version_bump != 'none'
+        run: |
+          cd apps/desktop
+          
+          # Configure git for the commit
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Get current version and calculate new version using Node.js
+          NEW_VERSION=$(node -e "
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read current package.json
+            const pkgPath = 'package.json';
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+            const currentVersion = pkg.version;
+            
+            // Parse version components
+            const [major, minor, patch] = currentVersion.split('.').map(Number);
+            
+            let newVersion;
+            switch('${{ inputs.version_bump }}') {
+              case 'major':
+                newVersion = \`\${major + 1}.0.0\`;
+                break;
+              case 'minor':
+                newVersion = \`\${major}.\${minor + 1}.0\`;
+                break;
+              case 'patch':
+                newVersion = \`\${major}.\${minor}.\${patch + 1}\`;
+                break;
+              default:
+                throw new Error('Invalid version bump type');
+            }
+            
+            // Update package.json
+            pkg.version = newVersion;
+            fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+            
+            console.log(newVersion);
+          ")
+          
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Updated version from $(git show HEAD:apps/desktop/package.json | node -p 'JSON.parse(require("fs").readFileSync("/dev/stdin", "utf8")).version') to $NEW_VERSION"
+
+      - name: Build Native Modules
+        run: |
+          # Build the native audio module if needed
+          if [ -d "packages/osx-audio" ]; then
+            cd packages/osx-audio
+            pnpm install
+            pnpm run build || echo "Native module build failed, continuing..."
+          fi
+
+      - name: Build and Publish to R2
+        run: pnpm install && pnpm run publish
+        working-directory: 'apps/desktop'
+        env:
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          # Code signing environment variables
+          CSC_NAME: ${{ secrets.APPLE_DEVELOPER_IDENTITY }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Apple notarization
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # App environment variables
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_SIGN_IN_URL: ${{ secrets.VITE_SIGN_IN_URL }}
+
+      - name: Commit version bump
+        if: inputs.version_bump != 'none'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add apps/desktop/package.json
+          git commit -m "chore: bump electron app version to ${{ env.NEW_VERSION }}"
+          git push
+
+      - name: Create Release
+        if: inputs.version_bump != 'none'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: electron-v${{ env.NEW_VERSION }}
+          name: Electron App v${{ env.NEW_VERSION }}
+          body: |
+            ${{ inputs.release_notes || 'Automated release of Electron app' }}
+            
+            Version: ${{ env.NEW_VERSION }}
+            
+            ## Changes
+            - Built and published to R2
+            - Code signed and notarized for macOS
+            
+            ## Installation
+            Download the latest version from your app's update server.
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Clean up temporary keychain
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
+          # Clean up certificate file
+          rm -f $RUNNER_TEMP/build_certificate.p12 || true

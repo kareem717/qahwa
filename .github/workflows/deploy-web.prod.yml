@@ -1,0 +1,78 @@
+name: Deploy Web Apps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'apps/landing/**'
+
+jobs:
+  deploy-api:
+    name: Deploy API to Cloudflare Workers
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: contains(github.event.head_commit.modified, 'apps/api/') || contains(github.event.head_commit.added, 'apps/api/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install API Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build & Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: 'apps/api'
+
+  deploy-landing:
+    name: Deploy Landing Page to Cloudflare Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: contains(github.event.head_commit.modified, 'apps/landing/') || contains(github.event.head_commit.added, 'apps/landing/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Wrangler CLI
+        run: pnpm add -g wrangler@3.90.0
+
+      - name: Install Landing App Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Landing Page
+        run: cd apps/landing && pnpm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: 'apps/landing'
+          command: pages deploy ./dist
+          wranglerVersion: '3.90.0'

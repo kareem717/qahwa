@@ -1,19 +1,17 @@
 import { signIn } from "@note/landing/lib/auth-client"; //import the auth client
 import { Button } from "@note/ui/components/button";
-import { ComponentPropsWithRef, useState } from "react";
+import { type ComponentPropsWithRef, useState } from "react";
 
 interface SignInButtonProps extends ComponentPropsWithRef<typeof Button> {
   provider: "google";
   redirect?: string
 }
 
-export function SignInButton({ className, provider, redirect, children = "Sign In", ...props }: SignInButtonProps) {
+export function SignInButton({ className, provider, redirect = "/", children = "Sign In", ...props }: SignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleLogin() {
     setIsLoading(true)
-    const callbackURL = import.meta.env.VITE_APP_URL + (redirect || "/")
-    console.log("callbackURL", callbackURL)
 
     await signIn.social({
       /**
@@ -25,7 +23,7 @@ export function SignInButton({ className, provider, redirect, children = "Sign I
        * A URL to redirect after the user authenticates with the provider
        * @default "/"
        */
-      callbackURL,
+      callbackURL: redirect,
       /**
        * A URL to redirect if an error occurs during the sign in process
        */
