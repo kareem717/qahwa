@@ -4,6 +4,11 @@ import { builtinModules } from 'node:module';
 
 // https://vitejs.dev/config
 export default defineConfig({
+  define: {
+    // Expose environment variables to main process
+    __R2_BUCKET_NAME__: JSON.stringify(process.env.R2_BUCKET_NAME || ''),
+    __R2_ENDPOINT__: JSON.stringify(process.env.R2_ENDPOINT || ''),
+  },
   build: {
     lib: {
       entry: "src/main.ts",

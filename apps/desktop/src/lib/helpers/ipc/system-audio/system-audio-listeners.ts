@@ -1,9 +1,9 @@
 import {
   createAudioManager,
-  DeviceType,
-  PermissionResult,
+  type DeviceType,
+  type PermissionResult,
 } from "@note/osx-audio";
-import { ipcMain, IpcMainEvent, app } from "electron";
+import { ipcMain, type IpcMainEvent } from "electron";
 
 export function addSystemAudioEventListeners() {
   const audioManager = createAudioManager();

@@ -1,12 +1,13 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, shell, systemPreferences } from "electron";
 import registerListeners from "./lib/helpers/ipc/listeners-register";
 // "electron-squirrel-startup" seems broken when packaging with vite
 //import started from "electron-squirrel-startup";
-import path from "path";
+import path from "node:path";
 import {
   installExtension,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
+import { autoUpdater } from "electron-updater";
 
 const inDevelopment = process.env.NODE_ENV === "development";
 const PROTOCOL = 'note-app'; // Define your custom protocol
@@ -121,7 +122,53 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient(PROTOCOL);
 }
 
-app.whenReady().then(async () => { // Make async for await installExtensions
+
+// Configur// Only set up auto-updater if we have the required configuration
+if (__R2_BUCKET_NAME__ && __R2_ENDPOINT__) {
+  try {
+    autoUpdater.setFeedURL({
+      provider: "s3",
+      bucket: __R2_BUCKET_NAME__,
+      region: "auto",
+      endpoint: __R2_ENDPOINT__,
+      path: "releases",
+    });
+
+    autoUpdater.checkForUpdatesAndNotify();
+  } catch (error) {
+    console.error('Failed to set up auto-updater:', error);
+  }
+} else {
+  console.log('Auto-updater not configured - missing R2 configuration');
+}
+
+// Request permissions for audio recording
+async function requestPermissions() {
+  if (process.platform === 'darwin') {
+    // Request microphone permission
+    const microphoneStatus = await systemPreferences.askForMediaAccess('microphone');
+    console.log('Microphone permission:', microphoneStatus);
+
+    if (!microphoneStatus) {
+      console.log('Microphone permission required for audio recording');
+      // You might want to show a dialog explaining why this permission is needed
+    }
+
+    // // Check screen recording permission (needed for system audio on newer macOS)
+    // const screenStatus = systemPreferences.getMediaAccessStatus('screen');
+    // console.log('Screen recording permission:', screenStatus);
+
+    // if (screenStatus !== 'granted') {
+    //   console.log('Screen recording permission required for system audio capture');
+    //   // You might want to show a dialog explaining why this permission is needed
+    // }
+  }
+}
+
+app.whenReady().then(async () => {
+  // Request permissions first
+  await requestPermissions(); // Make async for await installExtensions
+  autoUpdater.checkForUpdatesAndNotify();
   createWindow();
   await installExtensions(); // Await extensions
 

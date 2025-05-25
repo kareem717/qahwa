@@ -1,11 +1,15 @@
-import path from "path";
+import path from "node:path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
-
+  define: {
+    // Expose environment variables to renderer process
+    __VITE_API_URL__: JSON.stringify(process.env.VITE_API_URL),
+    __VITE_SIGN_IN_URL__: JSON.stringify(process.env.VITE_SIGN_IN_URL),
+  },
   plugins: [
     tailwindcss(),
     react({

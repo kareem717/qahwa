@@ -1,4 +1,4 @@
-import React from "react"
+import React from "react" 
 import { ChevronRight, FileText, Loader2, Trash } from "lucide-react"
 import type { Note } from "@note/db/types"
 import { Button } from "@note/ui/components/button"
@@ -7,6 +7,8 @@ import { Link } from "@tanstack/react-router"
 import { getClient } from "../lib/api"
 import { notesCollection } from "../lib/collections/notes"
 import { useOptimisticMutation } from "@tanstack/react-db"
+import { toast } from "sonner"
+
 export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">
 
 interface NoteButtonProps extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
@@ -68,11 +70,15 @@ export function NoteButton({ className, note: { id, title, updatedAt }, ...props
             e.stopPropagation()
             e.preventDefault()
             deleteNote.mutate(() => {
-              notesCollection.delete(
-                Array.from(notesCollection.state.values()).find(
-                  (t) => t.id === id
-                )!
+              const note = Array.from(notesCollection.state.values()).find(
+                (t) => t.id === id
               )
+
+              if (note) {
+                return notesCollection.delete(note)
+              }
+
+              toast.error("Note not found")
             }
             )
           }}
