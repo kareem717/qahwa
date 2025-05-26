@@ -1,10 +1,9 @@
-
-import { getDb } from '@note/db'
-import { auth as AuthSchema } from '@note/db/schema'
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { openAPI, apiKey } from 'better-auth/plugins'
-import { reactStartCookies } from 'better-auth/react-start'
+import { getDb } from "@note/db";
+import { auth as AuthSchema } from "@note/db/schema";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { openAPI, apiKey } from "better-auth/plugins";
+import { reactStartCookies } from "better-auth/react-start";
 
 export const createServerClient = ({
   basePath,
@@ -13,16 +12,16 @@ export const createServerClient = ({
   googleClientId,
   googleClientSecret,
 }: {
-  basePath: string
-  databaseUrl: string
-  trustedOrigins: string[]
-  googleClientId: string
-  googleClientSecret: string
+  basePath: string;
+  databaseUrl: string;
+  trustedOrigins: string[];
+  googleClientId: string;
+  googleClientSecret: string;
 }) => {
   return betterAuth({
     basePath,
     database: drizzleAdapter(getDb(databaseUrl), {
-      provider: 'pg',
+      provider: "pg",
       schema: {
         ...AuthSchema,
       },
@@ -59,15 +58,14 @@ export const createServerClient = ({
     advanced: {
       database: {
         generateId: false,
-      }
+      },
     },
     plugins: [
       openAPI({
         path: "/docs",
       }),
       apiKey(),
-      reactStartCookies() // Has to be the last plugin
+      reactStartCookies(), // Has to be the last plugin
     ],
-  })
-}
-
+  });
+};

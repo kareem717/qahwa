@@ -7,7 +7,5 @@ export const RootRoute = createRootRoute({
 });
 
 function Root() {
-  return (
-    <Outlet />
-  );
+  return <Outlet />;
 }

@@ -1,4 +1,4 @@
-import path from 'node:path';
+import path from "node:path";
 
 /**
  * Represents the possible states of device permission.
@@ -58,7 +58,7 @@ export interface AudioWrapperInstance {
  */
 export interface NativeAddon {
   AudioWrapper: {
-    new(): AudioWrapperInstance;
+    new (): AudioWrapperInstance;
   };
 }
 
@@ -73,31 +73,48 @@ declare global {
 
 let nativeAddon: NativeAddon;
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === "development";
 const isElectron = !!process.versions.electron;
 
-let binaryPath = '';
+let binaryPath = "";
 
 try {
   if (isDev) {
     // Development: load from build directory relative to source
-    binaryPath = path.join(__dirname, '..', 'build', 'Release', 'nativeAudioManager.node');
+    binaryPath = path.join(
+      __dirname,
+      "..",
+      "build",
+      "Release",
+      "nativeAudioManager.node",
+    );
   } else if (isElectron) {
     // Production Electron: load from extraResource
-    binaryPath = path.join(process.resourcesPath ?? '', 'nativeAudioManager.node');
+    binaryPath = path.join(
+      process.resourcesPath ?? "",
+      "nativeAudioManager.node",
+    );
   } else {
     // Fallback for regular Node.js
-    binaryPath = path.join(__dirname, '..', 'build', 'Release', 'nativeAudioManager.node');
+    binaryPath = path.join(
+      __dirname,
+      "..",
+      "build",
+      "Release",
+      "nativeAudioManager.node",
+    );
   }
-  
-  console.log('NODE_ENV:', process.env.NODE_ENV);
-  console.log('isDev:', isDev);
-  console.log('isElectron:', isElectron);
-  console.log('process.resourcesPath:', process.resourcesPath);
-  console.log('Attempting to load native addon from:', binaryPath);
+
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("isDev:", isDev);
+  console.log("isElectron:", isElectron);
+  console.log("process.resourcesPath:", process.resourcesPath);
+  console.log("Attempting to load native addon from:", binaryPath);
   nativeAddon = require(binaryPath);
 } catch (error) {
-  throw new Error(`Failed to load native addon from path: ${binaryPath}. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  throw new Error(
+    `Failed to load native addon from path: ${binaryPath}. Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+  );
 }
 
 export const createAudioManager = () => new nativeAddon.AudioWrapper();

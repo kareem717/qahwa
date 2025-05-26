@@ -2,7 +2,7 @@ import { createRoute } from "@tanstack/react-router";
 import { RootRoute } from "./__root";
 import HomePage from "../pages/home-page";
 import NotePage from "../pages/note-page";
-import { zodValidator } from '@tanstack/zod-adapter'
+import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import SignInPage from "../pages/sign-in-page";
 import { fullNoteCollection } from "../lib/collections/notes";
@@ -36,10 +36,12 @@ export const HomeRoute = createRoute({
 export const NoteRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: "/note",
-  validateSearch: zodValidator(z.object({
-    id: z.coerce.number().optional(),
-    title: z.string().optional(),
-  })),
+  validateSearch: zodValidator(
+    z.object({
+      id: z.coerce.number().optional(),
+      title: z.string().optional(),
+    }),
+  ),
   component: NotePage,
 });
 
@@ -49,4 +51,8 @@ export const SignInRoute = createRoute({
   component: SignInPage,
 });
 
-export const rootTree = RootRoute.addChildren([HomeRoute, NoteRoute, SignInRoute]);
+export const rootTree = RootRoute.addChildren([
+  HomeRoute,
+  NoteRoute,
+  SignInRoute,
+]);

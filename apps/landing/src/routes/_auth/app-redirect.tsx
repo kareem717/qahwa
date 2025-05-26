@@ -1,86 +1,96 @@
-import { Button, buttonVariants } from '@note/ui/components/button'
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
-import { getSessionFunction } from '@note/landing/functions/auth'
-import { createServerFn } from '@tanstack/react-start'
-import { getWebRequest } from '@tanstack/react-start/server'
-import { createClient } from '@note/sdk'
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@note/ui/components/card'
-import { cn } from '@note/ui/lib/utils'
-import { Loader2 } from 'lucide-react'
+import { Button, buttonVariants } from "@note/ui/components/button";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { getSessionFunction } from "@note/landing/functions/auth";
+import { createServerFn } from "@tanstack/react-start";
+import { getWebRequest } from "@tanstack/react-start/server";
+import { createClient } from "@note/sdk";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@note/ui/components/card";
+import { cn } from "@note/ui/lib/utils";
+import { Loader2 } from "lucide-react";
 
-const getAPIKey = createServerFn({ method: 'GET' }).handler(async () => {
-  const api = createClient(import.meta.env.VITE_API_URL)
+const getAPIKey = createServerFn({ method: "GET" }).handler(async () => {
+  const api = createClient(import.meta.env.VITE_API_URL);
 
   try {
     const req = await api.auth.key.$get(
-      {}, {
-      fetch(input, requestInit) {
-        console.log("FETCH STUFF BELOW")
-        return fetch(input, {
-          ...requestInit,
-          headers: getWebRequest()?.headers
-        })
+      {},
+      {
+        fetch(input, requestInit) {
+          console.log("FETCH STUFF BELOW");
+          return fetch(input, {
+            ...requestInit,
+            headers: getWebRequest()?.headers,
+          });
+        },
       },
-    })
+    );
 
     if (req.status !== 200) {
-      console.error("Failed to get API key", req.status, req.statusText)
+      console.error("Failed to get API key", req.status, req.statusText);
       return {
         error: "Something went wrong while fetching API key",
-        data: null
-      }
+        data: null,
+      };
     }
 
     // might want a try catch here
-    const data = await req.json()
+    const data = await req.json();
 
     return {
       data: data,
-      error: null
-    }
+      error: null,
+    };
   } catch (error) {
-    console.error("Failed to fetch API key", error)
+    console.error("Failed to fetch API key", error);
     return {
       error: "Failed to fetch API key",
-      data: null
-    }
+      data: null,
+    };
   }
-})
+});
 
-export const Route = createFileRoute('/_auth/app-redirect')({
+export const Route = createFileRoute("/_auth/app-redirect")({
   component: RouteComponent,
   beforeLoad: async () => {
-    const { data, error } = await getSessionFunction()
-    console.log(data, error)
+    const { data, error } = await getSessionFunction();
+    console.log(data, error);
     if (!data) {
-      throw redirect({ to: '/sign-in', search: { redirect: `${import.meta.env.VITE_APP_URL}/app-redirect` } })
+      throw redirect({
+        to: "/sign-in",
+        search: { redirect: `${import.meta.env.VITE_APP_URL}/app-redirect` },
+      });
     }
   },
-  loader: async () => await getAPIKey()
-})
+  loader: async () => await getAPIKey(),
+});
 
 function RouteComponent() {
-  const { data, error } = Route.useLoaderData()
-  const [isRedirecting, setIsRedirecting] = useState(false)
+  const { data, error } = Route.useLoaderData();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   if (error) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>
-            Uh oh!
-          </CardTitle>
+          <CardTitle>Uh oh!</CardTitle>
           <CardDescription>
-            Something went wrong while fetching the API key. Press the button below to try again.
+            Something went wrong while fetching the API key. Press the button
+            below to try again.
           </CardDescription>
         </CardHeader>
         <CardFooter>
           <Button
             className={cn(buttonVariants(), "w-full")}
             onClick={() => {
-              setIsRedirecting(true)
-              window.location.href = Route.fullPath // reload the page
+              setIsRedirecting(true);
+              window.location.href = Route.fullPath; // reload the page
             }}
             disabled={isRedirecting}
           >
@@ -89,23 +99,22 @@ function RouteComponent() {
           </Button>
         </CardFooter>
       </Card>
-    )
+    );
   }
 
-  const { key } = data
+  const { key } = data;
 
   useEffect(() => {
-    window.location.href = `${import.meta.env.VITE_DESKTOP_PROTOCOL}://auth?key=${key}`
-  })
+    window.location.href = `${import.meta.env.VITE_DESKTOP_PROTOCOL}://auth?key=${key}`;
+  });
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>
-          Redirecting...
-        </CardTitle>
+        <CardTitle>Redirecting...</CardTitle>
         <CardDescription>
-          Press button if you don't get redirected to the desktop app automatically.
+          Press button if you don't get redirected to the desktop app
+          automatically.
         </CardDescription>
       </CardHeader>
       <CardFooter>
@@ -117,5 +126,5 @@ function RouteComponent() {
         </a>
       </CardFooter>
     </Card>
-  )
+  );
 }

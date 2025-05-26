@@ -13,36 +13,40 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     extraResource: [
-      "../../packages/osx-audio/build/Release/nativeAudioManager.node"
+      "../../packages/osx-audio/build/Release/nativeAudioManager.node",
     ],
-    osxSign: process.env.NODE_ENV === "development"
-      ? undefined // Skip due to notarization taking 15-60+ min
-      : {
-        identity: process.env.APPLE_DEVELOPER_IDENTITY,
-        optionsForFile: (filePath) => {
-          // Here, we keep it simple and return a single entitlements.plist file.
-          // You can use this callback to map different sets of entitlements
-          // to specific files in your packaged app.
-          return {
-            "hardened-runtime": true,
-            "gatekeeper-assess": false,
-            entitlements: "entitlements.plist",
-            "entitlements-inherit": "entitlements.plist",
-          };
-        }
-      },
+    osxSign:
+      process.env.NODE_ENV === "development"
+        ? undefined // Skip due to notarization taking 15-60+ min
+        : {
+            identity: process.env.APPLE_DEVELOPER_IDENTITY,
+            optionsForFile: (filePath) => {
+              // Here, we keep it simple and return a single entitlements.plist file.
+              // You can use this callback to map different sets of entitlements
+              // to specific files in your packaged app.
+              return {
+                "hardened-runtime": true,
+                "gatekeeper-assess": false,
+                entitlements: "entitlements.plist",
+                "entitlements-inherit": "entitlements.plist",
+              };
+            },
+          },
     osxNotarize: {
-      appleId: process.env.APPLE_ID || '',
-      appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || '',
-      teamId: process.env.APPLE_TEAM_ID || '',
+      appleId: process.env.APPLE_ID || "",
+      appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
+      teamId: process.env.APPLE_TEAM_ID || "",
     },
     // Add privacy usage descriptions
     extendInfo: {
-      NSMicrophoneUsageDescription: "Note needs access to your microphone to record audio notes and meetings.",
-      NSSystemAdministrationUsageDescription: "Note needs system access to capture system audio for comprehensive meeting recordings.",
-      NSAppleEventsUsageDescription: "Note needs to control other applications to enhance your note-taking experience.",
-      LSApplicationCategoryType: "public.app-category.productivity"
-    }
+      NSMicrophoneUsageDescription:
+        "Note needs access to your microphone to record audio notes and meetings.",
+      NSSystemAdministrationUsageDescription:
+        "Note needs system access to capture system audio for comprehensive meeting recordings.",
+      NSAppleEventsUsageDescription:
+        "Note needs to control other applications to enhance your note-taking experience.",
+      LSApplicationCategoryType: "public.app-category.productivity",
+    },
   },
   publishers: [
     new PublisherS3({
@@ -98,4 +102,4 @@ const config: ForgeConfig = {
   ],
 };
 
-export default config; 
+export default config;

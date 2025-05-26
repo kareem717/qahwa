@@ -10,7 +10,7 @@ import {
 import { autoUpdater } from "electron-updater";
 
 const inDevelopment = process.env.NODE_ENV === "development";
-const PROTOCOL = 'note-app'; // Define your custom protocol
+const PROTOCOL = "note-app"; // Define your custom protocol
 
 // Declare mainWindow in a broader scope
 let mainWindow: BrowserWindow | null = null;
@@ -26,21 +26,21 @@ function handleDeepLinkUrl(url: string | undefined) {
 
   if (mainWindow) {
     // Send the relevant part of the URL or the extracted token to the Renderer
-    mainWindow.webContents.send('clerk-auth-callback', url); // Send the whole URL, let renderer parse
+    mainWindow.webContents.send("clerk-auth-callback", url); // Send the whole URL, let renderer parse
   }
 }
 
 // Handle protocol for Windows/Linux and when app is already running
-if (process.platform === 'win32' || process.platform === 'linux') {
+if (process.platform === "win32" || process.platform === "linux") {
   const gotTheLock = app.requestSingleInstanceLock();
 
   if (!gotTheLock) {
     app.quit();
   } else {
-    app.on('second-instance', (event, commandLine, workingDirectory) => {
+    app.on("second-instance", (event, commandLine, workingDirectory) => {
       // Someone tried to run a second instance, we should focus our window.
       // commandLine will contain the URL as an argument.
-      const url = commandLine.find(arg => arg.startsWith(`${PROTOCOL}://`));
+      const url = commandLine.find((arg) => arg.startsWith(`${PROTOCOL}://`));
       handleDeepLinkUrl(url);
 
       if (mainWindow) {
@@ -53,7 +53,8 @@ if (process.platform === 'win32' || process.platform === 'linux') {
 
 function createWindow() {
   const preload = path.join(__dirname, "preload.js");
-  mainWindow = new BrowserWindow({ // Assign to the broader scope mainWindow
+  mainWindow = new BrowserWindow({
+    // Assign to the broader scope mainWindow
     width: 800,
     height: 600,
     webPreferences: {
@@ -64,13 +65,15 @@ function createWindow() {
       preload: preload,
     },
     frame: false,
-    ...(process.platform !== 'darwin' ? {
-      titleBarOverlay: true
-    } : {
-      trafficLightPosition: { x: 16, y: 12 },
-      titleBarStyle: 'hidden',
-    })
-  })
+    ...(process.platform !== "darwin"
+      ? {
+          titleBarOverlay: true,
+        }
+      : {
+          trafficLightPosition: { x: 16, y: 12 },
+          titleBarStyle: "hidden",
+        }),
+  });
   registerListeners(mainWindow);
 
   mainWindow.setWindowButtonVisibility(true);
@@ -78,15 +81,15 @@ function createWindow() {
   // Add this handler to open links in the default browser
   mainWindow.webContents.setWindowOpenHandler((details) => {
     // Basic security check: only allow http and https protocols
-    if (details.url.startsWith('http:') || details.url.startsWith('https:')) {
+    if (details.url.startsWith("http:") || details.url.startsWith("https:")) {
       shell.openExternal(details.url); // Opens the URL in the default browser
     }
-    return { action: 'deny' }; // Prevents Electron from opening a new window
+    return { action: "deny" }; // Prevents Electron from opening a new window
   });
 
-  // @ts-expect-error 
+  // @ts-expect-error
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    // @ts-expect-error 
+    // @ts-expect-error
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     mainWindow.loadFile(
@@ -95,17 +98,19 @@ function createWindow() {
     );
   }
 
-  mainWindow.on('closed', () => {
+  mainWindow.on("closed", () => {
     mainWindow = null; // Dereference on close
   });
 }
 
 async function installExtensions() {
-  if (inDevelopment) { // Only install dev tools in development
+  if (inDevelopment) {
+    // Only install dev tools in development
     try {
       const result = await installExtension(REACT_DEVELOPER_TOOLS);
       console.log(`Extensions installed successfully: ${result.name}`);
-    } catch (e) { // Catch specific error
+    } catch (e) {
+      // Catch specific error
       console.error("Failed to install extensions:", e);
     }
   }
@@ -116,12 +121,13 @@ async function installExtensions() {
 // Placing it here, but can be moved inside whenReady if issues arise.
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [process.argv[1]]);
+    app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [
+      process.argv[1],
+    ]);
   }
 } else {
   app.setAsDefaultProtocolClient(PROTOCOL);
 }
-
 
 // Configur// Only set up auto-updater if we have the required configuration
 if (__R2_BUCKET_NAME__ && __R2_ENDPOINT__) {
@@ -136,21 +142,22 @@ if (__R2_BUCKET_NAME__ && __R2_ENDPOINT__) {
 
     autoUpdater.checkForUpdatesAndNotify();
   } catch (error) {
-    console.error('Failed to set up auto-updater:', error);
+    console.error("Failed to set up auto-updater:", error);
   }
 } else {
-  console.log('Auto-updater not configured - missing R2 configuration');
+  console.log("Auto-updater not configured - missing R2 configuration");
 }
 
 // Request permissions for audio recording
 async function requestPermissions() {
-  if (process.platform === 'darwin') {
+  if (process.platform === "darwin") {
     // Request microphone permission
-    const microphoneStatus = await systemPreferences.askForMediaAccess('microphone');
-    console.log('Microphone permission:', microphoneStatus);
+    const microphoneStatus =
+      await systemPreferences.askForMediaAccess("microphone");
+    console.log("Microphone permission:", microphoneStatus);
 
     if (!microphoneStatus) {
-      console.log('Microphone permission required for audio recording');
+      console.log("Microphone permission required for audio recording");
       // You might want to show a dialog explaining why this permission is needed
     }
 
@@ -175,9 +182,10 @@ app.whenReady().then(async () => {
   // Handle initial launch via protocol on Windows/Linux
   // For Windows, process.argv might contain the URL if the app was launched by it
   // and it's not the second instance.
-  if (process.platform === 'win32' || process.platform === 'linux') {
-    const url = process.argv.find(arg => arg.startsWith(`${PROTOCOL}://`));
-    if (url) { // Check if launched via protocol, and not handled by second-instance
+  if (process.platform === "win32" || process.platform === "linux") {
+    const url = process.argv.find((arg) => arg.startsWith(`${PROTOCOL}://`));
+    if (url) {
+      // Check if launched via protocol, and not handled by second-instance
       setTimeout(() => handleDeepLinkUrl(url), 500); // Delay to ensure window is ready
     }
   }
@@ -191,7 +199,7 @@ app.on("window-all-closed", () => {
 });
 
 // Handle protocol for macOS
-app.on('open-url', (event, url) => {
+app.on("open-url", (event, url) => {
   event.preventDefault();
   handleDeepLinkUrl(url);
 });

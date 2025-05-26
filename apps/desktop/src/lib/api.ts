@@ -1,17 +1,17 @@
 import { createClient as createSdkClient } from "@note/sdk";
 
 const createClient = async () => {
-  const token = await window.electronAuth.getToken()
+  const token = await window.electronAuth.getToken();
 
-  return createSdkClient(import.meta.env.VITE_API_URL, token)
-}
+  return createSdkClient(import.meta.env.VITE_API_URL, token);
+};
 
-let client: Awaited<ReturnType<typeof createClient>> | null = null
+let client: Awaited<ReturnType<typeof createClient>> | null = null;
 
 export const getClient = async () => {
   if (!client) {
-    client = await await createClient()
+    client = await await createClient();
   }
 
-  return client
-}
+  return client;
+};

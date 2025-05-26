@@ -1,33 +1,47 @@
-import { Button } from '@note/ui/components/button';
-import React from 'react';
-import { useAuth } from '../providers/auth-provider';
-import { Loader2 } from 'lucide-react';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogTrigger, DialogFooter } from '@note/ui/components/dialog';
+import { Button } from "@note/ui/components/button";
+import React from "react";
+import { useAuth } from "../providers/auth-provider";
+import { Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+  DialogTrigger,
+  DialogFooter,
+} from "@note/ui/components/dialog";
 
-interface SignOutDialogProps extends React.ComponentPropsWithoutRef<typeof Dialog> {
+interface SignOutDialogProps
+  extends React.ComponentPropsWithoutRef<typeof Dialog> {
   onLogout?: () => void;
   contentProps?: React.ComponentPropsWithoutRef<typeof DialogContent>;
   children?: React.ReactNode;
 }
 
-export function SignOutDialog({ onLogout, contentProps, children, ...props }: SignOutDialogProps) {
-  const { signOut, isSigningOut } = useAuth()
-  const [isOpen, setIsOpen] = React.useState(false)
+export function SignOutDialog({
+  onLogout,
+  contentProps,
+  children,
+  ...props
+}: SignOutDialogProps) {
+  const { signOut, isSigningOut } = useAuth();
+  const [isOpen, setIsOpen] = React.useState(false);
 
   async function handleLogout() {
-    const { success } = await signOut()
+    const { success } = await signOut();
 
     if (success) {
       // TODO: would like to avoid reloading the page
-      window.location.reload()
-      onLogout?.()
-      setIsOpen(false)
+      window.location.reload();
+      onLogout?.();
+      setIsOpen(false);
     }
   }
 
   function toggleOpen() {
-    setIsOpen(!isOpen)
-    props.onOpenChange?.(isOpen)
+    setIsOpen(!isOpen);
+    props.onOpenChange?.(isOpen);
   }
 
   return (
@@ -44,7 +58,11 @@ export function SignOutDialog({ onLogout, contentProps, children, ...props }: Si
         </DialogHeader>
         <DialogFooter>
           <Button onClick={() => toggleOpen()}>Cancel</Button>
-          <Button onClick={handleLogout} disabled={isSigningOut} variant="secondary">
+          <Button
+            onClick={handleLogout}
+            disabled={isSigningOut}
+            variant="secondary"
+          >
             {isSigningOut && <Loader2 className="size-4 animate-spin mr-2" />}
             Sign out
           </Button>

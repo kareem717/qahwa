@@ -1,75 +1,88 @@
-import { Hono } from 'hono'
-import { createAuthClient } from '../lib/auth';
-import { getAuth, withAuth } from '../lib/middleware/with-auth';
+import { Hono } from "hono";
+import { createAuthClient } from "../lib/auth";
+import { getAuth, withAuth } from "../lib/middleware/with-auth";
 
-const APP_API_KEY_NAME = "app"
+const APP_API_KEY_NAME = "app";
 
-export const authHandler = () => new Hono()
-  .use("*", withAuth())
-  .get(
-    "/get-session", // overrides built-in better-auth handler
-    (c) => {
-      const { session, user } = getAuth(c)
+export const authHandler = () =>
+  new Hono()
+    .use("*", withAuth())
+    .get(
+      "/get-session", // overrides built-in better-auth handler
+      (c) => {
+        const { session, user } = getAuth(c);
 
-      return session && user ? c.json({
-        session,
-        user,
-      }) : c.json(null)
-    })
-  .post(
-    "/sign-out",
-    async (c) => {
-      const { session, client } = getAuth(c)
+        return session && user
+          ? c.json({
+              session,
+              user,
+            })
+          : c.json(null);
+      },
+    )
+    .post("/sign-out", async (c) => {
+      const { session, client } = getAuth(c);
 
       if (!session) {
-        return c.json({
-          error: "Unauthorized",
-        }, 401)
+        return c.json(
+          {
+            error: "Unauthorized",
+          },
+          401,
+        );
       }
 
       try {
         await client.api.signOut({
-          headers: c.req.raw.headers
-        })
+          headers: c.req.raw.headers,
+        });
 
         return c.json({
           success: true,
-        })
+        });
       } catch (error) {
-        console.error(error)
+        console.error(error);
 
-        return c.json({
-          error: "Failed to sign out",
-        }, 500)
+        return c.json(
+          {
+            error: "Failed to sign out",
+          },
+          500,
+        );
       }
-    }
-  )
-  .get(
-    "/key",
-    async (c) => {
-      const { session, client } = getAuth(c)
+    })
+    .get("/key", async (c) => {
+      const { session, client } = getAuth(c);
 
       if (!session) {
-        return c.json({
-          error: "Unauthorized",
-        }, 401)
+        return c.json(
+          {
+            error: "Unauthorized",
+          },
+          401,
+        );
       }
 
-      let existingApiKeys = []
+      let existingApiKeys = [];
       try {
         existingApiKeys = await client.api.listApiKeys({
-          headers: c.req.raw.headers
-        })
+          headers: c.req.raw.headers,
+        });
       } catch (error) {
-        console.error(error)
+        console.error(error);
 
-        return c.json({
-          error: "Failed to list API keys",
-        }, 500)
+        return c.json(
+          {
+            error: "Failed to list API keys",
+          },
+          500,
+        );
       }
-      console.log("EXISTING API KEYS", existingApiKeys)
+      console.log("EXISTING API KEYS", existingApiKeys);
 
-      const existingAppKey = existingApiKeys.find((key) => key.name === APP_API_KEY_NAME)
+      const existingAppKey = existingApiKeys.find(
+        (key) => key.name === APP_API_KEY_NAME,
+      );
 
       if (existingAppKey) {
         try {
@@ -79,16 +92,19 @@ export const authHandler = () => new Hono()
             body: {
               keyId: existingAppKey.id,
             },
-            headers: c.req.raw.headers
-          })
+            headers: c.req.raw.headers,
+          });
 
-          console.log("DELETED KEY", existingAppKey)
+          console.log("DELETED KEY", existingAppKey);
         } catch (error) {
-          console.error(error)
+          console.error(error);
 
-          return c.json({
-            error: "Failed to delete API key",
-          }, 500)
+          return c.json(
+            {
+              error: "Failed to delete API key",
+            },
+            500,
+          );
         }
       }
 
@@ -97,20 +113,22 @@ export const authHandler = () => new Hono()
           body: {
             name: APP_API_KEY_NAME,
             userId: session.userId,
-          }
-        })
+          },
+        });
 
-        console.log("NEW KEY", newApiKey)
+        console.log("NEW KEY", newApiKey);
         return c.json({
           key: newApiKey.key,
-        })
+        });
       } catch (error) {
-        console.error(error)
+        console.error(error);
 
-        return c.json({
-          error: "Failed to create API key",
-        }, 500)
+        return c.json(
+          {
+            error: "Failed to create API key",
+          },
+          500,
+        );
       }
-    }
-  )
-  .on(["POST", "GET"], "/*", (c) => createAuthClient().handler(c.req.raw))
+    })
+    .on(["POST", "GET"], "/*", (c) => createAuthClient().handler(c.req.raw));

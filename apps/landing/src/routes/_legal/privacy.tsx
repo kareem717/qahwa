@@ -1,11 +1,10 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import Privacy from './privacy.mdx'
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import Privacy from "./privacy.mdx";
 
-export const Route = createFileRoute('/_legal/privacy')({
+export const Route = createFileRoute("/_legal/privacy")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-
-  return <Privacy />
+  return <Privacy />;
 }

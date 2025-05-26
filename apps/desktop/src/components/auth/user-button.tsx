@@ -1,32 +1,40 @@
-import { Button } from '@note/ui/components/button';
-import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@note/ui/components/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@note/ui/components/dropdown-menu';
-import { LogOut } from 'lucide-react';
-import { useAuth } from '../../components/providers/auth-provider';
-import { SignOutDialog } from './sign-out-dialog';
-import { cn } from '@note/ui/lib/utils';
+import { Button } from "@note/ui/components/button";
+// biome-ignore lint/style/useImportType: Required to import
+import React from "react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@note/ui/components/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@note/ui/components/dropdown-menu";
+import { LogOut } from "lucide-react";
+import { useAuth } from "../../components/providers/auth-provider";
+import { SignOutDialog } from "./sign-out-dialog";
+import { cn } from "@note/ui/lib/utils";
 
-interface UserButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
-}
+interface UserButtonProps
+  extends React.ComponentPropsWithoutRef<typeof Button> {}
 
 // TODO: not sure why image not showing up
 export function UserButton({ className, ...props }: UserButtonProps) {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   if (!user) {
-    throw new Error("UserButton: no user")
+    throw new Error("UserButton: no user");
   }
 
-  const {
-    name,
-    image,
-    email
-  } = user
+  const { name, image, email } = user;
 
-  const firstName = name.split(" ")[0]
-  const lastName = name.split(" ").slice(1).join(" ")
-  const initials = (firstName[0] + lastName[0]).toUpperCase()
+  const firstName = name.split(" ")[0];
+  const lastName = name.split(" ").slice(1).join(" ");
+  const initials = (firstName[0] + lastName[0]).toUpperCase();
 
   return (
     <DropdownMenu>
@@ -36,7 +44,7 @@ export function UserButton({ className, ...props }: UserButtonProps) {
           variant="ghost"
           className={cn(
             "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-full hover:cursor-pointer",
-            className
+            className,
           )}
           {...props}
         >
@@ -71,7 +79,11 @@ export function UserButton({ className, ...props }: UserButtonProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <SignOutDialog>
-            <Button variant="ghost" size="sm" className="w-full justify-start font-normal" >
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start font-normal"
+            >
               <LogOut className="size-4" />
               Sign out
             </Button>

@@ -3,3 +3,6 @@ name = "note-landing" # Set your Cloudflare Pages project name here or use varia
 pages_build_output_dir = "./dist" # Output directory for TanStack Start build
 compatibility_flags = ["nodejs_compat"]
 compatibility_date = "2024-05-05" # Use a recent date 
+
+[observability]
+enabled = true

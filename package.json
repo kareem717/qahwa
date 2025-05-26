@@ -5,10 +5,18 @@
     "dev:landing": "pnpm --filter @note/landing dev",
     "dev:desktop": "pnpm --filter @note/desktop start",
     "dev:api": "pnpm --filter @note/api dev",
-    "clean-all": "find . -type d -name node_modules -o -name dist -o -name .turbo -o -name .next -o -type f -name tsconfig.tsbuildinfo -o -name pnpm-lock.yaml | xargs rm -rf"
+    "clean-all": "find . -type d -name node_modules -o -name dist -o -name .turbo -o -name .next -o -type f -name tsconfig.tsbuildinfo -o -name pnpm-lock.yaml | xargs rm -rf",
+    "lint": "biome lint ./",
+    "lint:fix": "biome lint --write ./",
+    "lint:fix-unsafe": "biome lint --write-unsafe ./",
+    "format": "biome format ./",
+    "format:write": "biome format --write ./",
+    "check": "biome check ./",
+    "check:fix": "biome check --apply ./",
+    "check:fix-unsafe": "biome check --apply-unsafe ./"
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "workspaces": ["apps/*", "packages/*"],
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4"
+  }
 }

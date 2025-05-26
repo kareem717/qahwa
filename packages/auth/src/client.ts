@@ -9,13 +9,14 @@ export const createClient = ({
   baseURL,
   basePath,
 }: {
-  baseURL: string
-  basePath: string
-}) => createAuthClient({
-  baseURL, // base url of our API - where the server auth handler is mounted
-  basePath, // base path that the auth handler is mounted on - API
-  fetchOptions: {
-    credentials: "include",
-  },
-  plugins: [inferAdditionalFields<AuthType>(), apiKeyClient()],
-});
+  baseURL: string;
+  basePath: string;
+}) =>
+  createAuthClient({
+    baseURL, // base url of our API - where the server auth handler is mounted
+    basePath, // base path that the auth handler is mounted on - API
+    fetchOptions: {
+      credentials: "include",
+    },
+    plugins: [inferAdditionalFields<AuthType>(), apiKeyClient()],
+  });

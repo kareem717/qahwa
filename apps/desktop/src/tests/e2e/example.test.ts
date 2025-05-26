@@ -2,8 +2,8 @@ import {
   test,
   expect,
   _electron as electron,
-  ElectronApplication,
-  Page,
+  type ElectronApplication,
+  type Page,
 } from "@playwright/test";
 import { findLatestBuild, parseElectronApp } from "electron-playwright-helpers";
 

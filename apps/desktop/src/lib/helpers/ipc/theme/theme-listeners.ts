@@ -18,14 +18,12 @@ export function addThemeEventListeners() {
     }
     return nativeTheme.shouldUseDarkColors;
   });
-  ipcMain.handle(
-    THEME_MODE_DARK_CHANNEL,
-    () => (nativeTheme.themeSource = "dark"),
-  );
-  ipcMain.handle(
-    THEME_MODE_LIGHT_CHANNEL,
-    () => (nativeTheme.themeSource = "light"),
-  );
+  ipcMain.handle(THEME_MODE_DARK_CHANNEL, () => {
+    nativeTheme.themeSource = "dark";
+  });
+  ipcMain.handle(THEME_MODE_LIGHT_CHANNEL, () => {
+    nativeTheme.themeSource = "light";
+  });
   ipcMain.handle(THEME_MODE_SYSTEM_CHANNEL, () => {
     nativeTheme.themeSource = "system";
     return nativeTheme.shouldUseDarkColors;

@@ -8,17 +8,10 @@
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
-      "@note/landing/*": [
-        "./src/*"
-      ],
-      "@note/ui/*": [
-        "../../packages/ui/src/*"
-      ]
+      "@note/landing/*": ["./src/*"],
+      "@note/ui/*": ["../../packages/ui/src/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "include": ["**/*.ts", "**/*.tsx"],
   "noEmit": true
 }

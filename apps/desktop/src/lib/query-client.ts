@@ -4,7 +4,7 @@ let queryClient: QueryClient;
 
 export function getQueryClient() {
   if (!queryClient) {
-    console.log("Creating query client")
+    console.log("Creating query client");
     queryClient = new QueryClient();
   }
   return queryClient;

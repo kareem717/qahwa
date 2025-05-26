@@ -1,10 +1,10 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import Terms from './terms.mdx'
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import Terms from "./terms.mdx";
 
-export const Route = createFileRoute('/_legal/terms')({
+export const Route = createFileRoute("/_legal/terms")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  return <Terms />
+  return <Terms />;
 }

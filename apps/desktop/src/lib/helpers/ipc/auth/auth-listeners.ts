@@ -1,17 +1,17 @@
-import { ipcMain, shell } from 'electron';
-import Store from 'electron-store';
+import { ipcMain, shell } from "electron";
+import Store from "electron-store";
 
-const JWT_KEY = 'jwt'
+const JWT_KEY = "jwt";
 
 const store = new Store();
 
 async function getTokenLogic() {
-  const jwt = store.get(JWT_KEY) as string | null
+  const jwt = store.get(JWT_KEY) as string | null;
   if (!jwt) {
-    return null
+    return null;
   }
 
-  return jwt
+  return jwt;
   // const cookies = await session.defaultSession.cookies.get({ name: SESSION_COOKIE_NAME, url: APP_URL })
   // if (!cookies || cookies.length === 0) {
   //   throw new Error('No token found')
@@ -51,45 +51,45 @@ async function getTokenLogic() {
 }
 
 async function setTokenLogic(token: string) {
-  store.set(JWT_KEY, token)
+  store.set(JWT_KEY, token);
 }
 
 async function removeTokenLogic() {
-  store.delete(JWT_KEY)
+  store.delete(JWT_KEY);
 }
 
 export function addAuthEventListeners() {
-  ipcMain.on('open-sign-in-window', () => {
-    shell.openExternal(import.meta.env.VITE_SIGN_IN_URL).catch(err => {
+  ipcMain.on("open-sign-in-window", () => {
+    shell.openExternal(import.meta.env.VITE_SIGN_IN_URL).catch((err) => {
       console.error("Failed to open sign-in URL:", err);
       // Optionally, notify the renderer process of the failure
     });
   });
 
-  ipcMain.handle('jwt-get-token', async () => {
+  ipcMain.handle("jwt-get-token", async () => {
     try {
-      return await getTokenLogic()
+      return await getTokenLogic();
     } catch (error) {
-      console.error('Error getting token:', error)
-      throw error // Re-throw to be caught by the invoke call
+      console.error("Error getting token:", error);
+      throw error; // Re-throw to be caught by the invoke call
     }
-  })
+  });
 
-  ipcMain.handle('jwt-set-token', async (_event, token: string) => {
+  ipcMain.handle("jwt-set-token", async (_event, token: string) => {
     try {
-      await setTokenLogic(token)
+      await setTokenLogic(token);
     } catch (error) {
-      console.error('Error setting token:', error)
-      throw error
+      console.error("Error setting token:", error);
+      throw error;
     }
-  })
+  });
 
-  ipcMain.handle('jwt-remove-token', async () => {
+  ipcMain.handle("jwt-remove-token", async () => {
     try {
-      await removeTokenLogic()
+      await removeTokenLogic();
     } catch (error) {
-      console.error('Error removing token:', error)
-      throw error
+      console.error("Error removing token:", error);
+      throw error;
     }
-  })
-} 
+  });
+}

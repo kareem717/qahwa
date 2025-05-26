@@ -56,6 +56,6 @@ export interface AudioWrapperInstance {
  */
 export interface NativeAddon {
   AudioWrapper: {
-    new(): AudioWrapperInstance;
+    new (): AudioWrapperInstance;
   };
 }

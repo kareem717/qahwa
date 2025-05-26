@@ -1,37 +1,44 @@
-import React from "react"
-import { motion } from "framer-motion"
-import { AudioLines, ChevronUp, Loader2, Sparkles, Square } from "lucide-react"
-import { cn } from "@note/ui/lib/utils"
-import { Button } from "@note/ui/components/button"
-import { useTranscript } from "../hooks/use-transcript"
-import { nanoid } from "nanoid"
-import { useNoteGenerator } from "../hooks/use-note-generator"
-import { toast } from "sonner"
-import { setNoteEditorMode } from "../hooks/use-note-editor"
-import { useStore } from "@tanstack/react-store"
-import { noteEditorModeStore } from "../hooks/use-note-editor"
+import React from "react";
+import { motion } from "framer-motion";
+import { AudioLines, ChevronUp, Loader2, Sparkles, Square } from "lucide-react";
+import { cn } from "@note/ui/lib/utils";
+import { Button } from "@note/ui/components/button";
+import { useTranscript } from "../hooks/use-transcript";
+import { nanoid } from "nanoid";
+import { useNoteGenerator } from "../hooks/use-note-generator";
+import { toast } from "sonner";
+import { setNoteEditorMode } from "../hooks/use-note-editor";
+import { useStore } from "@tanstack/react-store";
+import { noteEditorModeStore } from "../hooks/use-note-editor";
 
-function TranscriptItem({ sender, text, type = "full" }: { sender: "me" | "them", text: string, type?: "full" | "partial" }) {
+function TranscriptItem({
+  sender,
+  text,
+  type = "full",
+}: { sender: "me" | "them"; text: string; type?: "full" | "partial" }) {
   return (
-    <div className={cn(
-      sender === "me" ? (
-        type === "full"
-          ? "self-end bg-accent"
-          : "self-end bg-accent/50"
-      ) : (
-        type === "full"
-          ? "self-start bg-primary text-primary-foreground"
-          : "self-start bg-primary/50 text-primary-foreground"
-      ),
-      "rounded-md p-2"
-    )}>
+    <div
+      className={cn(
+        sender === "me"
+          ? type === "full"
+            ? "self-end bg-accent"
+            : "self-end bg-accent/50"
+          : type === "full"
+            ? "self-start bg-primary text-primary-foreground"
+            : "self-start bg-primary/50 text-primary-foreground",
+        "rounded-md p-2",
+      )}
+    >
       <p className="text-sm">{text}</p>
     </div>
-  )
+  );
 }
 
-export function NotePageMenuButton({ className, ...props }: React.ComponentPropsWithoutRef<typeof motion.div>) {
-  const [menu, setMenu] = React.useState<'closed' | 'transcript'>('closed')
+export function NotePageMenuButton({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof motion.div>) {
+  const [menu, setMenu] = React.useState<"closed" | "transcript">("closed");
   const transcriptContainerRef = React.useRef<HTMLDivElement>(null);
   const [userScrolled, setUserScrolled] = React.useState(false);
   const {
@@ -40,10 +47,10 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
     stopRecording,
     transcript,
     isLoading,
-    partialTranscript
+    partialTranscript,
   } = useTranscript();
   const { canGenerate, isGenerating, generate } = useNoteGenerator();
-  const { mode } = useStore(noteEditorModeStore, store => store)
+  const { mode } = useStore(noteEditorModeStore, (store) => store);
 
   // Auto-scroll to bottom when new transcript items appear
   React.useEffect(() => {
@@ -52,7 +59,8 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
       // Use requestAnimationFrame to ensure DOM has updated before scrolling
       requestAnimationFrame(() => {
         if (transcriptContainerRef.current) {
-          transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
+          transcriptContainerRef.current.scrollTop =
+            transcriptContainerRef.current.scrollHeight;
         }
       });
     }
@@ -60,11 +68,12 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
 
   // Force scroll to bottom when transcript menu is first opened
   React.useEffect(() => {
-    if (menu === 'transcript' && transcriptContainerRef.current) {
+    if (menu === "transcript" && transcriptContainerRef.current) {
       // Short delay to ensure content has rendered
       setTimeout(() => {
         if (transcriptContainerRef.current) {
-          transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
+          transcriptContainerRef.current.scrollTop =
+            transcriptContainerRef.current.scrollHeight;
           setUserScrolled(false); // Reset user scrolled state when opening
         }
       }, 100);
@@ -74,7 +83,8 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
   // Handle scroll events to detect user interaction
   function handleScroll() {
     if (transcriptContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = transcriptContainerRef.current;
+      const { scrollTop, scrollHeight, clientHeight } =
+        transcriptContainerRef.current;
       // If scrolled near bottom (within 20px), consider it "at bottom"
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 20;
 
@@ -86,46 +96,51 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
         setUserScrolled(false);
       }
     }
-  };
+  }
 
   function handleGenerate() {
     if (canGenerate) {
       return generate();
     }
 
-    toast.error("Unable to generate note")
+    toast.error("Unable to generate note");
   }
 
   return (
     <motion.div
       className={cn(
         "bg-background shadow-lg rounded-full flex flex-col items-center w-min fixed z-40 bottom-6 left-1/2 -translate-x-1/2 gap-4",
-        className
+        className,
       )}
       {...props}
       animate={
-        menu !== 'closed' ? {
-          width: "fit-content",
-          borderRadius: "var(--radius)"
-        } : {}
+        menu !== "closed"
+          ? {
+              width: "fit-content",
+              borderRadius: "var(--radius)",
+            }
+          : {}
       }
       transition={{
         duration: 0.05,
         ease: "linear",
         borderRadius: {
-          delay: menu !== 'closed' ? 0 : 0.05
-        }
+          delay: menu !== "closed" ? 0 : 0.05,
+        },
       }}
     >
-      <div className={cn(
-        "transition-opacity duration-50 h-full max-h-[400px] overflow-y-auto",
-        menu === "transcript" ? "opacity-100" : "opacity-0",
-        menu === "closed" ? "hidden" : "flex flex-col"
-      )}
+      <div
+        className={cn(
+          "transition-opacity duration-50 h-full max-h-[400px] overflow-y-auto",
+          menu === "transcript" ? "opacity-100" : "opacity-0",
+          menu === "closed" ? "hidden" : "flex flex-col",
+        )}
       >
-        {menu === 'transcript' ? (
+        {menu === "transcript" ? (
           <>
-            <div className="text-sm font-medium p-3 text-muted-foreground">Transcript</div>
+            <div className="text-sm font-medium p-3 text-muted-foreground">
+              Transcript
+            </div>
             <div
               ref={transcriptContainerRef}
               onScroll={handleScroll}
@@ -133,33 +148,50 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
             >
               {transcript ? (
                 transcript.map((item) => (
-                  <TranscriptItem key={nanoid()} sender={item.sender} text={item.content} />
+                  <TranscriptItem
+                    key={nanoid()}
+                    sender={item.sender}
+                    text={item.content}
+                  />
                 ))
               ) : (
                 <p className="text-sm">No transcript</p>
               )}
               {partialTranscript.me && (
-                <TranscriptItem sender="me" text={partialTranscript.me} type="partial" />
+                <TranscriptItem
+                  sender="me"
+                  text={partialTranscript.me}
+                  type="partial"
+                />
               )}
               {partialTranscript.them && (
-                <TranscriptItem sender="them" text={partialTranscript.them} type="partial" />
+                <TranscriptItem
+                  sender="them"
+                  text={partialTranscript.them}
+                  type="partial"
+                />
               )}
             </div>
           </>
         ) : null}
       </div>
-      <div className="flex justify-center items-center gap-1 [&>*]:rounded-full p-2"  >
+      <div className="flex justify-center items-center gap-1 [&>*]:rounded-full p-2">
         {/* Always presesnt */}
         <Button
           variant="ghost"
-          onClick={() => setMenu(menu === 'closed' ? 'transcript' : 'closed')}
+          onClick={() => setMenu(menu === "closed" ? "transcript" : "closed")}
         >
           {isRecording ? (
             <AudioLines className="size-4 text-green-500" />
-          ) :
+          ) : (
             <AudioLines className="size-4" />
-          }
-          <ChevronUp className={cn("ml-2 h-4 w-4 flex-shrink-0 transition-transform duration-200", menu === "transcript" && "rotate-180")} />
+          )}
+          <ChevronUp
+            className={cn(
+              "ml-2 h-4 w-4 flex-shrink-0 transition-transform duration-200",
+              menu === "transcript" && "rotate-180",
+            )}
+          />
         </Button>
         <Button
           variant="ghost"
@@ -187,11 +219,13 @@ export function NotePageMenuButton({ className, ...props }: React.ComponentProps
         </Button>
         <Button
           variant="ghost"
-          onClick={() => setNoteEditorMode(mode === 'generated' ? 'user' : 'generated')}
+          onClick={() =>
+            setNoteEditorMode(mode === "generated" ? "user" : "generated")
+          }
         >
-          {mode === 'generated' ? 'User Notes' : 'Generated Notes'}
+          {mode === "generated" ? "User Notes" : "Generated Notes"}
         </Button>
       </div>
     </motion.div>
-  )
+  );
 }

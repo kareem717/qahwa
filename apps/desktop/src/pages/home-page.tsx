@@ -32,15 +32,14 @@ function formatDate(dateString: string | null) {
   }
 
   return date.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
+    weekday: "short",
+    month: "short",
+    day: "numeric",
   });
-};
+}
 
 // Helper function to group notes by date
 function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
-
   if (!notes || notes.length === 0) return {};
   return notes.reduce((acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
     const dateKey = formatDate(note.updatedAt);
@@ -50,16 +49,13 @@ function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
     acc[dateKey].push(note);
     return acc;
   }, {});
-};
+}
 
 export default function HomePage() {
   // const { data, isLoading } = useUserNotes();
   const { data: notes } = useLiveQuery((query) =>
-    query
-      .from({ notesCollection })
-      .select("@*")
-      .keyBy("@id")
-  )
+    query.from({ notesCollection }).select("@*").keyBy("@id"),
+  );
 
   const { user } = useAuth();
 
@@ -102,26 +98,29 @@ export default function HomePage() {
           <ScrollArea className="h-full rounded-md border">
             <div className="h-40 flex items-center">
               <div className="container mx-auto">
-                <h1 className="text-2xl font-semibold">Welcome back, {user?.name?.split(" ")[0]}</h1>
+                <h1 className="text-2xl font-semibold">
+                  Welcome back, {user?.name?.split(" ")[0]}
+                </h1>
               </div>
             </div>
             <div className="flex h-full flex-col items-center bg-accent/50 py-12 px-8">
-              {notes.length > 0 ?
-                (dateKeys.map((dateKey) => (
-                  <div key={dateKey} className="flex flex-col gap-2 container mx-auto mb-8 last:mb-0">
-                    <h2 className="text-xl font-semibold">
-                      {dateKey}
-                    </h2>
+              {notes.length > 0 ? (
+                dateKeys.map((dateKey) => (
+                  <div
+                    key={dateKey}
+                    className="flex flex-col gap-2 container mx-auto mb-8 last:mb-0"
+                  >
+                    <h2 className="text-xl font-semibold">{dateKey}</h2>
                     <div className="flex flex-col">
                       {groupedNotes[dateKey].map((note: SimpleNote) => (
                         <NoteButton key={note.id} note={note} />
                       ))}
                     </div>
                   </div>
-                )))
-                : (
-                  <div className="w-full text-center">No notes found</div>
-                )}
+                ))
+              ) : (
+                <div className="w-full text-center">No notes found</div>
+              )}
             </div>
           </ScrollArea>
         </main>

@@ -4,14 +4,20 @@ import { type ComponentPropsWithRef, useState } from "react";
 
 interface SignInButtonProps extends ComponentPropsWithRef<typeof Button> {
   provider: "google";
-  redirect?: string
+  redirect?: string;
 }
 
-export function SignInButton({ className, provider, redirect = import.meta.env.VITE_APP_URL, children = "Sign In", ...props }: SignInButtonProps) {
-  const [isLoading, setIsLoading] = useState(false)
+export function SignInButton({
+  className,
+  provider,
+  redirect = import.meta.env.VITE_APP_URL,
+  children = "Sign In",
+  ...props
+}: SignInButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleLogin() {
-    setIsLoading(true)
+    setIsLoading(true);
 
     await signIn.social({
       /**
@@ -33,16 +39,16 @@ export function SignInButton({ className, provider, redirect = import.meta.env.V
        */
       // newUserCallbackURL: "note-app://",
       /**
-       * disable the automatic redirect to the provider. 
+       * disable the automatic redirect to the provider.
        * @default false
        */
       // disableRedirect: true,
       fetchOptions: {
         onError: (error) => {
-          setIsLoading(false)
-          console.error(error)
-        }
-      }
+          setIsLoading(false);
+          console.error(error);
+        },
+      },
     });
   }
 

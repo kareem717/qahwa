@@ -1,0 +1,48 @@
+// biome.jsonc
+{
+  "organizeImports": {
+    "enabled": true
+  },
+  "files": {
+    "ignore": [
+      "node_modules/", // Standard practice
+      "dist/", // Common build output directory
+      "build/", // Another common build output directory
+      ".wrangler/", // All .ts files within any subdirectory of src/vendor
+      "worker-configuration.d.ts",
+      "*.gen.ts",
+      "*.css",
+      ".vinxi",
+      ".vite"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      // Example: If 'noDebugger' is in the 'suspicious' group
+      "suspicious": {
+        "noDebugger": "off" // Disables the noDebugger rule
+      },
+      // Example: If 'useSingleVarDeclarator' is in the 'style' group
+      "style": {
+        "useSingleVarDeclarator": "off"
+      },
+      // You can also turn off entire groups if needed, though less common
+      // "performance": {
+      //   "noDelete": "off" // Example of a rule within the performance group
+      // }
+      // If you are using recommended rules and want to override one:
+      "recommended": true, // Keep recommended rules enabled
+      // ... then specifically turn off a recommended rule:
+      "a11y": {
+        // Assuming a rule like 'noAutofocus' is in 'a11y' and recommended
+        "noAutofocus": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space"
+  }
+  // ... other configurations
+}

@@ -1,23 +1,18 @@
-import { cn } from "@note/ui/lib/utils"
-import { Button } from "@note/ui/components/button"
-import { Card, CardContent } from "@note/ui/components/card"
-import { Input } from "@note/ui/components/input"
-import { Label } from "@note/ui/components/label"
-import { ArrowRight } from "lucide-react"
-import { GithubIcon, GoogleIcon } from "../icons"
-import { SignInButton } from "./sign-in-button"
-import { Link } from "@tanstack/react-router"
+import { cn } from "@note/ui/lib/utils";
+import { Button } from "@note/ui/components/button";
+import { Card, CardContent } from "@note/ui/components/card";
+import { Input } from "@note/ui/components/input";
+import { Label } from "@note/ui/components/label";
+import { ArrowRight } from "lucide-react";
+import { GithubIcon, GoogleIcon } from "../icons";
+import { SignInButton } from "./sign-in-button";
+import { Link } from "@tanstack/react-router";
 
 interface SignInFormProps extends React.ComponentPropsWithoutRef<"div"> {
-  redirect?: string
+  redirect?: string;
 }
 
-export function SignInForm({
-  className,
-  redirect,
-  ...props
-}: SignInFormProps) {
-
+export function SignInForm({ className, redirect, ...props }: SignInFormProps) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
@@ -31,11 +26,22 @@ export function SignInForm({
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <SignInButton provider="google" variant="outline" type="button" className="w-full" redirect={redirect}>
+                <SignInButton
+                  provider="google"
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  redirect={redirect}
+                >
                   <GoogleIcon className="size-4" />
                   <span className="sr-only">Login with Google</span>
                 </SignInButton>
-                <Button variant="outline" type="button" className="w-full" disabled>
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  disabled
+                >
                   <GithubIcon className="size-4" />
                   <span className="sr-only">Login with Meta</span>
                 </Button>
@@ -70,9 +76,16 @@ export function SignInForm({
         </CardContent>
       </Card>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By clicking continue, you agree to our <Link to="/terms" className="underline">Terms of Service</Link>{" "}
-        and <Link to="/privacy" className="underline">Privacy Policy</Link>.
+        By clicking continue, you agree to our{" "}
+        <Link to="/terms" className="underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link to="/privacy" className="underline">
+          Privacy Policy
+        </Link>
+        .
       </div>
     </div>
-  )
+  );
 }

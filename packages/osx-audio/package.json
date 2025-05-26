@@ -32,12 +32,7 @@
     }
   },
   "gypfile": true,
-  "files": [
-    "src",
-    "dist",
-    "build",
-    "binding.gyp"
-  ],
+  "files": ["src", "dist", "build", "binding.gyp"],
   "keywords": [],
   "author": "",
   "license": "MIT"

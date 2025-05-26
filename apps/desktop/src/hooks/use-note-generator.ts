@@ -7,14 +7,14 @@ import { useOptimisticMutation } from "@tanstack/react-db";
 
 export function useNoteGenerator() {
   const noteId = useStore(noteIdStore, (state) => state.noteId);
-  const noteCollection = fullNoteCollection(noteId)
-  const [isGenerating, setIsGenerating] = React.useState(false)
+  const noteCollection = fullNoteCollection(noteId);
+  const [isGenerating, setIsGenerating] = React.useState(false);
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async () => {
-      await noteCollection.invalidate()
-    }
-  })
+      await noteCollection.invalidate();
+    },
+  });
 
   async function generate() {
     // Optional: Add validation for noteId if needed, e.g.,
@@ -51,12 +51,18 @@ export function useNoteGenerator() {
           break;
         }
         mutate(() => {
-          noteCollection.update(noteCollection.state.get(noteId.toString())!, (draft) => {
-            draft.generatedNotes = draft.generatedNotes ? draft.generatedNotes + value : value
-          })
-        })
-      }
+          const note = noteCollection.state.get(noteId.toString());
+          if (!note) {
+            throw new Error("Note not found");
+          }
 
+          noteCollection.update(note, (draft) => {
+            draft.generatedNotes = draft.generatedNotes
+              ? draft.generatedNotes + value
+              : value;
+          });
+        });
+      }
     } catch (error) {
       console.error("Error generating or streaming note:", error);
       // Optionally, set an error state in the store here

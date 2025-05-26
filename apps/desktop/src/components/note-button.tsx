@@ -1,42 +1,46 @@
-import React from "react" 
-import { ChevronRight, FileText, Loader2, Trash } from "lucide-react"
-import type { Note } from "@note/db/types"
-import { Button } from "@note/ui/components/button"
-import { cn } from "@note/ui/lib/utils"
-import { Link } from "@tanstack/react-router"
-import { getClient } from "../lib/api"
-import { notesCollection } from "../lib/collections/notes"
-import { useOptimisticMutation } from "@tanstack/react-db"
-import { toast } from "sonner"
+import type React from "react";
+import { ChevronRight, FileText, Loader2, Trash } from "lucide-react";
+import type { Note } from "@note/db/types";
+import { Button } from "@note/ui/components/button";
+import { cn } from "@note/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
+import { getClient } from "../lib/api";
+import { notesCollection } from "../lib/collections/notes";
+import { useOptimisticMutation } from "@tanstack/react-db";
+import { toast } from "sonner";
 
-export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">
+export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">;
 
-interface NoteButtonProps extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
-  note: SimpleNote
+interface NoteButtonProps
+  extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
+  note: SimpleNote;
 }
 
 // TODO: doesn't shrink all the way
-export function NoteButton({ className, note: { id, title, updatedAt }, ...props }: NoteButtonProps) {
+export function NoteButton({
+  className,
+  note: { id, title, updatedAt },
+  ...props
+}: NoteButtonProps) {
   const deleteNote = useOptimisticMutation({
     mutationFn: async () => {
-      const api = await getClient()
+      const api = await getClient();
 
       //todo: error handling
       await api.note[":id"].$delete({
         param: {
-          id: id.toString()
-        }
-      })
+          id: id.toString(),
+        },
+      });
 
-      notesCollection.invalidate()
+      notesCollection.invalidate();
     },
-  })
+  });
 
-  const updatedClockTime = new Date(updatedAt)
-    .toLocaleTimeString(
-      'en-US',
-      { hour: '2-digit', minute: '2-digit' }
-    )
+  const updatedClockTime = new Date(updatedAt).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   return (
     <Link
@@ -46,12 +50,10 @@ export function NoteButton({ className, note: { id, title, updatedAt }, ...props
         id,
         title,
       }}
-      className={
-        cn(
-          "group flex items-center justify-between w-full p-3 rounded-sm hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-16",
-          className
-        )
-      }
+      className={cn(
+        "group flex items-center justify-between w-full p-3 rounded-sm hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-16",
+        className,
+      )}
     >
       <div className="flex flex-1 items-center gap-4 min-w-0">
         <div className="bg-primary/30 rounded-sm aspect-square size-10 flex items-center justify-center">
@@ -67,20 +69,19 @@ export function NoteButton({ className, note: { id, title, updatedAt }, ...props
           variant="ghost"
           size="icon"
           onClick={(e) => {
-            e.stopPropagation()
-            e.preventDefault()
+            e.stopPropagation();
+            e.preventDefault();
             deleteNote.mutate(() => {
               const note = Array.from(notesCollection.state.values()).find(
-                (t) => t.id === id
-              )
+                (t) => t.id === id,
+              );
 
               if (note) {
-                return notesCollection.delete(note)
+                return notesCollection.delete(note);
               }
 
-              toast.error("Note not found")
-            }
-            )
+              toast.error("Note not found");
+            });
           }}
         >
           <Trash className="size-4" />
@@ -88,5 +89,5 @@ export function NoteButton({ className, note: { id, title, updatedAt }, ...props
         <ChevronRight className="size-4 hover:text-accent-foreground" />
       </div>
     </Link>
-  )
+  );
 }

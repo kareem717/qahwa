@@ -1,11 +1,11 @@
-import React from "react"
-import { getClient } from "../lib/api"
-import { toast } from "sonner"
-import { fullNoteCollection } from "../lib/collections/notes"
+import React from "react";
+import { getClient } from "../lib/api";
+import { toast } from "sonner";
+import { fullNoteCollection } from "../lib/collections/notes";
 import { useLiveQuery } from "@tanstack/react-db";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { noteIdStore, DEFAULT_NOTE_ID, setNoteId } from "./use-note-id";
-import { nanoid } from "nanoid"
+import { nanoid } from "nanoid";
 import { useStore } from "@tanstack/react-store";
 
 type MicAudioRecorderState = {
@@ -113,7 +113,9 @@ function setupWebSocket(options: WebSocketSetupOptions): WebSocket {
   return socket;
 }
 
-function closeAndClearWebSocket(socketRef: React.MutableRefObject<WebSocket | null>) {
+function closeAndClearWebSocket(
+  socketRef: React.MutableRefObject<WebSocket | null>,
+) {
   if (socketRef.current && socketRef.current.readyState < WebSocket.CLOSING) {
     try {
       socketRef.current.send(JSON.stringify({ terminate_session: true }));
@@ -125,7 +127,9 @@ function closeAndClearWebSocket(socketRef: React.MutableRefObject<WebSocket | nu
   socketRef.current = null; // Clear the ref
 }
 
-function cleanupAudioIpc(audioIpcCleanupRef: React.MutableRefObject<(() => void) | null>) {
+function cleanupAudioIpc(
+  audioIpcCleanupRef: React.MutableRefObject<(() => void) | null>,
+) {
   if (audioIpcCleanupRef.current) {
     audioIpcCleanupRef.current();
     audioIpcCleanupRef.current = null;
@@ -153,52 +157,56 @@ export function useTranscript() {
     return fullNoteCollection(noteId);
   }, [noteId]);
 
-  const { data } = useLiveQuery((query) =>
-    query
-      .from({ noteCollection: liveQueryCollection }) // Use memoized collection for live query
-      .select("@transcript", "@id")
-      .keyBy("@id"),
-    [liveQueryCollection] // Depend on the collection instance
+  const { data } = useLiveQuery(
+    (query) =>
+      query
+        .from({ noteCollection: liveQueryCollection }) // Use memoized collection for live query
+        .select("@transcript", "@id")
+        .keyBy("@id"),
+    [liveQueryCollection], // Depend on the collection instance
   );
 
-  const transcript = data[0]?.transcript ?? []
+  const transcript = data[0]?.transcript ?? [];
 
   React.useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
 
   const [partialTranscript, setPartialTranscript] = React.useState<{
-    them: string
-    me: string
-  }>({ them: "", me: "" })
+    them: string;
+    me: string;
+  }>({ them: "", me: "" });
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
-      const { changes } = transaction.mutations[0]
+      const { changes } = transaction.mutations[0];
 
-      const api = await getClient()
+      const api = await getClient();
       const payload = {
-        id: internalNoteIdRef.current === DEFAULT_NOTE_ID ? undefined : internalNoteIdRef.current,
+        id:
+          internalNoteIdRef.current === DEFAULT_NOTE_ID
+            ? undefined
+            : internalNoteIdRef.current,
         transcript: changes.transcript,
-      }
+      };
       const response = await api.note.$put({
         // @ts-expect-error - TODO: fix this
-        json: payload
-      })
+        json: payload,
+      });
 
       if (!response.ok) {
         if (internalNoteIdRef.current === DEFAULT_NOTE_ID) {
           isCreatingNoteRef.current = false; // Reset on creation failure
         }
-        throw new Error("Error upserting note")
+        throw new Error("Error upserting note");
       }
 
-      const { note } = await response.json()
+      const { note } = await response.json();
 
       if (internalNoteIdRef.current === DEFAULT_NOTE_ID && note && note.id) {
-        const newNoteId = note.id
-        setNoteId(newNoteId) // This updates internalNoteIdRef via its own useEffect.
-        await fullNoteCollection(newNoteId).invalidate() // This will update transcriptRef via useLiveQuery and its useEffect.
+        const newNoteId = note.id;
+        setNoteId(newNoteId); // This updates internalNoteIdRef via its own useEffect.
+        await fullNoteCollection(newNoteId).invalidate(); // This will update transcriptRef via useLiveQuery and its useEffect.
         isCreatingNoteRef.current = false; // Mark creation as finished. IMPORTANT: Do this after setNoteId & invalidate.
       } else {
         if (note?.id) {
@@ -211,91 +219,111 @@ export function useTranscript() {
         }
       }
     },
-  })
+  });
 
   // Effect to flush pending entries once note ID is established and transcript is updated
   // This useEffect MUST be defined AFTER 'mutate' is defined.
   React.useEffect(() => {
     const currentActualNoteId = internalNoteIdRef.current;
-    if (currentActualNoteId !== DEFAULT_NOTE_ID && pendingTranscriptEntriesRef.current.length > 0) {
+    if (
+      currentActualNoteId !== DEFAULT_NOTE_ID &&
+      pendingTranscriptEntriesRef.current.length > 0
+    ) {
       const entriesToFlush = [...pendingTranscriptEntriesRef.current];
       pendingTranscriptEntriesRef.current = []; // Clear buffer immediately
 
       mutate(() => {
         const collectionForFlush = fullNoteCollection(currentActualNoteId);
-        const noteToUpdate = collectionForFlush.state.get(String(currentActualNoteId));
+        const noteToUpdate = collectionForFlush.state.get(
+          String(currentActualNoteId),
+        );
         if (noteToUpdate) {
           collectionForFlush.update(noteToUpdate, (draft) => {
-            draft.transcript = [...(transcriptRef.current ?? []), ...entriesToFlush];
+            draft.transcript = [
+              ...(transcriptRef.current ?? []),
+              ...entriesToFlush,
+            ];
           });
         } else {
           if ((transcriptRef.current ?? []).length === 0) {
-            collectionForFlush.insert([{
-              id: currentActualNoteId,
-              transcript: entriesToFlush,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              userId: DEFAULT_NOTE_ID,
-              title: "",
-              userNotes: "",
-              generatedNotes: ""
-            }]);
+            collectionForFlush.insert([
+              {
+                id: currentActualNoteId,
+                transcript: entriesToFlush,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                userId: DEFAULT_NOTE_ID,
+                title: "",
+                userNotes: "",
+                generatedNotes: "",
+              },
+            ]);
           }
         }
       });
     }
   }, [mutate]);
 
-  const handleTranscriptChange = React.useCallback((newTranscriptEntries: {
-    timestamp: string
-    content: string
-    sender: "me" | "them"
-  }[]) => {
-    const currentNoteIdVal = internalNoteIdRef.current;
+  const handleTranscriptChange = React.useCallback(
+    (
+      newTranscriptEntries: {
+        timestamp: string;
+        content: string;
+        sender: "me" | "them";
+      }[],
+    ) => {
+      const currentNoteIdVal = internalNoteIdRef.current;
 
-    if (currentNoteIdVal === DEFAULT_NOTE_ID) {
-      if (isCreatingNoteRef.current) {
-        pendingTranscriptEntriesRef.current.push(...newTranscriptEntries);
-        return; // Don't call mutate for these entries yet
-      }
-
-      isCreatingNoteRef.current = true;
-      mutate(() => {
-        const collectionForInsert = fullNoteCollection(DEFAULT_NOTE_ID); // Operate on TEMP_ID collection
-        collectionForInsert.insert([{
-          id: DEFAULT_NOTE_ID,
-          transcript: newTranscriptEntries,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: DEFAULT_NOTE_ID,
-          title: "",
-          userNotes: "",
-          generatedNotes: "",
-        }]);
-      });
-
-    } else {
-      mutate(() => {
-        const collectionForUpdate = fullNoteCollection(currentNoteIdVal);
-        const noteToUpdate = collectionForUpdate.state.get(String(currentNoteIdVal));
-        if (noteToUpdate) {
-          collectionForUpdate.update(noteToUpdate, (draft) => {
-            draft.transcript = [...(transcriptRef.current ?? []), ...newTranscriptEntries];
-          });
+      if (currentNoteIdVal === DEFAULT_NOTE_ID) {
+        if (isCreatingNoteRef.current) {
+          pendingTranscriptEntriesRef.current.push(...newTranscriptEntries);
+          return; // Don't call mutate for these entries yet
         }
-      });
-    }
-  }, [mutate]); // Dependencies: mutate (stable), refs are accessed directly.
 
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [isRecording, setIsRecording] = React.useState(false)
+        isCreatingNoteRef.current = true;
+        mutate(() => {
+          const collectionForInsert = fullNoteCollection(DEFAULT_NOTE_ID); // Operate on TEMP_ID collection
+          collectionForInsert.insert([
+            {
+              id: DEFAULT_NOTE_ID,
+              transcript: newTranscriptEntries,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              userId: DEFAULT_NOTE_ID,
+              title: "",
+              userNotes: "",
+              generatedNotes: "",
+            },
+          ]);
+        });
+      } else {
+        mutate(() => {
+          const collectionForUpdate = fullNoteCollection(currentNoteIdVal);
+          const noteToUpdate = collectionForUpdate.state.get(
+            String(currentNoteIdVal),
+          );
+          if (noteToUpdate) {
+            collectionForUpdate.update(noteToUpdate, (draft) => {
+              draft.transcript = [
+                ...(transcriptRef.current ?? []),
+                ...newTranscriptEntries,
+              ];
+            });
+          }
+        });
+      }
+    },
+    [mutate],
+  ); // Dependencies: mutate (stable), refs are accessed directly.
+
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isRecording, setIsRecording] = React.useState(false);
 
   // Refs
-  const systemSocketRef = React.useRef<WebSocket | null>(null)
-  const micSocketRef = React.useRef<WebSocket | null>(null)
+  const systemSocketRef = React.useRef<WebSocket | null>(null);
+  const micSocketRef = React.useRef<WebSocket | null>(null);
   const audioIpcCleanupRef = React.useRef<(() => void) | null>(null); // To store cleanup from startCapture
   const micRecorderRef = React.useRef<MicAudioRecorderState | null>(null);
-
 
   // --- Main Recording Logic ---
   const stopRecording = React.useCallback(() => {
@@ -311,7 +339,6 @@ export function useTranscript() {
     // Reset creation-specific state
     isCreatingNoteRef.current = false;
     pendingTranscriptEntriesRef.current = [];
-
   }, []);
 
   const startRecording = React.useCallback(async () => {
@@ -325,7 +352,7 @@ export function useTranscript() {
       // 1. Get AssemblyAI Tokens
       const token = await getAssemblyAiToken();
       const systemToken = token; // Assuming same token for now
-      const micToken = token;    // Assuming same token for now
+      const micToken = token; // Assuming same token for now
 
       // 2. Setup WebSockets
       const sampleRate = 48000; // Target sample rate for osx-audio
@@ -352,7 +379,7 @@ export function useTranscript() {
             const cleanupElectronAndMic = () => {
               window.electronSystemAudio.startCapture(handleSystemData);
               startMicAudioCapture(handleMicData)
-                .then(recorderState => {
+                .then((recorderState) => {
                   micRecorderRef.current = recorderState;
                 })
                 .catch(() => {
@@ -371,7 +398,6 @@ export function useTranscript() {
 
             setIsLoading(false);
             setIsRecording(true);
-
           } catch (error) {
             toast.error("Failed to start audio capture.");
             stopRecording();
@@ -389,17 +415,26 @@ export function useTranscript() {
         onMessage: (event) => {
           try {
             const message = JSON.parse(event.data as string);
-            console.log("message", message)
+            console.log("message", message);
             switch (message.message_type) {
               case "SessionBegins":
                 break;
               case "PartialTranscript":
-                setPartialTranscript((prev) => ({ ...prev, them: message.text }));
+                setPartialTranscript((prev) => ({
+                  ...prev,
+                  them: message.text,
+                }));
                 break;
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, them: "" }));
-                  handleTranscriptChange([{ content: message.text, sender: "them", timestamp: new Date().toISOString() }])
+                  handleTranscriptChange([
+                    {
+                      content: message.text,
+                      sender: "them",
+                      timestamp: new Date().toISOString(),
+                    },
+                  ]);
                 }
                 break;
               case "SessionTerminated":
@@ -422,7 +457,7 @@ export function useTranscript() {
           if (isRecording && closeEvent.code !== 1000) {
             stopRecording();
           }
-        }
+        },
       });
 
       // Mic WebSocket Handlers
@@ -444,7 +479,13 @@ export function useTranscript() {
               case "FinalTranscript":
                 if (message.text) {
                   setPartialTranscript((prev) => ({ ...prev, me: "" }));
-                  handleTranscriptChange([{ content: message.text, sender: "me", timestamp: new Date().toISOString() }])
+                  handleTranscriptChange([
+                    {
+                      content: message.text,
+                      sender: "me",
+                      timestamp: new Date().toISOString(),
+                    },
+                  ]);
                 }
                 break;
               case "SessionTerminated":
@@ -467,15 +508,15 @@ export function useTranscript() {
           if (isRecording && closeEvent.code !== 1000) {
             stopRecording();
           }
-        }
+        },
       });
-
     } catch (error) {
-      toast.error(`Error starting recording: ${error instanceof Error ? error.message : String(error)}`);
+      toast.error(
+        `Error starting recording: ${error instanceof Error ? error.message : String(error)}`,
+      );
       stopRecording();
     }
-  }, [
-    isRecording, isLoading, stopRecording, handleTranscriptChange]);
+  }, [isRecording, isLoading, stopRecording, handleTranscriptChange]);
 
   // Effect for automatic cleanup on unmount
   React.useEffect(() => {
@@ -492,8 +533,8 @@ export function useTranscript() {
     transcript,
     partialTranscript,
     isRecording, // Use the combined state
-    isLoading,   // Use the combined state
+    isLoading, // Use the combined state
     startRecording,
-    stopRecording
-  }
+    stopRecording,
+  };
 }
