@@ -100,6 +100,7 @@ jobs:
           VITE_APP_URL: '${{ vars.LANDING_URL }}'
           VITE_API_URL: '${{ vars.API_URL }}'
           VITE_DESKTOP_PROTOCOL: '${{ vars.DESKTOP_PROTOCOL }}'
+          VITE_RELEASE_S3_ENDPOINT: '${{ vars.RELEASE_S3_ENDPOINT }}'
         run: |
           cd apps/landing
           pnpm run build

@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string;
   readonly VITE_DESKTOP_PROTOCOL: string;
   readonly VITE_APP_URL: string;
+  readonly VITE_RELEASE_S3_ENDPOINT: string;
 }
 
 interface ImportMeta {
