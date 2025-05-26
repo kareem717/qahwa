@@ -11,13 +11,21 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as LegalRouteImport } from './routes/_legal/route'
 import { Route as AuthRouteImport } from './routes/_auth/route'
 import { Route as IndexImport } from './routes/index'
+import { Route as LegalTermsImport } from './routes/_legal/terms'
+import { Route as LegalPrivacyImport } from './routes/_legal/privacy'
 import { Route as AuthSignOutImport } from './routes/_auth/sign-out'
 import { Route as AuthSignInImport } from './routes/_auth/sign-in'
 import { Route as AuthAppRedirectImport } from './routes/_auth/app-redirect'
 
 // Create/Update Routes
+
+const LegalRouteRoute = LegalRouteImport.update({
+  id: '/_legal',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AuthRouteRoute = AuthRouteImport.update({
   id: '/_auth',
@@ -28,6 +36,18 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const LegalTermsRoute = LegalTermsImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LegalRouteRoute,
+} as any)
+
+const LegalPrivacyRoute = LegalPrivacyImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LegalRouteRoute,
 } as any)
 
 const AuthSignOutRoute = AuthSignOutImport.update({
@@ -66,6 +86,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRoute
     }
+    '/_legal': {
+      id: '/_legal'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/_auth/app-redirect': {
       id: '/_auth/app-redirect'
       path: '/app-redirect'
@@ -86,6 +113,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/sign-out'
       preLoaderRoute: typeof AuthSignOutImport
       parentRoute: typeof AuthRouteImport
+    }
+    '/_legal/privacy': {
+      id: '/_legal/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof LegalPrivacyImport
+      parentRoute: typeof LegalRouteImport
+    }
+    '/_legal/terms': {
+      id: '/_legal/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof LegalTermsImport
+      parentRoute: typeof LegalRouteImport
     }
   }
 }
@@ -108,54 +149,94 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
   AuthRouteRouteChildren,
 )
 
+interface LegalRouteRouteChildren {
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
+}
+
+const LegalRouteRouteChildren: LegalRouteRouteChildren = {
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
+}
+
+const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
+  LegalRouteRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '': typeof AuthRouteRouteWithChildren
+  '': typeof LegalRouteRouteWithChildren
   '/app-redirect': typeof AuthAppRedirectRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-out': typeof AuthSignOutRoute
+  '/privacy': typeof LegalPrivacyRoute
+  '/terms': typeof LegalTermsRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '': typeof AuthRouteRouteWithChildren
+  '': typeof LegalRouteRouteWithChildren
   '/app-redirect': typeof AuthAppRedirectRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-out': typeof AuthSignOutRoute
+  '/privacy': typeof LegalPrivacyRoute
+  '/terms': typeof LegalTermsRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/_legal': typeof LegalRouteRouteWithChildren
   '/_auth/app-redirect': typeof AuthAppRedirectRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-out': typeof AuthSignOutRoute
+  '/_legal/privacy': typeof LegalPrivacyRoute
+  '/_legal/terms': typeof LegalTermsRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '' | '/app-redirect' | '/sign-in' | '/sign-out'
+  fullPaths:
+    | '/'
+    | ''
+    | '/app-redirect'
+    | '/sign-in'
+    | '/sign-out'
+    | '/privacy'
+    | '/terms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '' | '/app-redirect' | '/sign-in' | '/sign-out'
+  to:
+    | '/'
+    | ''
+    | '/app-redirect'
+    | '/sign-in'
+    | '/sign-out'
+    | '/privacy'
+    | '/terms'
   id:
     | '__root__'
     | '/'
     | '/_auth'
+    | '/_legal'
     | '/_auth/app-redirect'
     | '/_auth/sign-in'
     | '/_auth/sign-out'
+    | '/_legal/privacy'
+    | '/_legal/terms'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  LegalRouteRoute: typeof LegalRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  LegalRouteRoute: LegalRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -169,7 +250,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/_auth"
+        "/_auth",
+        "/_legal"
       ]
     },
     "/": {
@@ -183,6 +265,13 @@ export const routeTree = rootRoute
         "/_auth/sign-out"
       ]
     },
+    "/_legal": {
+      "filePath": "_legal/route.tsx",
+      "children": [
+        "/_legal/privacy",
+        "/_legal/terms"
+      ]
+    },
     "/_auth/app-redirect": {
       "filePath": "_auth/app-redirect.tsx",
       "parent": "/_auth"
@@ -194,6 +283,14 @@ export const routeTree = rootRoute
     "/_auth/sign-out": {
       "filePath": "_auth/sign-out.tsx",
       "parent": "/_auth"
+    },
+    "/_legal/privacy": {
+      "filePath": "_legal/privacy.tsx",
+      "parent": "/_legal"
+    },
+    "/_legal/terms": {
+      "filePath": "_legal/terms.tsx",
+      "parent": "/_legal"
     }
   }
 }

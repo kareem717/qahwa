@@ -6,6 +6,7 @@ import { Label } from "@note/ui/components/label"
 import { ArrowRight } from "lucide-react"
 import { GithubIcon, GoogleIcon } from "../icons"
 import { SignInButton } from "./sign-in-button"
+import { Link } from "@tanstack/react-router"
 
 interface SignInFormProps extends React.ComponentPropsWithoutRef<"div"> {
   redirect?: string
@@ -69,8 +70,8 @@ export function SignInForm({
         </CardContent>
       </Card>
       <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+        By clicking continue, you agree to our <Link to="/terms" className="underline">Terms of Service</Link>{" "}
+        and <Link to="/privacy" className="underline">Privacy Policy</Link>.
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import tsConfigPaths from 'vite-tsconfig-paths'
 import { cloudflare } from 'unenv'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import mdx from "@mdx-js/rollup"; // Import the new plugin
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,6 +16,13 @@ const config = defineConfig({
     plugins: [
       tsConfigPaths({
         projects: ['./tsconfig.json'],
+      }),
+      mdx({
+        // See https://mdxjs.com/advanced/plugins
+        remarkPlugins: [
+          // E.g. `remark-frontmatter`
+        ],
+        rehypePlugins: [],
       })
     ],
     resolve: {

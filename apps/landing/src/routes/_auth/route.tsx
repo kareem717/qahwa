@@ -3,6 +3,7 @@ import {
   createFileRoute,
 } from '@tanstack/react-router'
 import { NavBack } from '@note/landing/components/nav-back'
+
 export const Route = createFileRoute('/_auth')({
   component: AuthLayout,
 })
