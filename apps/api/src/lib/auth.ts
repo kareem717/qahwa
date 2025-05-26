@@ -6,5 +6,6 @@ export const createAuthClient = () => createServerClient({
   databaseUrl: env.DATABASE_URL,
   trustedOrigins: [env.ELECTRON_URL, env.LANDING_URL],
   googleClientId: env.GOOGLE_CLIENT_ID,
+  
   googleClientSecret: env.GOOGLE_CLIENT_SECRET,
 })

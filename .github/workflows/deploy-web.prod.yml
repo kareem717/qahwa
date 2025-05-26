@@ -64,6 +64,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'apps/api'
+          command: deploy --minify --env production --config wrangler.toml
 
   deploy-landing:
     name: Deploy Landing Page to Cloudflare Pages

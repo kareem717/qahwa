@@ -1,4 +1,4 @@
-import { Note } from "@note/db/types";
+import type { Note } from "@note/db/types";
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { env } from "cloudflare:workers";
 import { streamText } from "ai";
@@ -31,10 +31,13 @@ export const generateNotes = (transcript: Transcript, notes?: string) => {
   // console.log("generating notes", transcript, notes)
   return streamText({
     model: google('gemini-2.5-flash-preview-04-17'),
-    prompt: "Generate notes for the following transcript:" +
-      "Output only the notes in markdown and nothing else." +
-      "Transcript: " + JSON.stringify(transcript) +
-      (notes ? " Notes: " + notes : ""),
+    prompt:
+      `
+      Generate notes for the following transcript:
+      Output only the notes in markdown and nothing else.
+      Transcript: ${JSON.stringify(transcript)}
+      ${notes ? `Notes: ${notes}` : ""}
+      `,
   });
 }
 

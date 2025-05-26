@@ -13,6 +13,10 @@ ELECTRON_URL = "http://localhost:5173"
 DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "http://localhost:8080"
 
+[env.production]
+routes = [{ pattern = "api.waitq.sh", custom_domain = true }]
+name = "note-api"
+
 [env.production.vars]
 LANDING_URL = "https://waitq.sh"
 ELECTRON_URL = "http://localhost:5173"

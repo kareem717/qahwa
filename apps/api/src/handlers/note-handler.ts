@@ -10,7 +10,7 @@ import { InsertNoteSchema } from '@note/db/validation';
 import { z } from 'zod';
 import { generateNotes, generateTitle } from '../lib/ai/notes';
 import { AssemblyAI } from 'assemblyai';
-import { Note } from '@note/db/types';
+import type { Note } from '@note/db/types';
 import { stream, streamText } from 'hono/streaming';
 
 export const noteHandler = () => new Hono()
@@ -135,7 +135,9 @@ export const noteHandler = () => new Hono()
         throw new HTTPException(404, {
           message: "Note not found",
         })
-      } else if (note.userId !== Number(user.id)) {
+      }
+
+      if (note.userId !== Number(user.id)) {
         throw new HTTPException(403, {
           message: "You are not allowed to delete this note",
         })
