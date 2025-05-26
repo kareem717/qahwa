@@ -14,7 +14,7 @@ DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "http://localhost:8080"
 
 [env.production.vars]
-LANDING_URL = "https://app.note.app"
-ELECTRON_URL = "https://app.note.app"
+LANDING_URL = "https://waitq.sh"
+ELECTRON_URL = "http://localhost:5173"
 DESKTOP_APP_PROTOCOL = "note-app"
-BETTER_AUTH_URL = "https://api.note.app"
+BETTER_AUTH_URL = "https://api.waitq.sh"
