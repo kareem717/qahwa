@@ -23,7 +23,5 @@ export const Route = createFileRoute('/_auth/sign-in')({
 function RouteComponent() {
   const { redirect } = Route.useSearch()
 
-  console.log(import.meta.env)
-
   return <SignInForm redirect={redirect} />
 }

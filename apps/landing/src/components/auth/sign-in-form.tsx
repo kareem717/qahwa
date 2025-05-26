@@ -16,7 +16,7 @@ export function SignInForm({
   redirect,
   ...props
 }: SignInFormProps) {
-  console.log(import.meta.env)
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
@@ -62,7 +62,7 @@ export function SignInForm({
           <div className="bg-muted relative hidden md:block">
             <img
               src="/placeholder.png"
-              alt="Image"
+              alt="Placeholder PNG"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
             />
           </div>

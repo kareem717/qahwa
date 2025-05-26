@@ -7,7 +7,7 @@ interface SignInButtonProps extends ComponentPropsWithRef<typeof Button> {
   redirect?: string
 }
 
-export function SignInButton({ className, provider, redirect = "/", children = "Sign In", ...props }: SignInButtonProps) {
+export function SignInButton({ className, provider, redirect = import.meta.env.VITE_APP_URL, children = "Sign In", ...props }: SignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleLogin() {

@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@note/
 import { cn } from '@note/ui/lib/utils'
 import { Loader2 } from 'lucide-react'
 
-export const getAPIKey = createServerFn({ method: 'GET' }).handler(async () => {
+const getAPIKey = createServerFn({ method: 'GET' }).handler(async () => {
   const api = createClient(import.meta.env.VITE_API_URL)
 
   try {
@@ -54,7 +54,7 @@ export const Route = createFileRoute('/_auth/app-redirect')({
     const { data, error } = await getSessionFunction()
     console.log(data, error)
     if (!data) {
-      throw redirect({ to: '/sign-in' })
+      throw redirect({ to: '/sign-in', search: { redirect: `${import.meta.env.VITE_APP_URL}/app-redirect` } })
     }
   },
   loader: async () => await getAPIKey()
@@ -80,7 +80,7 @@ function RouteComponent() {
             className={cn(buttonVariants(), "w-full")}
             onClick={() => {
               setIsRedirecting(true)
-              window.location.href = window.location.href
+              window.location.href = Route.fullPath // reload the page
             }}
             disabled={isRedirecting}
           >
