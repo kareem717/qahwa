@@ -11,6 +11,7 @@ import { PublisherS3 } from "@electron-forge/publisher-s3";
 
 const config: ForgeConfig = {
   packagerConfig: {
+    icon: "public/icon.png",
     asar: true,
     extraResource: [
       "../../packages/osx-audio/build/Release/nativeAudioManager.node",

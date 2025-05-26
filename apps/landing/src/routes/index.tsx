@@ -4,6 +4,7 @@ import { AppleIcon, WindowsIcon, XIcon } from "../components/icons";
 import { Button } from "@note/ui/components/button";
 import { toast } from "sonner";
 import { DownloadButton } from "../components/download-button";
+import { QahwaIcon } from "@note/ui/components/icons";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
@@ -12,11 +13,13 @@ export const Route = createFileRoute("/")({
 function HomeComponent() {
   return (
     <div className="flex flex-col items-center justify-between h-screen relative p-4 container mx-auto">
-      <header className="w-full font-bold text-2xl tracking-wide">text.</header>
+      <header className="w-full font-bold text-2xl tracking-wide">
+        <QahwaIcon className="size-7" />
+      </header>
       <section className="flex flex-col items-center justify-center">
-        <h1 className="text-5xl font-bold mb-3">note.</h1>
+        <h1 className="text-5xl font-bold mb-3">qahwa.</h1>
         <div className="text-xl text-muted-foreground flex items-center gap-1">
-          <span>AI note compiler for</span>
+          <span>AI assistant and note compiler for</span>
           <Typewriter
             text={["sales calls", "standups", "lectures", "meetings"]}
             speed={70}
@@ -26,8 +29,8 @@ function HomeComponent() {
             cursorChar={"_"}
           />
         </div>
-        <div className="flex flex-col items-center justify-center mt-12 w-xs mx-auto gap-4">
-          <h2 className="text-xl font-medium">download</h2>
+        <div className="flex flex-col items-center justify-center mt-8 w-xs mx-auto gap-4">
+          {/* <h2 className="text-xl font-medium">download</h2> */}
           <div className="grid grid-cols-2 gap-2 w-full">
             <DownloadButton platform="darwin/arm64" >
               <AppleIcon className="size-5" />
@@ -42,7 +45,7 @@ function HomeComponent() {
       </section>
       <footer className="flex items-center justify-between gap-4 w-full px-4">
         <p className="text-muted-foreground text-xs">
-          © {new Date().getFullYear()} the text company.
+          © {new Date().getFullYear()} Fundlevel
         </p>
         <a
           href="https://x.com/bootbig76"

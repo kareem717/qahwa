@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vinxi dev",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "dev:wrangler": "pnpm cf-typegen && wrangler pages dev --proxy 3000",
     "build": "vinxi build",
     "start": "vinxi start"
   },
