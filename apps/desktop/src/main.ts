@@ -10,7 +10,7 @@ import {
 import { autoUpdater } from "electron-updater";
 
 const inDevelopment = process.env.NODE_ENV === "development";
-const PROTOCOL = "note-app"; // Define your custom protocol
+const PROTOCOL = import.meta.env.VITE_DESKTOP_PROTOCOL; // Define your custom protocol
 
 // Declare mainWindow in a broader scope
 let mainWindow: BrowserWindow | null = null;
@@ -67,12 +67,12 @@ function createWindow() {
     frame: false,
     ...(process.platform !== "darwin"
       ? {
-          titleBarOverlay: true,
-        }
+        titleBarOverlay: true,
+      }
       : {
-          trafficLightPosition: { x: 16, y: 12 },
-          titleBarStyle: "hidden",
-        }),
+        trafficLightPosition: { x: 16, y: 12 },
+        titleBarStyle: "hidden",
+      }),
   });
   registerListeners(mainWindow);
 
@@ -121,6 +121,9 @@ async function installExtensions() {
 // Placing it here, but can be moved inside whenReady if issues arise.
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
+    console.log(
+      `DEV MODE: Registering protocol ${PROTOCOL} for ${process.execPath} with args ${path.resolve(process.argv[1])}`,
+    );
     app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [
       process.argv[1],
     ]);
@@ -130,13 +133,13 @@ if (process.defaultApp) {
 }
 
 // Configur// Only set up auto-updater if we have the required configuration
-if (__R2_BUCKET_NAME__ && __R2_ENDPOINT__) {
+if (import.meta.env.VITE_R2_BUCKET_NAME && import.meta.env.VITE_R2_ENDPOINT) {
   try {
     autoUpdater.setFeedURL({
       provider: "s3",
-      bucket: __R2_BUCKET_NAME__,
+      bucket: import.meta.env.VITE_R2_BUCKET_NAME,
       region: "auto",
-      endpoint: __R2_ENDPOINT__,
+      endpoint: import.meta.env.VITE_R2_ENDPOINT,
       path: "releases",
     });
 
@@ -200,6 +203,7 @@ app.on("window-all-closed", () => {
 
 // Handle protocol for macOS
 app.on("open-url", (event, url) => {
+  console.log(`[EVENT open-url] macOS received URL: ${url}`); // Add this log
   event.preventDefault();
   handleDeepLinkUrl(url);
 });

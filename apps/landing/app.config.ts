@@ -47,7 +47,7 @@ const config = defineConfig({
     },
   },
   server: {
-    preset: "cloudflare-pages",
+    preset: "cloudflare-module",
     unenv: cloudflare,
     modules: [nitroCloudflareBindings],
   },

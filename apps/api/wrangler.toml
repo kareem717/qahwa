@@ -17,6 +17,7 @@ BETTER_AUTH_URL = "http://localhost:8080"
 routes = [{ pattern = "api.waitq.sh", custom_domain = true }]
 name = "note-api"
 
+
 [env.production.vars]
 LANDING_URL = "https://waitq.sh"
 ELECTRON_URL = "http://localhost:5173"

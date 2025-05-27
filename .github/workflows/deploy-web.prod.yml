@@ -67,7 +67,7 @@ jobs:
           command: deploy --minify --env production --config wrangler.toml
 
   deploy-landing:
-    name: Deploy Landing Page to Cloudflare Pages
+    name: Deploy Landing Page to Cloudflare Workers
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production # Add this to access environment variables
@@ -88,9 +88,6 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Install Wrangler CLI 
-        run: pnpm add -g wrangler@3.90.0
-
       - name: Install Landing App Dependencies
         run: pnpm install --frozen-lockfile
 
@@ -105,11 +102,10 @@ jobs:
           cd apps/landing
           pnpm run build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'apps/landing'
-          command: pages deploy ./dist
-          wranglerVersion: '3.90.0' # This should make the action use the specified version
+          command: deploy --minify --env production --config wrangler.toml
