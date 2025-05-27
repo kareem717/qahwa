@@ -8,9 +8,15 @@ import {
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
 import { autoUpdater } from "electron-updater";
+import * as Sentry from "@sentry/electron";
 
 const inDevelopment = process.env.NODE_ENV === "development";
 const PROTOCOL = import.meta.env.VITE_DESKTOP_PROTOCOL; // Define your custom protocol
+
+Sentry.init({
+  dsn: "https://882dcf6e9f6b800a2e36762c2b0167b9@o4509396716945408.ingest.us.sentry.io/4509396718977024",
+  enabled: !inDevelopment,
+});
 
 // Declare mainWindow in a broader scope
 let mainWindow: BrowserWindow | null = null;

@@ -67,6 +67,8 @@
     "@note/osx-audio": "workspace:*",
     "@note/sdk": "workspace:*",
     "@note/ui": "workspace:*",
+    "@sentry/electron": "^6.6.0",
+    "@sentry/vite-plugin": "^3.5.0",
     "@tailwindcss/vite": "^4.1.4",
     "@tanstack/db": "^0.0.2",
     "@tanstack/db-collections": "^0.0.2",

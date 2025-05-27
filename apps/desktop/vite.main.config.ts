@@ -1,3 +1,4 @@
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig } from "vite";
 import path from "node:path";
 import { builtinModules } from "node:module";
@@ -14,12 +15,14 @@ export default defineConfig({
       process.env.VITE_DESKTOP_PROTOCOL || "",
     ),
   },
+
   build: {
     lib: {
       entry: "src/main.ts",
       formats: ["cjs"],
       fileName: () => "main.cjs",
     },
+
     rollupOptions: {
       external: [
         "electron",
@@ -28,16 +31,25 @@ export default defineConfig({
         ...builtinModules.map((m) => `node:${m}`),
       ],
     },
+
     commonjsOptions: {
       ignoreDynamicRequires: true,
     },
+
     minify: process.env.NODE_ENV === "production",
     outDir: ".vite/build",
+    sourcemap: true
   },
+
   resolve: {
     alias: {
       "@note/desktop": path.resolve(__dirname, "./src"),
       "@note/ui": path.resolve(__dirname, "../../packages/ui/src"),
     },
   },
+
+  plugins: [sentryVitePlugin({
+    org: "qahwa",
+    project: "desktop"
+  })]
 });

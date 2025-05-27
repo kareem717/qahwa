@@ -5,8 +5,8 @@ import { fullNoteCollection } from "../lib/collections/notes";
 import { useLiveQuery } from "@tanstack/react-db";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { noteIdStore, DEFAULT_NOTE_ID, setNoteId } from "./use-note-id";
-import { nanoid } from "nanoid";
 import { useStore } from "@tanstack/react-store";
+import { captureException } from "@sentry/electron";
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -27,35 +27,31 @@ async function startMicAudioCapture(
     onData: onDataCallback,
   };
 
-  try {
-    state.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: 1,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
-    });
-    state.audioCtx = new AudioContext();
-    state.source = state.audioCtx.createMediaStreamSource(state.stream);
-    const workletPath = new URL(
-      "/pcm-processor.js",
-      window.location.origin,
-    ).toString();
-    await state.audioCtx.audioWorklet.addModule(workletPath);
-    state.workletNode = new AudioWorkletNode(state.audioCtx, "pcm-processor");
-    state.source.connect(state.workletNode);
-    state.workletNode.connect(state.audioCtx.destination);
-    state.workletNode.port.onmessage = (event) => {
-      if (state.onData) {
-        state.onData(event.data as ArrayBuffer);
-      }
-    };
-  } catch (error) {
-    // Perform cleanup if any part of the start failed
-    stopMicAudioCapture(state);
-    throw error; // Re-throw the error to be handled by the caller
-  }
+
+  state.stream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      channelCount: 1,
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+    },
+  });
+  state.audioCtx = new AudioContext();
+  state.source = state.audioCtx.createMediaStreamSource(state.stream);
+  const workletPath = new URL(
+    "/pcm-processor.js",
+    window.location.origin,
+  ).toString();
+  await state.audioCtx.audioWorklet.addModule(workletPath);
+  state.workletNode = new AudioWorkletNode(state.audioCtx, "pcm-processor");
+  state.source.connect(state.workletNode);
+  state.workletNode.connect(state.audioCtx.destination);
+  state.workletNode.port.onmessage = (event) => {
+    if (state.onData) {
+      state.onData(event.data as ArrayBuffer);
+    }
+  };
+
   return state;
 }
 
@@ -382,7 +378,14 @@ export function useTranscript() {
                 .then((recorderState) => {
                   micRecorderRef.current = recorderState;
                 })
-                .catch(() => {
+                .catch((error) => {
+                  captureException(error, {
+                    level: "error",
+                    tags: {
+                      component: "use-transcript",
+                      function: "startMicAudioCapture",
+                    },
+                  });
                   toast.error("Failed to start microphone capture.");
                   stopRecording(); // Critical failure, stop everything
                 });
