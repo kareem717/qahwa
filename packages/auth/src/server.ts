@@ -11,61 +11,71 @@ export const createServerClient = ({
   trustedOrigins,
   googleClientId,
   googleClientSecret,
+  baseDomain,
 }: {
   basePath: string;
   databaseUrl: string;
   trustedOrigins: string[];
   googleClientId: string;
   googleClientSecret: string;
-}) => {
-  return betterAuth({
-    basePath,
-    database: drizzleAdapter(getDb(databaseUrl), {
-      provider: "pg",
-      schema: {
-        ...AuthSchema,
-      },
-    }),
-    // Allow requests from the frontend development server
-    trustedOrigins,
-    emailAndPassword: {
+  baseDomain: string;
+}) => betterAuth({
+  basePath,
+  database: drizzleAdapter(getDb(databaseUrl), {
+    provider: "pg",
+    schema: {
+      ...AuthSchema,
+    },
+  }),
+  // Allow requests from the frontend development server
+  trustedOrigins,
+  emailAndPassword: {
+    enabled: true,
+  },
+  session: {
+    cookieCache: {
       enabled: true,
+      maxAge: 5 * 60, // 7 days
     },
-    session: {
-      cookieCache: {
-        enabled: true,
-        maxAge: 5 * 60, // 7 days
-      },
-      expiresIn: 60 * 60 * 24 * 7, // 7 days
-      updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
-      modelName: "sessions",
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
+    modelName: "sessions",
+  },
+  socialProviders: {
+    google: {
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
     },
-    socialProviders: {
-      google: {
-        clientId: googleClientId,
-        clientSecret: googleClientSecret,
-      },
+  },
+  verification: {
+    modelName: "verifications",
+  },
+  account: {
+    modelName: "accounts",
+  },
+  user: {
+    modelName: "users",
+  },
+  advanced: {
+    database: {
+      generateId: false,
     },
-    verification: {
-      modelName: "verifications",
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: `.${baseDomain}`, // Domain with a leading period
     },
-    account: {
-      modelName: "accounts",
+    defaultCookieAttributes: {
+      secure: true,
+      httpOnly: true,
+      sameSite: "none",  // Allows CORS-based cookie sharing across subdomains
+      partitioned: true, // New browser standards will mandate this for foreign cookies
     },
-    user: {
-      modelName: "users",
-    },
-    advanced: {
-      database: {
-        generateId: false,
-      },
-    },
-    plugins: [
-      openAPI({
-        path: "/docs",
-      }),
-      apiKey(),
-      reactStartCookies(), // Has to be the last plugin
-    ],
-  });
-};
+  },
+  plugins: [
+    openAPI({
+      path: "/docs",
+    }),
+    apiKey(),
+    reactStartCookies(), // Has to be the last plugin
+  ],
+});

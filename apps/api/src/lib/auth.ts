@@ -7,6 +7,6 @@ export const createAuthClient = () =>
     databaseUrl: env.DATABASE_URL,
     trustedOrigins: [env.ELECTRON_URL, env.LANDING_URL],
     googleClientId: env.GOOGLE_CLIENT_ID,
-
+    baseDomain: env.BASE_DOMAIN,
     googleClientSecret: env.GOOGLE_CLIENT_SECRET,
   });

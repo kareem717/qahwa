@@ -5,7 +5,7 @@ main = ".output/server/index.mjs"
 minify = true
 
 [env.production]
-routes = [{ pattern = "waitq.sh", custom_domain = true }]
+routes = [{ pattern = "www.waitq.sh", custom_domain = true }]
 name = "note-landing"
 r2_buckets = [{ binding = "R2_BUCKET", bucket_name = "note-app-version" }]
 

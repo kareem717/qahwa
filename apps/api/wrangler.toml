@@ -19,7 +19,8 @@ name = "note-api"
 
 
 [env.production.vars]
-LANDING_URL = "https://waitq.sh"
+LANDING_URL = "https://www.waitq.sh"
 ELECTRON_URL = "http://localhost:5173"
 DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "https://api.waitq.sh"
+BASE_DOMAIN = "waitq.sh"
