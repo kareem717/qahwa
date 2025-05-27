@@ -135,7 +135,8 @@ jobs:
           R2_ACCESS_KEY_ID: '${{ secrets.R2_ACCESS_KEY_ID }}'
           R2_SECRET_ACCESS_KEY: '${{ secrets.R2_SECRET_ACCESS_KEY }}'
           VITE_R2_BUCKET_NAME: '${{ vars.RELEASE_S3_BUCKET_NAME }}'
-          VITE_R2_ENDPOINT: '${{ vars.RELEASE_S3_ENDPOINT }}'
+          VITE_R2_ENDPOINT: '${{ vars.PUBLIC_R2_URL }}'
+          R2_S3_API_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
           VITE_DESKTOP_PROTOCOL: '${{ vars.DESKTOP_PROTOCOL }}'
           # Code signing environment variables
           CSC_NAME: ${{ secrets.APPLE_DEVELOPER_IDENTITY }}
@@ -147,6 +148,7 @@ jobs:
           # App environment variables
           VITE_API_URL: '${{ vars.API_URL }}'
           VITE_SIGN_IN_URL: '${{ vars.LANDING_URL }}/app-redirect'
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Commit version bump
         if: inputs.version_bump != 'none'

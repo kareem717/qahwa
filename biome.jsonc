@@ -12,6 +12,7 @@
       "worker-configuration.d.ts",
       "*.gen.ts",
       "*.css",
+      ".output/",
       ".vinxi",
       ".vite"
     ]
