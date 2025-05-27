@@ -51,11 +51,11 @@ const config: ForgeConfig = {
   },
   publishers: [
     new PublisherS3({
-      bucket: process.env.R2_BUCKET_NAME,
+      bucket: process.env.VITE_R2_BUCKET_NAME,
       region: "auto",
       accessKeyId: process.env.R2_ACCESS_KEY_ID,
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-      endpoint: process.env.R2_ENDPOINT,
+      endpoint: process.env.VITE_R2_ENDPOINT,
       public: true,
       folder: "releases",
       s3ForcePathStyle: true,

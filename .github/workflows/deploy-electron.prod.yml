@@ -147,6 +147,7 @@ jobs:
           # App environment variables
           VITE_API_URL: '${{ vars.API_URL }}'
           VITE_SIGN_IN_URL: '${{ vars.LANDING_URL }}/app-redirect'
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Commit version bump
         if: inputs.version_bump != 'none'
