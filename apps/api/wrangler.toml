@@ -17,6 +17,8 @@ BETTER_AUTH_URL = "http://localhost:8080"
 routes = [{ pattern = "api.waitq.sh", custom_domain = true }]
 name = "note-api"
 
+[observability]
+enabled = true
 
 [env.production.vars]
 LANDING_URL = "https://www.waitq.sh"
