@@ -68,7 +68,8 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      devTools: inDevelopment,
+      // devTools: inDevelopment, //TODO: Uncomment this
+      devTools: true,
       contextIsolation: true,
       nodeIntegration: true, // Be cautious with this setting
       nodeIntegrationInSubFrames: false,
@@ -155,10 +156,22 @@ if (import.meta.env.VITE_R2_BUCKET_NAME && import.meta.env.VITE_R2_ENDPOINT) {
 
     autoUpdater.checkForUpdatesAndNotify();
   } catch (error) {
-    console.error("Failed to set up auto-updater:", error);
+    Sentry.captureException(error, {
+      level: "error",
+      tags: {
+        component: "main",
+        function: "autoUpdater",
+      },
+    });
   }
 } else {
-  console.log("Auto-updater not configured - missing R2 configuration");
+  Sentry.captureMessage("Auto-updater not configured - missing R2 configuration", {
+    level: "error",
+    tags: {
+      component: "main",
+      function: "autoUpdater",
+    },
+  });
 }
 
 // Request permissions for audio recording
