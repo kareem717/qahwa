@@ -20,6 +20,8 @@ Sentry.init({
   environment: import.meta.env.VITE_NODE_ENV,
 });
 
+Sentry.captureException(new Error("Test error"));
+
 // Declare mainWindow in a broader scope
 let mainWindow: BrowserWindow | null = null;
 
