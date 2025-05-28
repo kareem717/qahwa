@@ -6,7 +6,9 @@ import { useLiveQuery } from "@tanstack/react-db";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { noteIdStore, DEFAULT_NOTE_ID, setNoteId } from "./use-note-id";
 import { useStore } from "@tanstack/react-store";
-import { captureException } from "@sentry/electron";
+import { captureException as captureExceptionRenderer } from "@sentry/electron/renderer";
+import { captureException as captureExceptionReact } from "@sentry/react";
+import { captureException as captureExceptionElectron } from "@sentry/electron";
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -379,15 +381,33 @@ export function useTranscript() {
                   micRecorderRef.current = recorderState;
                 })
                 .catch((error) => {
-                  captureException(error, {
+                  captureExceptionRenderer(error, {
                     level: "error",
                     tags: {
                       component: "use-transcript",
                       function: "startMicAudioCapture",
+                      type: "renderer",
+                    },
+                  });
+                  captureExceptionElectron(error, {
+                    level: "error",
+                    tags: {
+                      component: "use-transcript",
+                      function: "startMicAudioCapture",
+                      type: "electron",
+                    },
+                  });
+                  captureExceptionReact(error, {
+                    level: "error",
+                    tags: {
+                      component: "use-transcript",
+                      function: "startMicAudioCapture",
+                      type: "react",
                     },
                   });
                   toast.error("Failed to start microphone capture.");
                   stopRecording(); // Critical failure, stop everything
+                  throw error;
                 });
 
               return () => {
