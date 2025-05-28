@@ -188,14 +188,6 @@ async function requestPermissions() {
       // You might want to show a dialog explaining why this permission is needed
     }
 
-    // // Check screen recording permission (needed for system audio on newer macOS)
-    // const screenStatus = systemPreferences.getMediaAccessStatus('screen');
-    // console.log('Screen recording permission:', screenStatus);
-
-    // if (screenStatus !== 'granted') {
-    //   console.log('Screen recording permission required for system audio capture');
-    //   // You might want to show a dialog explaining why this permission is needed
-    // }
   }
 }
 

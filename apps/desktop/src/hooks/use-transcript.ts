@@ -479,8 +479,10 @@ export function useTranscript() {
             setIsLoading(false);
             setIsRecording(true);
           } catch (error) {
+            console.error("Failed to start audio capture8.", error);
             toast.error("Failed to start audio capture.");
             stopRecording();
+            throw error;
           }
         }
       };
@@ -591,10 +593,12 @@ export function useTranscript() {
         },
       });
     } catch (error) {
+      console.error("Failed to start rechording.", error);
       toast.error(
         `Error starting recording: ${error instanceof Error ? error.message : String(error)}`,
       );
-      stopRecording();
+      stopRecording(); //TODO: remove this
+      throw error;
     }
   }, [isRecording, isLoading, stopRecording, handleTranscriptChange]);
 
