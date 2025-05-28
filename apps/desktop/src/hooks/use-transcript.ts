@@ -381,6 +381,7 @@ export function useTranscript() {
                   micRecorderRef.current = recorderState;
                 })
                 .catch((error) => {
+                  console.log("Failed to start microphone capture.", error);
                   captureExceptionRenderer(error, {
                     level: "error",
                     tags: {
