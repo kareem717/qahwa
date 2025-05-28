@@ -44,6 +44,7 @@ async function startMicAudioCapture(
     "/pcm-processor.js",
     window.location.origin,
   ).toString();
+  console.log("workletPath", workletPath);
   await state.audioCtx.audioWorklet.addModule(workletPath);
   state.workletNode = new AudioWorkletNode(state.audioCtx, "pcm-processor");
   state.source.connect(state.workletNode);
