@@ -14,6 +14,8 @@ export default defineConfig({
     __VITE_DESKTOP_PROTOCOL__: JSON.stringify(
       process.env.VITE_DESKTOP_PROTOCOL || "",
     ),
+    __VITE_SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN || ""),
+    __VITE_NODE_ENV__: JSON.stringify(process.env.NODE_ENV || ""),
   },
 
   build: {

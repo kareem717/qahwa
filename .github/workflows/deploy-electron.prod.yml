@@ -132,6 +132,7 @@ jobs:
         run: pnpm install && pnpm run publish
         working-directory: 'apps/desktop'
         env:
+          NODE_ENV: 'production'
           R2_ACCESS_KEY_ID: '${{ secrets.R2_ACCESS_KEY_ID }}'
           R2_SECRET_ACCESS_KEY: '${{ secrets.R2_SECRET_ACCESS_KEY }}'
           VITE_R2_BUCKET_NAME: '${{ vars.RELEASE_S3_BUCKET_NAME }}'
@@ -149,6 +150,7 @@ jobs:
           VITE_API_URL: '${{ vars.API_URL }}'
           VITE_SIGN_IN_URL: '${{ vars.LANDING_URL }}/app-redirect'
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
 
       - name: Commit version bump
         if: inputs.version_bump != 'none'

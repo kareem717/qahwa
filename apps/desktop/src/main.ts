@@ -10,12 +10,12 @@ import {
 import { autoUpdater } from "electron-updater";
 import * as Sentry from "@sentry/electron";
 
-const inDevelopment = process.env.NODE_ENV === "development";
+const inDevelopment = import.meta.env.VITE_NODE_ENV === "production"
 const PROTOCOL = import.meta.env.VITE_DESKTOP_PROTOCOL; // Define your custom protocol
 
 Sentry.init({
-  dsn: "https://882dcf6e9f6b800a2e36762c2b0167b9@o4509396716945408.ingest.us.sentry.io/4509396718977024",
-  enabled: !inDevelopment,
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  enabled: inDevelopment,
 });
 
 // Declare mainWindow in a broader scope
