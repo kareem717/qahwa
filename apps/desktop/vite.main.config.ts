@@ -16,6 +16,7 @@ export default defineConfig({
     ),
     __VITE_SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN || ""),
     __VITE_NODE_ENV__: JSON.stringify(process.env.NODE_ENV || ""),
+    __VITE_VERSION__: JSON.stringify(process.env.VERSION || ""),
   },
 
   build: {

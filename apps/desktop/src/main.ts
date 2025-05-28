@@ -16,6 +16,8 @@ const PROTOCOL = import.meta.env.VITE_DESKTOP_PROTOCOL; // Define your custom pr
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   enabled: inDevelopment,
+  release: import.meta.env.VITE_VERSION,
+  environment: import.meta.env.VITE_NODE_ENV,
 });
 
 // Declare mainWindow in a broader scope
