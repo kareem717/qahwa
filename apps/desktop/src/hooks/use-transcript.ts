@@ -18,6 +18,58 @@ type MicAudioRecorderState = {
   onData: ((data: ArrayBuffer) => void) | null;
 };
 
+// Contents of your pcm-processor.js as a string
+export const pcmProcessorCode = `
+class PCMProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this._buffer = [];
+    // The number of samples to buffer before sending (e.g., 512 samples)
+    // Default AudioWorkletProcessor process block is 128 samples.
+    // So, this will accumulate 4 blocks before sending.
+    this._bufferSize = 512;
+  }
+
+  process(inputs, outputs, parameters) {
+    // inputs[0] is an array of channels (Float32Array)
+    // inputs[0][0] is the data for the first channel
+    const inputChannel = inputs[0]?.[0];
+
+    if (inputChannel && inputChannel.length > 0) {
+      // Append new audio data to our internal buffer
+      for (let i = 0; i < inputChannel.length; i++) {
+        this._buffer.push(inputChannel[i]);
+      }
+
+      // Process and send data in chunks of _bufferSize
+      while (this._buffer.length >= this._bufferSize) {
+        // Take the first _bufferSize samples for processing
+        const processChunk = this._buffer.slice(0, this._bufferSize);
+
+        // Convert Float32 [-1, 1] to 16-bit PCM
+        const pcm16 = new Int16Array(this._bufferSize);
+        for (let j = 0; j < this._bufferSize; j++) {
+          const s = Math.max(-1, Math.min(1, processChunk[j]));
+          pcm16[j] = s < 0 ? s * 0x8000 : s * 0x7FFF; // 16-bit signed integer
+        }
+
+        // Post the ArrayBuffer containing PCM data.
+        // The second argument [pcm16.buffer] makes it a transferable object,
+        // which is more efficient as it transfers ownership without copying.
+        this.port.postMessage(pcm16.buffer, [pcm16.buffer]);
+
+        // Remove the processed chunk from the beginning of the buffer
+        this._buffer.splice(0, this._bufferSize);
+      }
+    }
+    // Return true to keep the processor alive
+    return true;
+  }
+}
+
+registerProcessor("pcm-processor", PCMProcessor);
+`;
+
 async function startMicAudioCapture(
   onDataCallback: (data: ArrayBuffer) => void,
 ): Promise<MicAudioRecorderState> {
@@ -40,12 +92,15 @@ async function startMicAudioCapture(
   });
   state.audioCtx = new AudioContext();
   state.source = state.audioCtx.createMediaStreamSource(state.stream);
-  // const workletPath = new URL(
-    const workletPath =  "../lib/pcm-processor.js"
-  //   window.location.origin,
-  // ).toString();
-  console.error("workletPath", workletPath);
-  await state.audioCtx.audioWorklet.addModule(workletPath);
+  // Create a Blob from the worklet code string
+  const blob = new Blob([pcmProcessorCode], {
+    type: "application/javascript",
+  });
+  // Create an object URL from the Blob
+  const workletURL = URL.createObjectURL(blob);
+
+  // Add the module using the object URL
+  await state.audioCtx.audioWorklet.addModule(workletURL);
   state.workletNode = new AudioWorkletNode(state.audioCtx, "pcm-processor");
   state.source.connect(state.workletNode);
   state.workletNode.connect(state.audioCtx.destination);
