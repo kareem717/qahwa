@@ -1,39 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-  <dict>
-    <!-- Standard Electron entitlements -->
+<dict>
+    <!-- Standard Hardened Runtime & Electron Entitlements -->
     <key>com.apple.security.cs.allow-jit</key>
     <true/>
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
     <true/>
-    <key>com.apple.security.cs.debugger</key>
-    <true/>
     <key>com.apple.security.cs.disable-library-validation</key>
     <true/>
+    <key>com.apple.security.cs.debugger</key>
+    <true/> <!-- Allows debugging the process -->
     <key>com.apple.security.cs.allow-dyld-environment-variables</key>
-    <true/>
-    
-    <!-- Audio recording entitlements -->
-    <key>com.apple.security.device.microphone</key>
-    <true/>
+    <true/> <!-- Often needed for Electron apps -->
+
+    <!-- Audio Recording & Processing Entitlements -->
     <key>com.apple.security.device.audio-input</key>
+    <true/> <!-- General audio input access -->
+    <key>com.apple.security.device.microphone</key>
+    <true/> <!-- Specific microphone access (often preferred/required on newer macOS) -->
+
+    <!-- For hosting/using Audio Unit plugins. Original comment: "This is the key entitlement for system audio capture without screen recording" -->
+    <!-- Note: System-wide audio capture is complex. This entitlement is for Audio Units. -->
+    <key>com.apple.security.device.audio-unit</key>
     <true/>
-    
-    <!-- System audio capture (requires special approval from Apple) -->
+
+    <!-- System-level capture (e.g., for ScreenCaptureKit). -->
+    <!-- WARNING: Using this entitlement may require special approval or justification with Apple. -->
     <key>com.apple.security.device.capture</key>
     <true/>
-    
-    <!-- Network access for your API calls -->
+
+    <!-- Network Access Entitlements -->
     <key>com.apple.security.network.client</key>
-    <true/>
+    <true/> <!-- Allows outgoing network connections -->
     <key>com.apple.security.network.server</key>
-    <true/>
-    
-    <!-- File system access for saving recordings -->
+    <true/> <!-- Allows incoming network connections -->
+
+    <!-- File System Access Entitlements -->
     <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
+    <true/> <!-- Access to files selected by the user -->
     <key>com.apple.security.files.downloads.read-write</key>
-    <true/>
-  </dict>
+    <true/> <!-- Access to the user's Downloads folder -->
+</dict>
 </plist>

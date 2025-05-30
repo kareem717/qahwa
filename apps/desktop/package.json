@@ -1,7 +1,7 @@
 {
   "name": "@note/desktop",
   "productName": "Note",
-  "version": "1.0.2",
+  "version": "0.0.0",
   "main": ".vite/build/main.cjs",
   "type": "module",
   "private": true,
@@ -68,7 +68,6 @@
     "@note/sdk": "workspace:*",
     "@note/ui": "workspace:*",
     "@sentry/electron": "^6.6.0",
-    "@sentry/vite-plugin": "^3.5.0",
     "@tailwindcss/vite": "^4.1.4",
     "@tanstack/db": "^0.0.2",
     "@tanstack/db-collections": "^0.0.2",
@@ -76,6 +75,7 @@
     "@tanstack/pacer": "^0.6.0",
     "@tanstack/react-db": "^0.0.2",
     "@tanstack/react-query": "^5.74.7",
+    "@sentry/vite-plugin": "^3.5.0",
     "@tanstack/react-router": "^1.117.1",
     "@tanstack/react-store": "^0.7.0",
     "@tanstack/router-core": "^1.120.3",
@@ -107,14 +107,5 @@
     "use-debounce": "^10.0.4",
     "vite-plugin-node-polyfills": "^0.23.0",
     "zod": "^3.24.4"
-  },
-  "build": {
-    "mac": {
-      "extendInfo": {
-        "NSMicrophoneUsageDescription": "Note needs access to your microphone to record audio notes and meetings.",
-        "NSSystemAdministrationUsageDescription": "Note needs system access to capture system audio for comprehensive meeting recordings.",
-        "NSAppleEventsUsageDescription": "Note needs to control other applications to enhance your note-taking experience."
-      }
-    }
   }
 }

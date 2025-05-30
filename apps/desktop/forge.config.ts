@@ -3,42 +3,44 @@ import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
+import { MakerDMG } from "@electron-forge/maker-dmg";
+
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { AutoUnpackNativesPlugin } from "@electron-forge/plugin-auto-unpack-natives";
 import { PublisherS3 } from "@electron-forge/publisher-s3";
 
+// Import package.json to get version
+import packageJson from './package.json';
+
 const config: ForgeConfig = {
   packagerConfig: {
-    icon: "public/icon.png",
+    icon: "./assets/icon.icns",
     asar: true,
     extraResource: [
       "../../packages/osx-audio/build/Release/nativeAudioManager.node",
     ],
+    appBundleId: "com.fundlevel.qahwa",
     osxSign:
       process.env.NODE_ENV === "development"
         ? undefined // Skip due to notarization taking 15-60+ min
         : {
-            identity: process.env.APPLE_DEVELOPER_IDENTITY,
-            optionsForFile: (filePath) => {
-              // Here, we keep it simple and return a single entitlements.plist file.
-              // You can use this callback to map different sets of entitlements
-              // to specific files in your packaged app.
-              return {
-                "hardened-runtime": true,
-                "gatekeeper-assess": false,
-                entitlements: "entitlements.plist",
-                "entitlements-inherit": "entitlements.plist",
-              };
-            },
+          identity: process.env.APPLE_DEVELOPER_IDENTITY,
+          optionsForFile: (filePath) => {
+            return {
+              "hardened-runtime": true,
+              "gatekeeper-assess": false,
+              entitlements: "entitlements.plist",
+              "entitlements-inherit": "entitlements.plist",
+            };
           },
+        },
     osxNotarize: {
       appleId: process.env.APPLE_ID || "",
       appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
       teamId: process.env.APPLE_TEAM_ID || "",
     },
-    // Add privacy usage descriptions
     extendInfo: {
       NSMicrophoneUsageDescription:
         "Note needs access to your microphone to record audio notes and meetings.",
@@ -47,6 +49,8 @@ const config: ForgeConfig = {
       NSAppleEventsUsageDescription:
         "Note needs to control other applications to enhance your note-taking experience.",
       LSApplicationCategoryType: "public.app-category.productivity",
+      NSSystemAudioRecordingUsageDescription: "This app needs to record system audio to capture audio output from your Mac.",
+      LSMinimumSystemVersion: "10.15.0"
     },
   },
   publishers: [
@@ -59,6 +63,24 @@ const config: ForgeConfig = {
       public: true,
       folder: "releases",
       s3ForcePathStyle: true,
+      // Custom key generator for versioned releases
+      keyResolver: (fileName, platform, arch) => {
+        const version = packageJson.version;
+        const fileExtension = fileName.split('.').pop();
+
+        // Create platform-arch identifier
+        const platformArch = `${platform}-${arch}`;
+
+        // For the latest release, use the "latest-" prefix
+        const latestKey = `releases/latest-${platformArch}.${fileExtension}`;
+
+        // For versioned release, include version number
+        const versionedKey = `releases/v${version}-${platformArch}.${fileExtension}`;
+
+        // Return the versioned key (S3Publisher will use this)
+        // We'll handle the latest copy separately in the workflow
+        return versionedKey;
+      },
     }),
   ],
   rebuildConfig: {},
@@ -67,6 +89,9 @@ const config: ForgeConfig = {
     new MakerZIP({}, ["darwin"]),
     new MakerRpm({}),
     new MakerDeb({}),
+    // new MakerDMG({
+    //   format: 'ULFO',
+    // }),
   ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
@@ -90,7 +115,6 @@ const config: ForgeConfig = {
         },
       ],
     }),
-
     new FusesPlugin({
       version: FuseVersion.V1,
       [FuseV1Options.RunAsNode]: false,

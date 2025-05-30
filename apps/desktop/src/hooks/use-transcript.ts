@@ -6,7 +6,6 @@ import { useLiveQuery } from "@tanstack/react-db";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { noteIdStore, DEFAULT_NOTE_ID, setNoteId } from "./use-note-id";
 import { useStore } from "@tanstack/react-store";
-import { captureException } from "@sentry/electron";
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -16,9 +15,62 @@ type MicAudioRecorderState = {
   onData: ((data: ArrayBuffer) => void) | null;
 };
 
+// Contents of your pcm-processor.js as a string
+export const pcmProcessorCode = `
+class PCMProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this._buffer = [];
+    // The number of samples to buffer before sending (e.g., 512 samples)
+    // Default AudioWorkletProcessor process block is 128 samples.
+    // So, this will accumulate 4 blocks before sending.
+    this._bufferSize = 512;
+  }
+
+  process(inputs, outputs, parameters) {
+    // inputs[0] is an array of channels (Float32Array)
+    // inputs[0][0] is the data for the first channel
+    const inputChannel = inputs[0]?.[0];
+
+    if (inputChannel && inputChannel.length > 0) {
+      // Append new audio data to our internal buffer
+      for (let i = 0; i < inputChannel.length; i++) {
+        this._buffer.push(inputChannel[i]);
+      }
+
+      // Process and send data in chunks of _bufferSize
+      while (this._buffer.length >= this._bufferSize) {
+        // Take the first _bufferSize samples for processing
+        const processChunk = this._buffer.slice(0, this._bufferSize);
+
+        // Convert Float32 [-1, 1] to 16-bit PCM
+        const pcm16 = new Int16Array(this._bufferSize);
+        for (let j = 0; j < this._bufferSize; j++) {
+          const s = Math.max(-1, Math.min(1, processChunk[j]));
+          pcm16[j] = s < 0 ? s * 0x8000 : s * 0x7FFF; // 16-bit signed integer
+        }
+
+        // Post the ArrayBuffer containing PCM data.
+        // The second argument [pcm16.buffer] makes it a transferable object,
+        // which is more efficient as it transfers ownership without copying.
+        this.port.postMessage(pcm16.buffer, [pcm16.buffer]);
+
+        // Remove the processed chunk from the beginning of the buffer
+        this._buffer.splice(0, this._bufferSize);
+      }
+    }
+    // Return true to keep the processor alive
+    return true;
+  }
+}
+
+registerProcessor("pcm-processor", PCMProcessor);
+`;
+
 async function startMicAudioCapture(
   onDataCallback: (data: ArrayBuffer) => void,
 ): Promise<MicAudioRecorderState> {
+
   const state: MicAudioRecorderState = {
     stream: null,
     audioCtx: null,
@@ -38,11 +90,15 @@ async function startMicAudioCapture(
   });
   state.audioCtx = new AudioContext();
   state.source = state.audioCtx.createMediaStreamSource(state.stream);
-  const workletPath = new URL(
-    "/pcm-processor.js",
-    window.location.origin,
-  ).toString();
-  await state.audioCtx.audioWorklet.addModule(workletPath);
+  // Create a Blob from the worklet code string
+  const blob = new Blob([pcmProcessorCode], {
+    type: "application/javascript",
+  });
+  // Create an object URL from the Blob
+  const workletURL = URL.createObjectURL(blob);
+
+  // Add the module using the object URL
+  await state.audioCtx.audioWorklet.addModule(workletURL);
   state.workletNode = new AudioWorkletNode(state.audioCtx, "pcm-processor");
   state.source.connect(state.workletNode);
   state.workletNode.connect(state.audioCtx.destination);
@@ -358,7 +414,34 @@ export function useTranscript() {
       let isSystemReady = false;
       let isMicReady = false;
 
-      const checkAndStartElectronCapture = () => {
+      const checkAndStartElectronCapture = async () => {
+        const currentPerms = await window.electronSystemAudio.getPermissions();
+        switch (currentPerms.audio) {
+          case "authorized":
+            break;
+          case "denied":
+            toast.error("System audio permission denied");
+            stopRecording();
+            return;
+          case "not_determined": {
+            const newPerms = await window.electronSystemAudio.requestPermissions("audio");
+            if (newPerms.audio === "authorized") {
+              break;
+            }
+            toast.error("System audio permission denied after request");
+            stopRecording();
+            return;
+          }
+          case "restricted":
+            toast.error("Microphone permission restricted");
+            stopRecording();
+            return;
+          default:
+            toast.error("Issue with audio permission");
+            stopRecording();
+            return;
+        }
+
         if (isSystemReady && isMicReady) {
           try {
             const handleSystemData = (data: ArrayBuffer) => {
@@ -379,15 +462,10 @@ export function useTranscript() {
                   micRecorderRef.current = recorderState;
                 })
                 .catch((error) => {
-                  captureException(error, {
-                    level: "error",
-                    tags: {
-                      component: "use-transcript",
-                      function: "startMicAudioCapture",
-                    },
-                  });
+                  console.log("Failed to start microphone capture.", error);
                   toast.error("Failed to start microphone capture.");
                   stopRecording(); // Critical failure, stop everything
+                  throw error;
                 });
 
               return () => {
@@ -402,8 +480,10 @@ export function useTranscript() {
             setIsLoading(false);
             setIsRecording(true);
           } catch (error) {
+            console.error("Failed to start audio capture8.", error);
             toast.error("Failed to start audio capture.");
             stopRecording();
+            throw error;
           }
         }
       };
@@ -411,9 +491,9 @@ export function useTranscript() {
       // System WebSocket Handlers
       systemSocketRef.current = setupWebSocket({
         url: systemWsUrl,
-        onOpen: () => {
+        onOpen: async () => {
           isSystemReady = true;
-          checkAndStartElectronCapture();
+          await checkAndStartElectronCapture();
         },
         onMessage: (event) => {
           try {
@@ -466,9 +546,9 @@ export function useTranscript() {
       // Mic WebSocket Handlers
       micSocketRef.current = setupWebSocket({
         url: micWsUrl,
-        onOpen: () => {
+        onOpen: async () => {
           isMicReady = true;
-          checkAndStartElectronCapture();
+          await checkAndStartElectronCapture();
         },
         onMessage: (event) => {
           try {
@@ -514,10 +594,12 @@ export function useTranscript() {
         },
       });
     } catch (error) {
+      console.error("Failed to start rechording.", error);
       toast.error(
         `Error starting recording: ${error instanceof Error ? error.message : String(error)}`,
       );
-      stopRecording();
+      stopRecording(); //TODO: remove this
+      throw error;
     }
   }, [isRecording, isLoading, stopRecording, handleTranscriptChange]);
 
