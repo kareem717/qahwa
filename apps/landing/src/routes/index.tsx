@@ -3,7 +3,7 @@ import { Typewriter } from "@note/ui/components/ui/typewriter";
 import { AppleIcon, WindowsIcon, XIcon } from "../components/icons";
 import { Button } from "@note/ui/components/button";
 import { toast } from "sonner";
-import { DownloadButton } from "../components/download-button";
+import { DownloadLink } from "../components/download-link";
 import { QahwaIcon } from "@note/ui/components/icons";
 
 export const Route = createFileRoute("/")({
@@ -32,9 +32,9 @@ function HomeComponent() {
         <div className="flex flex-col items-center justify-center mt-8 w-xs mx-auto gap-4">
           {/* <h2 className="text-xl font-medium">download</h2> */}
           <div className="grid grid-cols-2 gap-2 w-full">
-            <DownloadButton platform="darwin/arm64" >
+            <DownloadLink platform="darwin/arm64" >
               <AppleIcon className="size-5" />
-            </DownloadButton>
+            </DownloadLink>
             <Button
               onClick={() => toast.info("Coming soon...")}
             >
