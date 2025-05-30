@@ -13,12 +13,15 @@ import * as Sentry from "@sentry/electron";
 const inDevelopment = import.meta.env.VITE_NODE_ENV === "production"
 const PROTOCOL = import.meta.env.VITE_DESKTOP_PROTOCOL; // Define your custom protocol
 
+
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-  enabled: inDevelopment,
+  dsn: import.meta.env.VITE_SENTRY_DSN || "https://882dcf6e9f6b800a2e36762c2b0167b9@o4509396716945408.ingest.us.sentry.io/4509396718977024",
+  // enabled: !inDevelopment,
   release: import.meta.env.VITE_VERSION,
-  environment: import.meta.env.VITE_NODE_ENV,
+  environment: import.meta.env.VITE_NODE_ENV || "development",
 });
+
+Sentry.captureException(new Error("Test error"));
 
 // Declare mainWindow in a broader scope
 let mainWindow: BrowserWindow | null = null;
@@ -66,7 +69,8 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      devTools: inDevelopment,
+      // devTools: inDevelopment, //TODO: Uncomment this
+      devTools: true,
       contextIsolation: true,
       nodeIntegration: true, // Be cautious with this setting
       nodeIntegrationInSubFrames: false,
@@ -153,10 +157,22 @@ if (import.meta.env.VITE_R2_BUCKET_NAME && import.meta.env.VITE_R2_ENDPOINT) {
 
     autoUpdater.checkForUpdatesAndNotify();
   } catch (error) {
-    console.error("Failed to set up auto-updater:", error);
+    Sentry.captureException(error, {
+      level: "error",
+      tags: {
+        component: "main",
+        function: "autoUpdater",
+      },
+    });
   }
 } else {
-  console.log("Auto-updater not configured - missing R2 configuration");
+  Sentry.captureMessage("Auto-updater not configured - missing R2 configuration", {
+    level: "error",
+    tags: {
+      component: "main",
+      function: "autoUpdater",
+    },
+  });
 }
 
 // Request permissions for audio recording
@@ -172,14 +188,6 @@ async function requestPermissions() {
       // You might want to show a dialog explaining why this permission is needed
     }
 
-    // // Check screen recording permission (needed for system audio on newer macOS)
-    // const screenStatus = systemPreferences.getMediaAccessStatus('screen');
-    // console.log('Screen recording permission:', screenStatus);
-
-    // if (screenStatus !== 'granted') {
-    //   console.log('Screen recording permission required for system audio capture');
-    //   // You might want to show a dialog explaining why this permission is needed
-    // }
   }
 }
 

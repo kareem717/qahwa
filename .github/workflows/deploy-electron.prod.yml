@@ -23,9 +23,9 @@ jobs:
     name: Build and Publish Electron App
     runs-on: macos-latest
     timeout-minutes: 90
-    environment: production # Add this to access environment variables
+    environment: production
     permissions:
-      contents: write # Required to create releases and push commits
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,23 +49,18 @@ jobs:
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          # Create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          # Import certificate from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
 
-          # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-          # Import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-          # Verify certificate
           echo "Available code signing identities:"
           security find-identity -v -p codesigning $KEYCHAIN_PATH
 
@@ -77,11 +72,9 @@ jobs:
         run: |
           cd apps/desktop
           
-          # Configure git for the commit
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          # Get current version and calculate new version using Node.js
           NEW_VERSION=$(node -e "
             const fs = require('fs');
             const path = require('path');
@@ -90,8 +83,6 @@ jobs:
             const pkgPath = 'package.json';
             const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
             const currentVersion = pkg.version;
-            
-            // Parse version components
             const [major, minor, patch] = currentVersion.split('.').map(Number);
             
             let newVersion;
@@ -109,7 +100,6 @@ jobs:
                 throw new Error('Invalid version bump type');
             }
             
-            // Update package.json
             pkg.version = newVersion;
             fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
             
@@ -117,11 +107,17 @@ jobs:
           ")
           
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "Updated version from $(git show HEAD:apps/desktop/package.json | node -p 'JSON.parse(require("fs").readFileSync("/dev/stdin", "utf8")).version') to $NEW_VERSION"
+          echo "Updated version to $NEW_VERSION"
+
+      - name: Get current version for non-bump builds
+        if: inputs.version_bump == 'none'
+        run: |
+          cd apps/desktop
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
 
       - name: Build Native Modules
         run: |
-          # Build the native audio module if needed
           if [ -d "packages/osx-audio" ]; then
             cd packages/osx-audio
             pnpm install
@@ -139,19 +135,97 @@ jobs:
           VITE_R2_ENDPOINT: '${{ vars.PUBLIC_R2_URL }}'
           R2_S3_API_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
           VITE_DESKTOP_PROTOCOL: '${{ vars.DESKTOP_PROTOCOL }}'
-          # Code signing environment variables
           CSC_NAME: ${{ secrets.APPLE_DEVELOPER_IDENTITY }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          # Apple notarization
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # App environment variables
           VITE_API_URL: '${{ vars.API_URL }}'
           VITE_SIGN_IN_URL: '${{ vars.LANDING_URL }}/app-redirect'
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_DSN: ${{ vars.SENTRY_DSN }}
           VERSION: ${{ env.NEW_VERSION }}
+
+      - name: Manage S3 Release Versions
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          S3_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
+          BUCKET_NAME: ${{ vars.RELEASE_S3_BUCKET_NAME }}
+        run: |
+          # Install AWS CLI if not available
+          if ! command -v aws &> /dev/null; then
+            echo "Installing AWS CLI..."
+            curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+            sudo installer -pkg AWSCLIV2.pkg -target /
+          fi
+
+          # Function to copy and manage S3 objects
+          manage_s3_releases() {
+            local platform_arch=$1
+            local file_extension=$2
+            local version=${{ env.NEW_VERSION }}
+            
+            # Source: the versioned file that was just uploaded
+            local source_key="releases/v${version}-${platform_arch}.${file_extension}"
+            
+            # Target: the latest file
+            local latest_key="releases/latest-${platform_arch}.${file_extension}"
+            
+            echo "Managing releases for ${platform_arch}..."
+            
+            # Check if the source file exists
+            if aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$source_key" 2>/dev/null; then
+              echo "Found source file: $source_key"
+              
+              # Check if there's already a latest file, and if so, we need to version it
+              if aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$latest_key" 2>/dev/null; then
+                echo "Found existing latest-${platform_arch}.${file_extension}, checking for version tag..."
+                
+                # Get the version tag from the existing latest file's metadata
+                old_version=$(aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$latest_key" --query 'Metadata.version' --output text 2>/dev/null || echo "unknown")
+                
+                if [ "$old_version" != "None" ] && [ "$old_version" != "unknown" ] && [ "$old_version" != "" ]; then
+                  # Copy the old latest to a versioned name
+                  local old_versioned_key="releases/v${old_version}-${platform_arch}.${file_extension}"
+                  echo "Backing up old latest as $old_versioned_key"
+                  
+                  # Only copy if the versioned file doesn't already exist
+                  if ! aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$old_versioned_key" 2>/dev/null; then
+                    aws s3api copy-object --endpoint-url="$S3_ENDPOINT" \
+                      --copy-source "$BUCKET_NAME/$latest_key" \
+                      --bucket "$BUCKET_NAME" \
+                      --key "$old_versioned_key"
+                  fi
+                fi
+              fi
+              
+              # Copy the new version to latest (with version metadata)
+              # Use s3api copy-object to avoid tagging issues with R2
+              echo "Setting v${version}-${platform_arch}.${file_extension} as latest-${platform_arch}.${file_extension}"
+              aws s3api copy-object --endpoint-url="$S3_ENDPOINT" \
+                --copy-source "$BUCKET_NAME/$source_key" \
+                --bucket "$BUCKET_NAME" \
+                --key "$latest_key" \
+                --metadata "version=${version}" \
+                --metadata-directive REPLACE
+            else
+              echo "Warning: Source file $source_key not found, skipping $platform_arch"
+            fi
+          }
+
+          # Manage releases for each platform/architecture combination
+          manage_s3_releases "darwin-arm64" "zip"
+
+      - name: List final S3 structure
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          S3_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
+          BUCKET_NAME: ${{ vars.RELEASE_S3_BUCKET_NAME }}
+        run: |
+          echo "Final S3 release structure:"
+          aws s3 ls --endpoint-url="$S3_ENDPOINT" "s3://$BUCKET_NAME/releases/" --recursive
 
       - name: Commit version bump
         if: inputs.version_bump != 'none'
@@ -173,12 +247,15 @@ jobs:
             
             Version: ${{ env.NEW_VERSION }}
             
+            ## Download Links
+            - Latest macOS (ARM64): ${{ vars.PUBLIC_R2_URL }}/releases/latest-darwin-arm64.zip
+            - Latest macOS (Intel): ${{ vars.PUBLIC_R2_URL }}/releases/latest-darwin-x64.zip
+            - Versioned macOS (ARM64): ${{ vars.PUBLIC_R2_URL }}/releases/v${{ env.NEW_VERSION }}-darwin-arm64.zip
+            - Versioned macOS (Intel): ${{ vars.PUBLIC_R2_URL }}/releases/v${{ env.NEW_VERSION }}-darwin-x64.zip
+            
             ## Changes
             - Built and published to R2
             - Code signed and notarized for macOS
-            
-            ## Installation
-            Download the latest version from your app's update server.
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -186,7 +263,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          # Clean up temporary keychain
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
-          # Clean up certificate file
           rm -f $RUNNER_TEMP/build_certificate.p12 || true

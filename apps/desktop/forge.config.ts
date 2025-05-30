@@ -89,9 +89,6 @@ const config: ForgeConfig = {
     new MakerZIP({}, ["darwin"]),
     new MakerRpm({}),
     new MakerDeb({}),
-    // new MakerDMG({
-    //   format: 'ULFO',
-    // }),
   ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
