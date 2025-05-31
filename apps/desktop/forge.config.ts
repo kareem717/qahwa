@@ -43,12 +43,10 @@ const config: ForgeConfig = {
     extendInfo: {
       NSMicrophoneUsageDescription:
         "Qahwa needs access to your microphone to record audio notes and meetings.",
-      NSScreenCaptureDescription:
-        "Qahwa needs screen recording permission to capture system audio for comprehensive meeting recordings.",
       NSSystemAudioRecordingUsageDescription:
         "Qahwa needs to record system audio to capture audio output from your Mac.",
       NSAppleEventsUsageDescription:
-        "Note needs to control other applications to enhance your note-taking experience.",
+        "Qahwa needs to control other applications to enhance your note-taking experience.",
       LSApplicationCategoryType: "public.app-category.productivity",
       LSMinimumSystemVersion: "10.15.0"
     },
