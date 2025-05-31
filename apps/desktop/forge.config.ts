@@ -33,7 +33,7 @@ const config: ForgeConfig = {
       },
     },
     osxNotarize:
-      process.env.NODE_ENV === "development"
+      process.env.NODE_ENV === "development" || process.env.SKIP_NOTARIZATION === "true"
         ? undefined // Skip due to notarization taking 15-60+ min
         : {
           appleId: process.env.APPLE_ID || "",

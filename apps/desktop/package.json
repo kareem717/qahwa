@@ -8,7 +8,7 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "rm -rf .vite && rm -rf out && dotenv -e .env electron-forge make",
+    "make": "rm -rf .vite && rm -rf out && dotenv -e .env -- cross-env NODE_ENV=production SKIP_NOTARIZATION=true electron-forge make",
     "publish": "dotenv -e .env electron-forge publish",
     "lint": "eslint .",
     "format": "prettier --check .",
@@ -43,6 +43,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/recordrtc": "^5.6.14",
+    "cross-env": "^7.0.3",
     "dotenv-cli": "^8.0.0",
     "electron": "^36.2.0",
     "electron-devtools-installer": "^4.0.0",

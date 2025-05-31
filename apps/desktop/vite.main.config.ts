@@ -29,7 +29,7 @@ export default defineConfig({
     rollupOptions: {
       external: [
         "electron",
-        process.env.NODE_ENV === "development" ? "@note/osx-audio" : "", // only load in development
+        process.env.NODE_ENV === "development" ? "@note/osx-audio" : "", // needed for `pnpm start`
         ...builtinModules,
         ...builtinModules.map((m) => `node:${m}`),
       ],
