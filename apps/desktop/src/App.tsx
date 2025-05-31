@@ -10,9 +10,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./components/providers/auth-provider";
 import { getQueryClient } from "./lib/query-client";
+import { useAppUpdater } from "./hooks/use-app-updater";
 
 export default function App() {
   const { i18n } = useTranslation();
+
+  // Initialize app updater
+  useAppUpdater();
 
   useEffect(() => {
     syncThemeWithLocal();

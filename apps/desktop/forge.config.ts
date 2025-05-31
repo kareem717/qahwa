@@ -1,17 +1,15 @@
 import type { ForgeConfig } from "@electron-forge/shared-types";
-import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
-import { MakerDeb } from "@electron-forge/maker-deb";
-import { MakerRpm } from "@electron-forge/maker-rpm";
-
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { AutoUnpackNativesPlugin } from "@electron-forge/plugin-auto-unpack-natives";
 import { PublisherS3 } from "@electron-forge/publisher-s3";
+import { MakerSquirrel } from "@electron-forge/maker-squirrel";
+import { MakerRpm } from "@electron-forge/maker-rpm";
+import { MakerDeb } from "@electron-forge/maker-deb";
 
-// Import package.json to get version
-import packageJson from './package.json';
+const BASE_FOLDER = "releases"
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -32,19 +30,20 @@ const config: ForgeConfig = {
         };
       },
     },
-    osxNotarize:
-      process.env.NODE_ENV === "development" || process.env.SKIP_NOTARIZATION === "true"
-        ? undefined // Skip due to notarization taking 15-60+ min
-        : {
-          appleId: process.env.APPLE_ID || "",
-          appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
-          teamId: process.env.APPLE_TEAM_ID || "",
-        },
+    osxNotarize: process.env.SKIP_NOTARIZATION === "true" // Process can take 15-60+ min to notarize
+      ? undefined
+      : {
+        appleId: process.env.APPLE_ID || "",
+        appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
+        teamId: process.env.APPLE_TEAM_ID || "",
+      },
     extendInfo: {
       NSMicrophoneUsageDescription:
         "Qahwa needs access to your microphone to record audio notes and meetings.",
       NSSystemAudioRecordingUsageDescription:
         "Qahwa needs to record system audio to capture audio output from your Mac.",
+      NSScreenRecordingUsageDescription:
+        "Qahwa needs screen recording permission to capture system audio output from your Mac.",
       NSAppleEventsUsageDescription:
         "Qahwa needs to control other applications to enhance your note-taking experience.",
       LSApplicationCategoryType: "public.app-category.productivity",
@@ -59,31 +58,20 @@ const config: ForgeConfig = {
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
       endpoint: process.env.R2_S3_API_ENDPOINT,
       public: true,
-      folder: "releases",
+      folder: BASE_FOLDER,
       s3ForcePathStyle: true,
-      // Custom key generator for versioned releases
-      keyResolver: (fileName, platform, arch) => {
-        const version = packageJson.version;
-        const fileExtension = fileName.split('.').pop();
-
-        // Create platform-arch identifier
-        const platformArch = `${platform}-${arch}`;
-
-        // For versioned release, include version number
-        const versionedKey = `releases/v${version}-${platformArch}.${fileExtension}`;
-
-        // Return the versioned key (S3Publisher will use this)
-        // We'll handle the latest copy separately in the workflow
-        return versionedKey;
-      },
     }),
   ],
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
-    new MakerZIP({}, ["darwin"]),
+    new MakerSquirrel({
+      remoteReleases: `${process.env.VITE_R2_ENDPOINT}/${BASE_FOLDER}/win32/x64`,
+    }),
     new MakerRpm({}),
     new MakerDeb({}),
+    new MakerZIP((arch: string) => ({
+      macUpdateManifestBaseUrl: `${process.env.VITE_R2_ENDPOINT}/${BASE_FOLDER}/darwin/${arch}`,
+    }), ["darwin"]),
   ],
   plugins: [
     new AutoUnpackNativesPlugin({}),

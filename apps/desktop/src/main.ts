@@ -7,21 +7,20 @@ import {
   installExtension,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
-import { autoUpdater } from "electron-updater";
+import { updateElectronApp, UpdateSourceType } from 'update-electron-app';
+
 import * as Sentry from "@sentry/electron";
 
-const inDevelopment = import.meta.env.VITE_NODE_ENV === "production"
+const inDevelopment = import.meta.env.VITE_NODE_ENV === "development"
 const PROTOCOL = import.meta.env.VITE_DESKTOP_PROTOCOL; // Define your custom protocol
 
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN || "https://882dcf6e9f6b800a2e36762c2b0167b9@o4509396716945408.ingest.us.sentry.io/4509396718977024",
-  // enabled: !inDevelopment,
+  enabled: !inDevelopment,
   release: import.meta.env.VITE_VERSION,
   environment: import.meta.env.VITE_NODE_ENV || "development",
 });
-
-Sentry.captureException(new Error("Test error"));
 
 // Declare mainWindow in a broader scope
 let mainWindow: BrowserWindow | null = null;
@@ -144,37 +143,6 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient(PROTOCOL);
 }
 
-// Configur// Only set up auto-updater if we have the required configuration
-if (import.meta.env.VITE_R2_BUCKET_NAME && import.meta.env.VITE_R2_ENDPOINT) {
-  try {
-    autoUpdater.setFeedURL({
-      provider: "s3",
-      bucket: import.meta.env.VITE_R2_BUCKET_NAME,
-      region: "auto",
-      endpoint: import.meta.env.VITE_R2_ENDPOINT,
-      path: "releases",
-    });
-
-    autoUpdater.checkForUpdatesAndNotify();
-  } catch (error) {
-    Sentry.captureException(error, {
-      level: "error",
-      tags: {
-        component: "main",
-        function: "autoUpdater",
-      },
-    });
-  }
-} else {
-  Sentry.captureMessage("Auto-updater not configured - missing R2 configuration", {
-    level: "error",
-    tags: {
-      component: "main",
-      function: "autoUpdater",
-    },
-  });
-}
-
 // Request permissions for audio recording
 async function requestPermissions() {
   if (process.platform === "darwin") {
@@ -194,9 +162,43 @@ async function requestPermissions() {
 app.whenReady().then(async () => {
   // Request permissions first
   await requestPermissions(); // Make async for await installExtensions
-  autoUpdater.checkForUpdatesAndNotify();
   createWindow();
   await installExtensions(); // Await extensions
+
+  // Defer auto-updater to next tick to avoid blocking IPC setup
+  // Configure autoUpdater for static storage
+  if (import.meta.env.VITE_R2_BUCKET_NAME && import.meta.env.VITE_R2_ENDPOINT) {
+    try {
+      updateElectronApp({
+        updateSource: {
+          type: UpdateSourceType.StaticStorage,
+          baseUrl: `${import.meta.env.VITE_R2_ENDPOINT}/releases/${process.platform}/${process.arch}`
+        },
+        notifyUser: false,
+      })
+
+    } catch (error) {
+      Sentry.captureException(error, {
+        level: "error",
+        tags: {
+          component: "main",
+          function: "autoUpdater",
+        },
+      });
+    }
+  } else {
+    Sentry.captureMessage("Auto-updater not configured - missing R2 configuration", {
+      level: "debug",
+      extra: {
+        bucketName: import.meta.env.VITE_R2_BUCKET_NAME,
+        endpoint: import.meta.env.VITE_R2_ENDPOINT,
+      },
+      tags: {
+        component: "main",
+        function: "autoUpdater",
+      },
+    });
+  }
 
   // Handle initial launch via protocol on Windows/Linux
   // For Windows, process.argv might contain the URL if the app was launched by it

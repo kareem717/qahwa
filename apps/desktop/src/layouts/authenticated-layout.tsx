@@ -1,4 +1,5 @@
-import type React from "react";
+// biome-ignore lint/style/useImportType: Required for electron 
+import React from "react";
 import { useAuth } from "../components/providers/auth-provider";
 import { useRouter } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";

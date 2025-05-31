@@ -6,6 +6,7 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 
 // Import types from the osx-audio package
 import type { PermissionResult, DeviceType } from "@note/osx-audio";
+import type { UpdateInfo, UpdateError } from "./lib/helpers/ipc/update/update-context";
 
 // Preload types
 interface ThemeModeContext {
@@ -15,18 +16,19 @@ interface ThemeModeContext {
   system: () => Promise<boolean>;
   current: () => Promise<"dark" | "light" | "system">;
 }
-interface ElectronWindow {
+
+interface WindowContext {
   minimize: () => Promise<void>;
   maximize: () => Promise<void>;
   close: () => Promise<void>;
 }
 
-interface ElectronAuth {
+interface AuthContext {
   openSignInWindow: () => void;
-  getToken: () => Promise<string>;
+  handleAuthCallback: (callback: (url: string) => void) => () => void;
+  getToken: () => Promise<string | null>;
   setToken: (token: string) => Promise<void>;
   removeToken: () => Promise<void>;
-  handleAuthCallback: (callback: (url: string) => void) => () => void;
 }
 
 interface ElectronSystemAudio {
@@ -36,11 +38,22 @@ interface ElectronSystemAudio {
   requestPermissions: (deviceType: DeviceType) => Promise<PermissionResult>;
 }
 
+interface ElectronUpdater {
+  installUpdate: () => Promise<void>;
+  checkForUpdates: () => Promise<void>;
+  onUpdateAvailable: (callback: () => void) => () => void;
+  onUpdateDownloaded: (callback: (updateInfo: UpdateInfo) => void) => () => void;
+  onUpdateError: (callback: (error: UpdateError) => void) => () => void;
+  onUpdateChecking: (callback: () => void) => () => void;
+  onUpdateNotAvailable: (callback: () => void) => () => void;
+}
+
 declare global {
   interface Window {
     themeMode: ThemeModeContext;
-    electronWindow: ElectronWindow;
-    electronAuth: ElectronAuth;
+    electronWindow: WindowContext;
+    electronAuth: AuthContext;
     electronSystemAudio: ElectronSystemAudio;
+    electronUpdater: ElectronUpdater;
   }
 }

@@ -125,7 +125,9 @@ jobs:
           fi
 
       - name: Build and Publish to R2
-        run: pnpm install && pnpm run publish
+        run: |
+          pnpm install
+          pnpm run publish
         working-directory: 'apps/desktop'
         env:
           NODE_ENV: 'production'
@@ -146,86 +148,86 @@ jobs:
           SENTRY_DSN: ${{ vars.SENTRY_DSN }}
           VERSION: ${{ env.NEW_VERSION }}
 
-      - name: Manage S3 Release Versions
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          S3_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
-          BUCKET_NAME: ${{ vars.RELEASE_S3_BUCKET_NAME }}
-        run: |
-          # Install AWS CLI if not available
-          if ! command -v aws &> /dev/null; then
-            echo "Installing AWS CLI..."
-            curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-            sudo installer -pkg AWSCLIV2.pkg -target /
-          fi
+      # - name: Manage S3 Release Versions
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      #     S3_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
+      #     BUCKET_NAME: ${{ vars.RELEASE_S3_BUCKET_NAME }}
+      #   run: |
+      #     # Install AWS CLI if not available
+      #     if ! command -v aws &> /dev/null; then
+      #       echo "Installing AWS CLI..."
+      #       curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+      #       sudo installer -pkg AWSCLIV2.pkg -target /
+      #     fi
 
-          # Function to copy and manage S3 objects
-          manage_s3_releases() {
-            local platform_arch=$1
-            local file_extension=$2
-            local version=${{ env.NEW_VERSION }}
+      #     # Function to copy and manage S3 objects
+      #     manage_s3_releases() {
+      #       local platform_arch=$1
+      #       local file_extension=$2
+      #       local version=${{ env.NEW_VERSION }}
             
-            # Source: the versioned file that was just uploaded
-            local source_key="releases/v${version}-${platform_arch}.${file_extension}"
+      #       # Source: the versioned file that was just uploaded
+      #       local source_key="releases/v${version}-${platform_arch}.${file_extension}"
             
-            # Target: the latest file
-            local latest_key="releases/latest-${platform_arch}.${file_extension}"
+      #       # Target: the latest file
+      #       local latest_key="releases/latest-${platform_arch}.${file_extension}"
             
-            echo "Managing releases for ${platform_arch}..."
+      #       echo "Managing releases for ${platform_arch}..."
             
-            # Check if the source file exists
-            if aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$source_key" 2>/dev/null; then
-              echo "Found source file: $source_key"
+      #       # Check if the source file exists
+      #       if aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$source_key" 2>/dev/null; then
+      #         echo "Found source file: $source_key"
               
-              # Check if there's already a latest file, and if so, we need to version it
-              if aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$latest_key" 2>/dev/null; then
-                echo "Found existing latest-${platform_arch}.${file_extension}, checking for version tag..."
+      #         # Check if there's already a latest file, and if so, we need to version it
+      #         if aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$latest_key" 2>/dev/null; then
+      #           echo "Found existing latest-${platform_arch}.${file_extension}, checking for version tag..."
                 
-                # Get the version tag from the existing latest file's metadata
-                old_version=$(aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$latest_key" --query 'Metadata.version' --output text 2>/dev/null || echo "unknown")
+      #           # Get the version tag from the existing latest file's metadata
+      #           old_version=$(aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$latest_key" --query 'Metadata.version' --output text 2>/dev/null || echo "unknown")
                 
-                if [ "$old_version" != "None" ] && [ "$old_version" != "unknown" ] && [ "$old_version" != "" ]; then
-                  # Copy the old latest to a versioned name
-                  local old_versioned_key="releases/v${old_version}-${platform_arch}.${file_extension}"
-                  echo "Backing up old latest as $old_versioned_key"
+      #           if [ "$old_version" != "None" ] && [ "$old_version" != "unknown" ] && [ "$old_version" != "" ]; then
+      #             # Copy the old latest to a versioned name
+      #             local old_versioned_key="releases/v${old_version}-${platform_arch}.${file_extension}"
+      #             echo "Backing up old latest as $old_versioned_key"
                   
-                  # Only copy if the versioned file doesn't already exist
-                  if ! aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$old_versioned_key" 2>/dev/null; then
-                    aws s3api copy-object --endpoint-url="$S3_ENDPOINT" \
-                      --copy-source "$BUCKET_NAME/$latest_key" \
-                      --bucket "$BUCKET_NAME" \
-                      --key "$old_versioned_key"
-                  fi
-                fi
-              fi
+      #             # Only copy if the versioned file doesn't already exist
+      #             if ! aws s3api head-object --endpoint-url="$S3_ENDPOINT" --bucket="$BUCKET_NAME" --key="$old_versioned_key" 2>/dev/null; then
+      #               aws s3api copy-object --endpoint-url="$S3_ENDPOINT" \
+      #                 --copy-source "$BUCKET_NAME/$latest_key" \
+      #                 --bucket "$BUCKET_NAME" \
+      #                 --key "$old_versioned_key"
+      #             fi
+      #           fi
+      #         fi
               
-              # Copy the new version to latest (with version metadata)
-              # Use s3api copy-object to avoid tagging issues with R2
-              echo "Setting v${version}-${platform_arch}.${file_extension} as latest-${platform_arch}.${file_extension}"
-              aws s3api copy-object --endpoint-url="$S3_ENDPOINT" \
-                --copy-source "$BUCKET_NAME/$source_key" \
-                --bucket "$BUCKET_NAME" \
-                --key "$latest_key" \
-                --metadata "version=${version}" \
-                --metadata-directive REPLACE
-            else
-              echo "Warning: Source file $source_key not found, skipping $platform_arch"
-            fi
-          }
+      #         # Copy the new version to latest (with version metadata)
+      #         # Use s3api copy-object to avoid tagging issues with R2
+      #         echo "Setting v${version}-${platform_arch}.${file_extension} as latest-${platform_arch}.${file_extension}"
+      #         aws s3api copy-object --endpoint-url="$S3_ENDPOINT" \
+      #           --copy-source "$BUCKET_NAME/$source_key" \
+      #           --bucket "$BUCKET_NAME" \
+      #           --key "$latest_key" \
+      #           --metadata "version=${version}" \
+      #           --metadata-directive REPLACE
+      #       else
+      #         echo "Warning: Source file $source_key not found, skipping $platform_arch"
+      #       fi
+      #     }
 
-          # Manage releases for each platform/architecture combination
-          manage_s3_releases "darwin-arm64" "zip"
+      #     # Manage releases for each platform/architecture combination
+      #     manage_s3_releases "darwin-arm64" "zip"
 
-      - name: List final S3 structure
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          S3_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
-          BUCKET_NAME: ${{ vars.RELEASE_S3_BUCKET_NAME }}
-        run: |
-          echo "Final S3 release structure:"
-          aws s3 ls --endpoint-url="$S3_ENDPOINT" "s3://$BUCKET_NAME/releases/" --recursive
+      # - name: List final S3 structure
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      #     S3_ENDPOINT: ${{ secrets.R2_S3_API_ENDPOINT }}
+      #     BUCKET_NAME: ${{ vars.RELEASE_S3_BUCKET_NAME }}
+      #   run: |
+      #     echo "Final S3 release structure:"
+      #     aws s3 ls --endpoint-url="$S3_ENDPOINT" "s3://$BUCKET_NAME/releases/" --recursive
 
       - name: Commit version bump
         if: inputs.version_bump != 'none'
@@ -236,29 +238,29 @@ jobs:
           git commit -m "chore(desktop): bump version to ${{ env.NEW_VERSION }}"
           git push
 
-      - name: Create Release
-        if: inputs.version_bump != 'none'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: electron-v${{ env.NEW_VERSION }}
-          name: Electron App v${{ env.NEW_VERSION }}
-          body: |
-            ${{ inputs.release_notes || 'Automated release of Electron app' }}
+      # - name: Create Release
+      #   if: inputs.version_bump != 'none'
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     tag_name: electron-v${{ env.NEW_VERSION }}
+      #     name: Electron App v${{ env.NEW_VERSION }}
+      #     body: |
+      #       ${{ inputs.release_notes || 'Automated release of Electron app' }}
             
-            Version: ${{ env.NEW_VERSION }}
+      #       Version: ${{ env.NEW_VERSION }}
             
-            ## Download Links
-            - Latest macOS (ARM64): ${{ vars.PUBLIC_R2_URL }}/releases/latest-darwin-arm64.zip
-            - Latest macOS (Intel): ${{ vars.PUBLIC_R2_URL }}/releases/latest-darwin-x64.zip
-            - Versioned macOS (ARM64): ${{ vars.PUBLIC_R2_URL }}/releases/v${{ env.NEW_VERSION }}-darwin-arm64.zip
-            - Versioned macOS (Intel): ${{ vars.PUBLIC_R2_URL }}/releases/v${{ env.NEW_VERSION }}-darwin-x64.zip
+      #       ## Download Links
+      #       - Latest macOS (ARM64): ${{ vars.PUBLIC_R2_URL }}/releases/latest-darwin-arm64.zip
+      #       - Latest macOS (Intel): ${{ vars.PUBLIC_R2_URL }}/releases/latest-darwin-x64.zip
+      #       - Versioned macOS (ARM64): ${{ vars.PUBLIC_R2_URL }}/releases/v${{ env.NEW_VERSION }}-darwin-arm64.zip
+      #       - Versioned macOS (Intel): ${{ vars.PUBLIC_R2_URL }}/releases/v${{ env.NEW_VERSION }}-darwin-x64.zip
             
-            ## Changes
-            - Built and published to R2
-            - Code signed and notarized for macOS
-          draft: false
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+      #       ## Changes
+      #       - Built and published to R2
+      #       - Code signed and notarized for macOS
+      #     draft: false
+      #     prerelease: false
+      #     token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup
         if: always()

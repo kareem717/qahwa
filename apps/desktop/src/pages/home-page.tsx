@@ -3,7 +3,7 @@ import { NoteButton, type SimpleNote } from "../components/note-button";
 import { Header } from "../components/header";
 import { Badge } from "@note/ui/components/badge";
 import { Link } from "@tanstack/react-router";
-import { buttonVariants } from "@note/ui/components/button";
+import { Button, buttonVariants } from "@note/ui/components/button";
 import { cn } from "@note/ui/lib/utils";
 import { UserButton } from "../components/auth/user-button";
 import { ScrollArea } from "@note/ui/components/scroll-area";
@@ -12,6 +12,7 @@ import { AuthenticatedLayout } from "../layouts/authenticated-layout";
 import { useLiveQuery } from "@tanstack/react-db";
 import { notesCollection } from "../lib/collections/notes";
 import { setNoteId, DEFAULT_NOTE_ID } from "../hooks/use-note-id";
+import { useAppUpdater } from "../hooks/use-app-updater";
 
 const today = new Date();
 const yesterday = new Date(today);
