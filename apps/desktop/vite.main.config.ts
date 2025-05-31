@@ -51,8 +51,11 @@ export default defineConfig({
     },
   },
 
-  plugins: [sentryVitePlugin({
-    org: "qahwa",
-    project: "desktop"
-  })]
+  plugins: [
+    sentryVitePlugin({
+      org: "qahwa",
+      project: "desktop",
+      authToken: process.env.SENTRY_AUTH_TOKEN
+    })
+  ]
 });
