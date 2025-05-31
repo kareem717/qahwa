@@ -3,7 +3,6 @@ import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
-import { MakerDMG } from "@electron-forge/maker-dmg";
 
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
@@ -22,34 +21,35 @@ const config: ForgeConfig = {
       "../../packages/osx-audio/build/Release/nativeAudioManager.node",
     ],
     appBundleId: "com.fundlevel.qahwa",
-    osxSign:
+    osxSign: {
+      identity: process.env.APPLE_DEVELOPER_IDENTITY,
+      optionsForFile: (filePath) => {
+        return {
+          "hardened-runtime": true,
+          "gatekeeper-assess": false,
+          entitlements: "entitlements.plist",
+          "entitlements-inherit": "entitlements.plist",
+        };
+      },
+    },
+    osxNotarize:
       process.env.NODE_ENV === "development"
         ? undefined // Skip due to notarization taking 15-60+ min
         : {
-          identity: process.env.APPLE_DEVELOPER_IDENTITY,
-          optionsForFile: (filePath) => {
-            return {
-              "hardened-runtime": true,
-              "gatekeeper-assess": false,
-              entitlements: "entitlements.plist",
-              "entitlements-inherit": "entitlements.plist",
-            };
-          },
+          appleId: process.env.APPLE_ID || "",
+          appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
+          teamId: process.env.APPLE_TEAM_ID || "",
         },
-    osxNotarize: {
-      appleId: process.env.APPLE_ID || "",
-      appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
-      teamId: process.env.APPLE_TEAM_ID || "",
-    },
     extendInfo: {
       NSMicrophoneUsageDescription:
-        "Note needs access to your microphone to record audio notes and meetings.",
-      NSSystemAdministrationUsageDescription:
-        "Note needs system access to capture system audio for comprehensive meeting recordings.",
+        "Qahwa needs access to your microphone to record audio notes and meetings.",
+      NSScreenCaptureDescription:
+        "Qahwa needs screen recording permission to capture system audio for comprehensive meeting recordings.",
+      NSSystemAudioRecordingUsageDescription:
+        "Qahwa needs to record system audio to capture audio output from your Mac.",
       NSAppleEventsUsageDescription:
         "Note needs to control other applications to enhance your note-taking experience.",
       LSApplicationCategoryType: "public.app-category.productivity",
-      NSSystemAudioRecordingUsageDescription: "This app needs to record system audio to capture audio output from your Mac.",
       LSMinimumSystemVersion: "10.15.0"
     },
   },
@@ -70,9 +70,6 @@ const config: ForgeConfig = {
 
         // Create platform-arch identifier
         const platformArch = `${platform}-${arch}`;
-
-        // For the latest release, use the "latest-" prefix
-        const latestKey = `releases/latest-${platformArch}.${fileExtension}`;
 
         // For versioned release, include version number
         const versionedKey = `releases/v${version}-${platformArch}.${fileExtension}`;
