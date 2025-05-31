@@ -1,7 +1,7 @@
 {
   "name": "@note/desktop",
   "productName": "Note",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": ".vite/build/main.cjs",
   "type": "module",
   "private": true,
