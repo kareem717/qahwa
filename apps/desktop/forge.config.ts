@@ -45,6 +45,8 @@ const config: ForgeConfig = {
         "Qahwa needs access to your microphone to record audio notes and meetings.",
       NSSystemAudioRecordingUsageDescription:
         "Qahwa needs to record system audio to capture audio output from your Mac.",
+      NSScreenRecordingUsageDescription:
+        "Qahwa needs screen recording permission to capture system audio output from your Mac.",
       NSAppleEventsUsageDescription:
         "Qahwa needs to control other applications to enhance your note-taking experience.",
       LSApplicationCategoryType: "public.app-category.productivity",
@@ -80,10 +82,9 @@ const config: ForgeConfig = {
   ],
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
-    new MakerZIP({}, ["darwin"]),
-    new MakerRpm({}),
-    new MakerDeb({}),
+    new MakerZIP((arch) => ({
+      macUpdateManifestBaseUrl: `${process.env.VITE_R2_ENDPOINT}/${process.env.VITE_R2_BUCKET_NAME}/releases/${arch}`,
+    }), ["darwin"]),
   ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
