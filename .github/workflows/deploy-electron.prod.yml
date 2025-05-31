@@ -21,7 +21,7 @@ on:
 jobs:
   build-and-publish-electron:
     name: Build and Publish Electron App
-    runs-on: macos-latest
+    runs-on: self-hosted
     timeout-minutes: 90
     environment: production
     permissions:
