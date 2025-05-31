@@ -78,7 +78,6 @@ export const authHandler = () =>
           500,
         );
       }
-      console.log("EXISTING API KEYS", existingApiKeys);
 
       const existingAppKey = existingApiKeys.find(
         (key) => key.name === APP_API_KEY_NAME,
@@ -95,7 +94,6 @@ export const authHandler = () =>
             headers: c.req.raw.headers,
           });
 
-          console.log("DELETED KEY", existingAppKey);
         } catch (error) {
           console.error(error);
 
@@ -116,7 +114,6 @@ export const authHandler = () =>
           },
         });
 
-        console.log("NEW KEY", newApiKey);
         return c.json({
           key: newApiKey.key,
         });
