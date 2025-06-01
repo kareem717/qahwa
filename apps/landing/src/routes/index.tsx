@@ -32,12 +32,10 @@ function HomeComponent() {
         <div className="flex flex-col items-center justify-center mt-8 w-xs mx-auto gap-4">
           {/* <h2 className="text-xl font-medium">download</h2> */}
           <div className="grid grid-cols-2 gap-2 w-full">
-            <DownloadLink platform="darwin/arm64" >
+            <DownloadLink platform="darwin/arm64">
               <AppleIcon className="size-5" />
             </DownloadLink>
-            <Button
-              onClick={() => toast.info("Coming soon...")}
-            >
+            <Button onClick={() => toast.info("Coming soon...")}>
               <WindowsIcon className="size-5" />
             </Button>
           </div>

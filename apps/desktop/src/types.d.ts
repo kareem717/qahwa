@@ -6,7 +6,10 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 
 // Import types from the osx-audio package
 import type { PermissionResult, DeviceType } from "@note/osx-audio";
-import type { UpdateInfo, UpdateError } from "./lib/helpers/ipc/update/update-context";
+import type {
+  UpdateInfo,
+  UpdateError,
+} from "./lib/helpers/ipc/update/update-context";
 
 // Preload types
 interface ThemeModeContext {
@@ -42,7 +45,9 @@ interface ElectronUpdater {
   installUpdate: () => Promise<void>;
   checkForUpdates: () => Promise<void>;
   onUpdateAvailable: (callback: () => void) => () => void;
-  onUpdateDownloaded: (callback: (updateInfo: UpdateInfo) => void) => () => void;
+  onUpdateDownloaded: (
+    callback: (updateInfo: UpdateInfo) => void,
+  ) => () => void;
   onUpdateError: (callback: (error: UpdateError) => void) => () => void;
   onUpdateChecking: (callback: () => void) => () => void;
   onUpdateNotAvailable: (callback: () => void) => () => void;

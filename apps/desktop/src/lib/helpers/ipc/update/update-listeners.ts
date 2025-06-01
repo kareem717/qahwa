@@ -48,12 +48,15 @@ export function addUpdateEventListeners(mainWindow: BrowserWindow) {
     });
   });
 
-  autoUpdater.on("update-downloaded", (event, releaseNotes, releaseName, releaseDate, updateURL) => {
-    const message = process.platform === "win32" ? releaseNotes : releaseName; // according to docs
+  autoUpdater.on(
+    "update-downloaded",
+    (event, releaseNotes, releaseName, releaseDate, updateURL) => {
+      const message = process.platform === "win32" ? releaseNotes : releaseName; // according to docs
 
-    mainWindow.webContents.send(UPDATE_DOWNLOADED_CHANNEL, {
-      message,
-      releaseDate,
-    });
-  });
-} 
+      mainWindow.webContents.send(UPDATE_DOWNLOADED_CHANNEL, {
+        message,
+        releaseDate,
+      });
+    },
+  );
+}

@@ -70,7 +70,7 @@ export function useAppUpdater() {
       if (!currentState.isUpdateDownloaded) {
         console.log("Update not downloaded");
         return;
-      };
+      }
 
       try {
         setIsInstalling(true);
@@ -85,23 +85,24 @@ export function useAppUpdater() {
     };
 
     // Set up event listeners
-    const cleanupUpdateAvailable = window.electronUpdater.onUpdateAvailable(() => {
-      console.log("Update available");
-      setIsUpdateAvailable(true);
+    const cleanupUpdateAvailable = window.electronUpdater.onUpdateAvailable(
+      () => {
+        console.log("Update available");
+        setIsUpdateAvailable(true);
 
-      toast.info("Downloading latest version in the background");
-    });
+        toast.info("Downloading latest version in the background");
+      },
+    );
 
-    const cleanupUpdateDownloaded = window.electronUpdater.onUpdateDownloaded((info) => {
-      console.log("Update downloaded:", info);
-      setUpdateInfo(info);
-      setIsUpdateDownloaded(true);
-      setIsUpdateAvailable(false);
+    const cleanupUpdateDownloaded = window.electronUpdater.onUpdateDownloaded(
+      (info) => {
+        console.log("Update downloaded:", info);
+        setUpdateInfo(info);
+        setIsUpdateDownloaded(true);
+        setIsUpdateAvailable(false);
 
-      // Show persistent toast with action buttons
-      toast.success(
-        "Update ready to install",
-        {
+        // Show persistent toast with action buttons
+        toast.success("Update ready to install", {
           duration: Number.POSITIVE_INFINITY, // Keep it persistent
           action: {
             label: "Restart & Install",
@@ -114,9 +115,9 @@ export function useAppUpdater() {
             },
           },
           description: info?.message,
-        }
-      );
-    });
+        });
+      },
+    );
 
     const cleanupUpdateError = window.electronUpdater.onUpdateError((error) => {
       console.error("Update error:", error);
@@ -128,11 +129,14 @@ export function useAppUpdater() {
       setIsUpdateDownloaded(false);
     });
 
-    const cleanupUpdateChecking = window.electronUpdater.onUpdateChecking(() => console.log("Checking for updates..."));
+    const cleanupUpdateChecking = window.electronUpdater.onUpdateChecking(() =>
+      console.log("Checking for updates..."),
+    );
 
-    const cleanupUpdateNotAvailable = window.electronUpdater.onUpdateNotAvailable(() => {
-      console.log("No update available");
-    });
+    const cleanupUpdateNotAvailable =
+      window.electronUpdater.onUpdateNotAvailable(() => {
+        console.log("No update available");
+      });
 
     // Cleanup function
     return () => {
@@ -152,7 +156,7 @@ export function useAppUpdater() {
       if (!currentState.isUpdateDownloaded) {
         console.log("Update not downloaded");
         return;
-      };
+      }
 
       try {
         setIsInstalling(true);
@@ -167,4 +171,4 @@ export function useAppUpdater() {
     },
     checkForUpdates,
   };
-} 
+}

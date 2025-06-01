@@ -24,14 +24,15 @@ export function exposeUpdateContext() {
       // Request installation of downloaded update
       installUpdate: () => ipcRenderer.invoke(UPDATE_INSTALL_CHANNEL),
 
-      checkForUpdates: () => ipcRenderer.invoke(UPDATE_CHECK_FOR_UPDATES_CHANNEL),
+      checkForUpdates: () =>
+        ipcRenderer.invoke(UPDATE_CHECK_FOR_UPDATES_CHANNEL),
 
       // Listen for update events
       onUpdateAvailable: (callback: () => void) => {
         const handler = () => {
           callback();
         };
-        
+
         ipcRenderer.on(UPDATE_AVAILABLE_CHANNEL, handler);
         return () => {
           ipcRenderer.removeListener(UPDATE_AVAILABLE_CHANNEL, handler);
@@ -80,7 +81,7 @@ export function exposeUpdateContext() {
     });
   } else {
     console.error(
-      "Failed to expose update context: contextBridge or ipcRenderer not available."
+      "Failed to expose update context: contextBridge or ipcRenderer not available.",
     );
   }
-} 
+}

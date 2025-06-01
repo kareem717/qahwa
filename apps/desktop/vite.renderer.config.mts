@@ -21,7 +21,7 @@ export default defineConfig({
     sentryVitePlugin({
       org: "qahwa",
       project: "desktop",
-      authToken: process.env.SENTRY_AUTH_TOKEN
+      authToken: process.env.SENTRY_AUTH_TOKEN,
     }),
     nodePolyfills({
       // You might need to fine-tune this based on specific needs

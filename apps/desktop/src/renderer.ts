@@ -3,7 +3,7 @@ import {
   init,
   browserTracingIntegration,
   replayIntegration,
-} from '@sentry/electron/renderer'
+} from "@sentry/electron/renderer";
 // import { init as reactInit } from '@sentry/react'
 
 init(
@@ -14,4 +14,4 @@ init(
     release: import.meta.env.VITE_VERSION,
   },
   // reactInit
-)
+);

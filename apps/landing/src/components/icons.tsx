@@ -58,7 +58,6 @@ export function XIcon(props: ComponentPropsWithoutRef<"svg">) {
 
 export function AppleIcon(props: ComponentPropsWithoutRef<"svg">) {
   return (
-
     <svg
       xmlns="http://www.w3.org/2000/svg"
       xmlSpace="preserve"

@@ -10,7 +10,7 @@ import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import path from "node:path";
 
-const BASE_FOLDER = "releases"
+const BASE_FOLDER = "releases";
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -32,13 +32,14 @@ const config: ForgeConfig = {
         };
       },
     },
-    osxNotarize: process.env.SKIP_NOTARIZATION === "true" // Process can take 15-60+ min to notarize
-      ? undefined
-      : {
-        appleId: process.env.APPLE_ID || "",
-        appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
-        teamId: process.env.APPLE_TEAM_ID || "",
-      },
+    osxNotarize:
+      process.env.SKIP_NOTARIZATION === "true" // Process can take 15-60+ min to notarize
+        ? undefined
+        : {
+            appleId: process.env.APPLE_ID || "",
+            appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD || "",
+            teamId: process.env.APPLE_TEAM_ID || "",
+          },
     extendInfo: {
       NSMicrophoneUsageDescription:
         "Qahwa needs access to your microphone to record audio notes and meetings.",
@@ -49,7 +50,7 @@ const config: ForgeConfig = {
       NSAppleEventsUsageDescription:
         "Qahwa needs to control other applications to enhance your note-taking experience.",
       LSApplicationCategoryType: "public.app-category.productivity",
-      LSMinimumSystemVersion: "10.15.0"
+      LSMinimumSystemVersion: "10.15.0",
     },
   },
   publishers: [
@@ -71,9 +72,12 @@ const config: ForgeConfig = {
     }),
     new MakerRpm({}),
     new MakerDeb({}),
-    new MakerZIP((arch: string) => ({
-      macUpdateManifestBaseUrl: `${process.env.VITE_R2_ENDPOINT}/${BASE_FOLDER}/darwin/${arch}`,
-    }), ["darwin"]),
+    new MakerZIP(
+      (arch: string) => ({
+        macUpdateManifestBaseUrl: `${process.env.VITE_R2_ENDPOINT}/${BASE_FOLDER}/darwin/${arch}`,
+      }),
+      ["darwin"],
+    ),
   ],
   plugins: [
     new AutoUnpackNativesPlugin({}),

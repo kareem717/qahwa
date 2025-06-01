@@ -7,16 +7,17 @@ import {
   installExtension,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
-import { updateElectronApp, UpdateSourceType } from 'update-electron-app';
+import { updateElectronApp, UpdateSourceType } from "update-electron-app";
 
 import * as Sentry from "@sentry/electron";
 
-const inDevelopment = import.meta.env.VITE_NODE_ENV === "development"
+const inDevelopment = import.meta.env.VITE_NODE_ENV === "development";
 const PROTOCOL = import.meta.env.VITE_DESKTOP_PROTOCOL; // Define your custom protocol
 
-
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN || "https://882dcf6e9f6b800a2e36762c2b0167b9@o4509396716945408.ingest.us.sentry.io/4509396718977024",
+  dsn:
+    import.meta.env.VITE_SENTRY_DSN ||
+    "https://882dcf6e9f6b800a2e36762c2b0167b9@o4509396716945408.ingest.us.sentry.io/4509396718977024",
   enabled: !inDevelopment,
   release: import.meta.env.VITE_VERSION,
   environment: import.meta.env.VITE_NODE_ENV || "development",
@@ -79,12 +80,12 @@ function createWindow() {
     frame: false,
     ...(process.platform !== "darwin"
       ? {
-        titleBarOverlay: true,
-      }
+          titleBarOverlay: true,
+        }
       : {
-        trafficLightPosition: { x: 16, y: 12 },
-        titleBarStyle: "hidden",
-      }),
+          trafficLightPosition: { x: 16, y: 12 },
+          titleBarStyle: "hidden",
+        }),
   });
   registerListeners(mainWindow);
 
@@ -156,7 +157,6 @@ async function requestPermissions() {
       console.log("Microphone permission required for audio recording");
       // You might want to show a dialog explaining why this permission is needed
     }
-
   }
 }
 
@@ -173,11 +173,10 @@ app.whenReady().then(async () => {
       updateElectronApp({
         updateSource: {
           type: UpdateSourceType.StaticStorage,
-          baseUrl: `${import.meta.env.VITE_R2_ENDPOINT}/releases/${process.platform}/${process.arch}`
+          baseUrl: `${import.meta.env.VITE_R2_ENDPOINT}/releases/${process.platform}/${process.arch}`,
         },
         notifyUser: false,
-      })
-
+      });
     } catch (error) {
       Sentry.captureException(error, {
         level: "error",
@@ -188,17 +187,20 @@ app.whenReady().then(async () => {
       });
     }
   } else {
-    Sentry.captureMessage("Auto-updater not configured - missing R2 configuration", {
-      level: "debug",
-      extra: {
-        bucketName: import.meta.env.VITE_R2_BUCKET_NAME,
-        endpoint: import.meta.env.VITE_R2_ENDPOINT,
+    Sentry.captureMessage(
+      "Auto-updater not configured - missing R2 configuration",
+      {
+        level: "debug",
+        extra: {
+          bucketName: import.meta.env.VITE_R2_BUCKET_NAME,
+          endpoint: import.meta.env.VITE_R2_ENDPOINT,
+        },
+        tags: {
+          component: "main",
+          function: "autoUpdater",
+        },
       },
-      tags: {
-        component: "main",
-        function: "autoUpdater",
-      },
-    });
+    );
   }
 
   // Handle initial launch via protocol on Windows/Linux

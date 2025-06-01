@@ -70,7 +70,6 @@ registerProcessor("pcm-processor", PCMProcessor);
 async function startMicAudioCapture(
   onDataCallback: (data: ArrayBuffer) => void,
 ): Promise<MicAudioRecorderState> {
-
   const state: MicAudioRecorderState = {
     stream: null,
     audioCtx: null,
@@ -78,7 +77,6 @@ async function startMicAudioCapture(
     workletNode: null,
     onData: onDataCallback,
   };
-
 
   state.stream = await navigator.mediaDevices.getUserMedia({
     audio: {
@@ -426,7 +424,8 @@ export function useTranscript() {
             stopRecording();
             return;
           case "not_determined": {
-            const micPerms = await window.electronSystemAudio.requestPermissions("microphone");
+            const micPerms =
+              await window.electronSystemAudio.requestPermissions("microphone");
             if (micPerms.microphone !== "authorized") {
               toast.error("Microphone permission required");
               stopRecording();
@@ -445,20 +444,27 @@ export function useTranscript() {
           case "authorized":
             break;
           case "denied":
-            toast.error("Screen recording permission denied. Please enable it in System Preferences > Security & Privacy > Screen Recording to capture system audio.");
+            toast.error(
+              "Screen recording permission denied. Please enable it in System Preferences > Security & Privacy > Screen Recording to capture system audio.",
+            );
             stopRecording();
             return;
           case "not_determined": {
-            const audioPerms = await window.electronSystemAudio.requestPermissions("audio");
+            const audioPerms =
+              await window.electronSystemAudio.requestPermissions("audio");
             if (audioPerms.audio !== "authorized") {
-              toast.error("Screen recording permission is required for system audio capture. Please enable it in System Preferences > Security & Privacy > Screen Recording.");
+              toast.error(
+                "Screen recording permission is required for system audio capture. Please enable it in System Preferences > Security & Privacy > Screen Recording.",
+              );
               stopRecording();
               return;
             }
             break;
           }
           case "restricted":
-            toast.error("Screen recording permission is restricted by system policy.");
+            toast.error(
+              "Screen recording permission is restricted by system policy.",
+            );
             stopRecording();
             return;
         }

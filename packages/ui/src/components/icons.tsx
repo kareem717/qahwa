@@ -39,6 +39,5 @@ export function QahwaIcon(props: ComponentPropsWithoutRef<"svg">) {
         />
       </g>
     </svg>
-
   );
 }

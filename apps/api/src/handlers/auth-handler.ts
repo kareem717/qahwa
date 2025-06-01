@@ -93,7 +93,6 @@ export const authHandler = () =>
             },
             headers: c.req.raw.headers,
           });
-
         } catch (error) {
           console.error(error);
 

@@ -41,7 +41,7 @@ export default defineConfig({
 
     minify: process.env.NODE_ENV === "production",
     outDir: ".vite/build",
-    sourcemap: true
+    sourcemap: true,
   },
 
   resolve: {
@@ -55,7 +55,7 @@ export default defineConfig({
     sentryVitePlugin({
       org: "qahwa",
       project: "desktop",
-      authToken: process.env.SENTRY_AUTH_TOKEN
-    })
-  ]
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+    }),
+  ],
 });

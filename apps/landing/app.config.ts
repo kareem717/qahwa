@@ -26,7 +26,7 @@ const config = defineConfig({
         rehypePlugins: [],
       }),
     ],
-    
+
     resolve: {
       alias: [
         {

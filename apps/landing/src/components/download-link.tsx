@@ -5,7 +5,7 @@ const PLATFORMS = ["darwin/arm64", "darwin/x64"] as const;
 
 export type Platform = (typeof PLATFORMS)[number];
 
-interface DownloadLinkProps extends React.ComponentProps<'a'> {
+interface DownloadLinkProps extends React.ComponentProps<"a"> {
   platform: Platform;
 }
 
@@ -15,7 +15,6 @@ export function DownloadLink({
   onClick,
   ...props
 }: DownloadLinkProps) {
-
   let url = "";
   switch (platform) {
     case "darwin/arm64":
@@ -28,6 +27,6 @@ export function DownloadLink({
   return (
     <a href={url} {...props} className={cn(buttonVariants(), props.className)}>
       {children}
-    </a >
+    </a>
   );
 }
