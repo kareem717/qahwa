@@ -8,15 +8,17 @@ import { PublisherS3 } from "@electron-forge/publisher-s3";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerDeb } from "@electron-forge/maker-deb";
+import path from "node:path";
 
 const BASE_FOLDER = "releases"
 
 const config: ForgeConfig = {
   packagerConfig: {
-    icon: "./assets/icon.icns",
+    icon: path.join(__dirname, "src", "assets", "icon.icns"),
     asar: true,
     extraResource: [
       "../../packages/osx-audio/build/Release/nativeAudioManager.node",
+      path.join(__dirname, "src", "assets", "icon.icns"),
     ],
     appBundleId: "com.fundlevel.qahwa",
     osxSign: {

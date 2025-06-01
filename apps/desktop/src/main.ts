@@ -67,6 +67,7 @@ function createWindow() {
     // Assign to the broader scope mainWindow
     width: 800,
     height: 600,
+    icon: path.join(__dirname, "assets", "icon.icns"),
     webPreferences: {
       // devTools: inDevelopment, //TODO: Uncomment this
       devTools: true,
