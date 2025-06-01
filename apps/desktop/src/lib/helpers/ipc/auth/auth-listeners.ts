@@ -1,5 +1,6 @@
-import { ipcMain, shell } from "electron";
+import { shell } from "electron";
 import Store from "electron-store";
+import { registerIpcHandlers, registerIpcListeners } from "../ipc-utils";
 
 const JWT_KEY = "jwt";
 
@@ -59,37 +60,40 @@ async function removeTokenLogic() {
 }
 
 export function addAuthEventListeners() {
-  ipcMain.on("open-sign-in-window", () => {
-    shell.openExternal(import.meta.env.VITE_SIGN_IN_URL).catch((err) => {
-      console.error("Failed to open sign-in URL:", err);
-      // Optionally, notify the renderer process of the failure
-    });
+  registerIpcListeners({
+    "open-sign-in-window": () => {
+      shell.openExternal(import.meta.env.VITE_SIGN_IN_URL).catch((err) => {
+        console.error("Failed to open sign-in URL:", err);
+        // Optionally, notify the renderer process of the failure
+      });
+    },
   });
 
-  ipcMain.handle("jwt-get-token", async () => {
-    try {
-      return await getTokenLogic();
-    } catch (error) {
-      console.error("Error getting token:", error);
-      throw error; // Re-throw to be caught by the invoke call
-    }
-  });
-
-  ipcMain.handle("jwt-set-token", async (_event, token: string) => {
-    try {
-      await setTokenLogic(token);
-    } catch (error) {
-      console.error("Error setting token:", error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle("jwt-remove-token", async () => {
-    try {
-      await removeTokenLogic();
-    } catch (error) {
-      console.error("Error removing token:", error);
-      throw error;
-    }
+  registerIpcHandlers({
+    "jwt-get-token": async () => {
+      try {
+        return await getTokenLogic();
+      } catch (error) {
+        console.error("Error getting token:", error);
+        throw error; // Re-throw to be caught by the invoke call
+      }
+    },
+    "jwt-set-token": async (_event, ...args) => {
+      try {
+        const token = args[0] as string;
+        await setTokenLogic(token);
+      } catch (error) {
+        console.error("Error setting token:", error);
+        throw error;
+      }
+    },
+    "jwt-remove-token": async () => {
+      try {
+        await removeTokenLogic();
+      } catch (error) {
+        console.error("Error removing token:", error);
+        throw error;
+      }
+    },
   });
 }

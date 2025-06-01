@@ -1,4 +1,4 @@
-import { type BrowserWindow, ipcMain } from "electron";
+import type { BrowserWindow } from "electron";
 import { autoUpdater } from "electron";
 import {
   UPDATE_AVAILABLE_CHANNEL,
@@ -10,16 +10,30 @@ import {
   UPDATE_CHECK_FOR_UPDATES_CHANNEL,
 } from "./update-channels";
 import * as Sentry from "@sentry/electron";
+import { registerIpcHandlers } from "../ipc-utils";
 
 export function addUpdateEventListeners(mainWindow: BrowserWindow) {
-  // Handle install update request from renderer
-  ipcMain.handle(UPDATE_INSTALL_CHANNEL, () => {
-    autoUpdater.quitAndInstall();
+  registerIpcHandlers({
+    [UPDATE_INSTALL_CHANNEL]: () => {
+      autoUpdater.quitAndInstall();
+    },
+    [UPDATE_CHECK_FOR_UPDATES_CHANNEL]: () => {
+      autoUpdater.checkForUpdates();
+    },
   });
 
-  ipcMain.handle(UPDATE_CHECK_FOR_UPDATES_CHANNEL, () => {
-    autoUpdater.checkForUpdates();
-  });
+  // For autoUpdater events, remove existing listeners and register new ones
+  const autoUpdaterEvents = [
+    "checking-for-update",
+    "update-available",
+    "update-not-available",
+    "error",
+    "update-downloaded"
+  ] as const;
+
+  for (const event of autoUpdaterEvents) {
+    autoUpdater.removeAllListeners(event);
+  }
 
   // AutoUpdater event listeners
   autoUpdater.on("checking-for-update", () => {
