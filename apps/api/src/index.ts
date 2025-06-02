@@ -11,18 +11,16 @@ import { z } from "zod";
 
 const ReleaseJsonSchema = z.object({
   currentRelease: z.string(),
-  releases: z.array(
-    z.object({
+  releases: z.array(z.object({
+    version: z.string(),
+    updateTo: z.object({
+      name: z.string(),
       version: z.string(),
-      updateTo: z.object({
-        name: z.string(),
-        version: z.string(),
-        pub_date: z.string(),
-        url: z.string(),
-        notes: z.string(),
-      }),
+      pub_date: z.string(),
+      url: z.string(),
+      notes: z.string(),
     }),
-  ),
+  })),
 });
 
 const app = new Hono()
@@ -62,9 +60,7 @@ const app = new Hono()
       const { platform, arch } = c.req.valid("param");
       const r2 = env.RELEASE_BUCKET;
 
-      const releaseJson = await r2.get(
-        `releases/${platform}/${arch}/RELEASES.json`,
-      );
+      const releaseJson = await r2.get(`releases/${platform}/${arch}/RELEASES.json`);
 
       if (releaseJson === null) {
         return c.json({ error: "Release not found" }, 404);
@@ -77,9 +73,7 @@ const app = new Hono()
         return c.json({ error: "Invalid release JSON" }, 500);
       }
 
-      const release = data.releases.find(
-        (release) => release.version === data.currentRelease,
-      );
+      const release = data.releases.find((release) => release.version === data.currentRelease);
 
       if (!release) {
         return c.json({ error: "Current release not in releases array" }, 500);
