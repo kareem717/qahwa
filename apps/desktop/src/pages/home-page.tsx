@@ -1,12 +1,12 @@
 import React from "react";
 import { NoteButton, type SimpleNote } from "../components/note-button";
 import { Header } from "../components/header";
-import { Badge } from "@note/ui/components/badge";
+import { Badge } from "@qahwa/ui/components/badge";
 import { Link } from "@tanstack/react-router";
-import { Button, buttonVariants } from "@note/ui/components/button";
-import { cn } from "@note/ui/lib/utils";
+import { Button, buttonVariants } from "@qahwa/ui/components/button";
+import { cn } from "@qahwa/ui/lib/utils";
 import { UserButton } from "../components/auth/user-button";
-import { ScrollArea } from "@note/ui/components/scroll-area";
+import { ScrollArea } from "@qahwa/ui/components/scroll-area";
 import { useAuth } from "../components/providers/auth-provider";
 import { AuthenticatedLayout } from "../layouts/authenticated-layout";
 import { useLiveQuery } from "@tanstack/react-db";
@@ -42,14 +42,17 @@ function formatDate(dateString: string | null) {
 // Helper function to group notes by date
 function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
   if (!notes || notes.length === 0) return {};
-  return notes.reduce((acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
-    const dateKey = formatDate(note.updatedAt);
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(note);
-    return acc;
-  }, {});
+  return notes.reduce(
+    (acc: Record<string, SimpleNote[]>, qahwa: SimpleNote) => {
+      const dateKey = formatDate(qahwa.updatedAt);
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(qahwa);
+      return acc;
+    },
+    {},
+  );
 }
 
 export default function HomePage() {
@@ -79,8 +82,8 @@ export default function HomePage() {
         >
           <div className="flex items-center gap-1">
             <Link
-              to="/note"
-              // Clear the note id when the new note button is clicked
+              to="/qahwa"
+              // Clear the qahwa id when the new qahwa button is clicked
               onClick={() => setNoteId(DEFAULT_NOTE_ID)}
               className={cn(
                 buttonVariants({
@@ -90,7 +93,7 @@ export default function HomePage() {
                 "h-7 text-xs font-normal",
               )}
             >
-              New Note
+              New qahwa
             </Link>
             <UserButton />
           </div>
@@ -113,8 +116,8 @@ export default function HomePage() {
                   >
                     <h2 className="text-xl font-semibold">{dateKey}</h2>
                     <div className="flex flex-col">
-                      {groupedNotes[dateKey].map((note: SimpleNote) => (
-                        <NoteButton key={note.id} note={note} />
+                      {groupedNotes[dateKey].map((qahwa: SimpleNote) => (
+                        <NoteButton key={qahwa.id} qahwa={qahwa} />
                       ))}
                     </div>
                   </div>

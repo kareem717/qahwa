@@ -1,4 +1,4 @@
-import { createServerClient } from "@note/auth/server";
+import { createServerClient } from "@qahwa/auth/server";
 import { env } from "cloudflare:workers";
 
 export const createAuthClient = () =>

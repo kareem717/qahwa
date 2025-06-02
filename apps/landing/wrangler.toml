@@ -1,4 +1,4 @@
-name = "note-landing"
+name = "qahwa-landing"
 compatibility_flags = ["nodejs_compat_v2"]
 compatibility_date = "2024-05-05"
 main = ".output/server/index.mjs"
@@ -6,8 +6,7 @@ minify = true
 
 [env.production]
 routes = [{ pattern = "www.waitq.sh", custom_domain = true }]
-name = "note-landing"
-r2_buckets = [{ binding = "R2_BUCKET", bucket_name = "note-app-version" }]
+name = "qahwa-landing"
 
 [assets]
 directory = "./.output/public/"

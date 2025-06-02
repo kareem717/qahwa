@@ -12,10 +12,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@note/landing/components",
-    "hooks": "@note/landing/hooks",
-    "lib": "@note/landing/lib",
-    "utils": "@note/ui/lib/utils",
-    "ui": "@note/ui/components"
+    "components": "@qahwa/landing/components",
+    "hooks": "@qahwa/landing/hooks",
+    "lib": "@qahwa/landing/lib",
+    "utils": "@qahwa/ui/lib/utils",
+    "ui": "@qahwa/ui/components"
   }
 }

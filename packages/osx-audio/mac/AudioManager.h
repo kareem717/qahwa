@@ -91,7 +91,7 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
  * @brief Start capturing audio from the system.
  * @param error Pointer to NSError object that will be set if an error occurs.
  * @return YES if capture started successfully, NO otherwise.
- * @note Requires proper permissions and device setup before starting.
+ * @qahwa Requires proper permissions and device setup before starting.
  */
 - (BOOL)startCapture:(NSError **)error;
 
@@ -105,7 +105,7 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 /**
  * @brief Set the callback function for receiving captured audio data.
  * @param callback Block that will be called with captured audio data.
- * @note The callback is invoked on a dedicated audio queue thread.
+ * @qahwa The callback is invoked on a dedicated audio queue thread.
  */
 - (void)setSystemAudioDataCallback:(void (^)(NSData *audioData))callback;
 
@@ -133,7 +133,7 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 
 /**
  * @brief Initialize the TCC framework for permission handling.
- * @note This is called internally during initialization.
+ * @qahwa This is called internally during initialization.
  */
 - (void)initializeTCCFramework;
 
@@ -172,25 +172,25 @@ typedef void (*TCCRequestFuncType)(CFStringRef service, CFDictionaryRef options,
 
 /**
  * @brief Clean up and release audio resources.
- * @note Called internally during deallocation or when stopping capture.
+ * @qahwa Called internally during deallocation or when stopping capture.
  */
 - (void)destroyAudioResources;
 
 /**
  * @brief Start monitoring for audio device changes.
- * @note Sets up listeners for device configuration changes.
+ * @qahwa Sets up listeners for device configuration changes.
  */
 - (void)startDeviceMonitoring;
 
 /**
  * @brief Stop monitoring for audio device changes.
- * @note Removes device configuration change listeners.
+ * @qahwa Removes device configuration change listeners.
  */
 - (void)stopDeviceMonitoring;
 
 /**
  * @brief Handle changes in audio device configuration.
- * @note Called automatically when device changes are detected.
+ * @qahwa Called automatically when device changes are detected.
  */
 - (void)handleDeviceChange;
 

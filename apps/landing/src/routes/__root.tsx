@@ -6,7 +6,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 
-import appCss from "@note/ui/styles/globals.css?url";
+import appCss from "@qahwa/ui/styles/globals.css?url";
 import { Toaster } from "sonner";
 
 export const Route = createRootRoute({
@@ -21,7 +21,7 @@ export const Route = createRootRoute({
       },
       {
         name: "description",
-        content: "AI assistant and note compiler for calls.",
+        content: "AI assistant and qahwa compiler for calls.",
       },
       {
         title: "qahwa",

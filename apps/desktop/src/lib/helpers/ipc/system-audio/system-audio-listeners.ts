@@ -2,7 +2,7 @@ import {
   createAudioManager,
   type DeviceType,
   type PermissionResult,
-} from "@note/osx-audio";
+} from "@qahwa/osx-audio";
 import type { IpcMainEvent } from "electron";
 import { registerIpcHandlers, registerIpcListeners } from "../ipc-utils";
 
@@ -18,7 +18,10 @@ export function addSystemAudioEventListeners() {
         throw error; // Re-throw to be caught by the invoke call
       }
     },
-    "request-permissions": async (_event, ...args): Promise<PermissionResult> => {
+    "request-permissions": async (
+      _event,
+      ...args
+    ): Promise<PermissionResult> => {
       try {
         const deviceType = args[0] as DeviceType;
         console.log(
@@ -32,7 +35,10 @@ export function addSystemAudioEventListeners() {
         return permissions;
       } catch (e) {
         const error = e as Error;
-        console.error(`Error requesting permissions for ${args[0] as DeviceType}:`, error);
+        console.error(
+          `Error requesting permissions for ${args[0] as DeviceType}:`,
+          error,
+        );
         throw error; // Re-throw to be caught by the invoke call in renderer
       }
     },

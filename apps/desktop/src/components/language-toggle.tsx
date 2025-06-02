@@ -1,8 +1,11 @@
 import React from "react";
-import { ToggleGroup, ToggleGroupItem } from "@note/ui/components/toggle-group";
-import langs from "@note/desktop/lib/localization/langs";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@qahwa/ui/components/toggle-group";
+import langs from "@qahwa/desktop/lib/localization/langs";
 import { useTranslation } from "react-i18next";
-import { setAppLanguage } from "@note/desktop/lib/helpers/language_helpers";
+import { setAppLanguage } from "@qahwa/desktop/lib/helpers/language_helpers";
 
 export default function LangToggle() {
   const { i18n } = useTranslation();

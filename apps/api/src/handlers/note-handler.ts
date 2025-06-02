@@ -3,15 +3,15 @@ import { withAuth, getAuth } from "../lib/middleware/with-auth";
 import { HTTPException } from "hono/http-exception";
 import { env } from "cloudflare:workers";
 import { zValidator } from "@hono/zod-validator";
-import { getDb } from "@note/db";
-import { notes } from "@note/db/schema";
+import { getDb } from "@qahwa/db";
+import { notes } from "@qahwa/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { InsertNoteSchema } from "@note/db/validation";
+import { InsertNoteSchema } from "@qahwa/db/validation";
 import { z } from "zod";
 import { generateNotes, generateTitle } from "../lib/ai/notes";
 import { AssemblyAI } from "assemblyai";
-import type { Note } from "@note/db/types";
-import { stream, streamText } from "hono/streaming";
+import type { qahwa } from "@qahwa/db/types";
+import { stream } from "hono/streaming";
 
 export const noteHandler = () =>
   new Hono()
@@ -84,13 +84,13 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        const [note] = await db
+        const [qahwa] = await db
           .select()
           .from(notes)
           .where(and(eq(notes.userId, Number(user.id)), eq(notes.id, id)));
 
         return c.json({
-          note: note ?? null,
+          qahwa: qahwa ?? null,
         });
       },
     )
@@ -115,26 +115,26 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        const [note] = await db
+        const [qahwa] = await db
           .select()
           .from(notes)
           .where(and(eq(notes.id, id)));
 
-        if (!note) {
+        if (!qahwa) {
           throw new HTTPException(404, {
-            message: "Note not found",
+            message: "qahwa not found",
           });
         }
 
-        if (note.userId !== Number(user.id)) {
+        if (qahwa.userId !== Number(user.id)) {
           throw new HTTPException(403, {
-            message: "You are not allowed to delete this note",
+            message: "You are not allowed to delete this qahwa",
           });
         }
 
         await db.delete(notes).where(eq(notes.id, id));
 
-        console.log("deleted note", note);
+        console.log("deleted qahwa", qahwa);
 
         return c.body(null, 204);
       },
@@ -169,11 +169,11 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        let note: Note;
+        let qahwa: qahwa;
         if (id) {
           // Update
-          // console.log("updating note", id)
-          [note] = await db
+          // console.log("updating qahwa", id)
+          [qahwa] = await db
             .update(notes)
             .set({
               title: title ?? undefined,
@@ -184,7 +184,7 @@ export const noteHandler = () =>
             .returning();
         } else {
           // Insert
-          // console.log("inserting note", noteId)
+          // console.log("inserting qahwa", noteId)
           let insertableTitle = title;
           if (!insertableTitle) {
             if (transcript || userNotes) {
@@ -195,12 +195,12 @@ export const noteHandler = () =>
               );
             } else {
               throw new HTTPException(400, {
-                message: "Note has no title, transcript, or user notes",
+                message: "qahwa has no title, transcript, or user notes",
               });
             }
           }
 
-          [note] = await db
+          [qahwa] = await db
             .insert(notes)
             .values({
               userId: Number(user.id),
@@ -212,7 +212,7 @@ export const noteHandler = () =>
         }
 
         return c.json({
-          note,
+          qahwa,
         });
       },
     )
@@ -237,23 +237,23 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        const [note] = await db.select().from(notes).where(eq(notes.id, id));
+        const [qahwa] = await db.select().from(notes).where(eq(notes.id, id));
 
-        if (!note) {
+        if (!qahwa) {
           throw new HTTPException(404, {
-            message: "Note not found",
+            message: "qahwa not found",
           });
         }
 
-        if (!note.transcript) {
+        if (!qahwa.transcript) {
           throw new HTTPException(400, {
-            message: "Note has no transcript",
+            message: "qahwa has no transcript",
           });
         }
 
-        if (note.userId !== Number(user.id)) {
+        if (qahwa.userId !== Number(user.id)) {
           throw new HTTPException(403, {
-            message: "You are not allowed to generate notes for this note",
+            message: "You are not allowed to generate notes for this qahwa",
           });
         }
 
@@ -261,8 +261,8 @@ export const noteHandler = () =>
         try {
           // Get the full result from generateNotes, which includes textStream and the full text promise
           const aiStreamResult = generateNotes(
-            note.transcript,
-            note.userNotes ?? undefined,
+            qahwa.transcript,
+            qahwa.userNotes ?? undefined,
           );
 
           // For immediate streaming to the client
@@ -286,13 +286,15 @@ export const noteHandler = () =>
                       generatedNotes: fullGeneratedText, // Save the full text
                     })
                     .where(eq(notes.id, id));
-                  console.log(`Generated notes saved to DB for note ID: ${id}`);
+                  console.log(
+                    `Generated notes saved to DB for qahwa ID: ${id}`,
+                  );
                 } else {
-                  console.log(`No text generated to save for note ID: ${id}`);
+                  console.log(`No text generated to save for qahwa ID: ${id}`);
                 }
               } catch (dbError) {
                 console.error(
-                  `Failed to save generated notes to DB for note ID: ${id}`,
+                  `Failed to save generated notes to DB for qahwa ID: ${id}`,
                   dbError,
                 );
               }

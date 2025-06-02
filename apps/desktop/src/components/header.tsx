@@ -1,5 +1,5 @@
 import type React from "react";
-import { cn } from "@note/ui/lib/utils";
+import { cn } from "@qahwa/ui/lib/utils";
 import { SearchCommandBar } from "./search-command-bar";
 import { NavigateBack } from "./navigate-back";
 

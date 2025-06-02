@@ -1,10 +1,10 @@
 {
-  "name": "@note/sdk",
+  "name": "@qahwa/sdk",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@note/api": "workspace:*",
+    "@qahwa/api": "workspace:*",
     "typescript": "^5"
   },
   "exports": {

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { DeviceType, PermissionResult } from "@note/osx-audio"; // Ensure types are available
+import type { DeviceType, PermissionResult } from "@qahwa/osx-audio"; // Ensure types are available
 
 export function exposeSystemAudioContext() {
   if (contextBridge && ipcRenderer) {

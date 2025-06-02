@@ -1,5 +1,5 @@
 import React from "react";
-import type { Note as NoteType } from "@note/db/types";
+import type { qahwa as NoteType } from "@qahwa/db/types";
 import { getClient } from "../lib/api";
 import { useLiveQuery, useOptimisticMutation } from "@tanstack/react-db";
 import { fullNoteCollection, notesCollection } from "../lib/collections/notes";
@@ -9,7 +9,7 @@ import { noteIdStore, DEFAULT_NOTE_ID } from "../hooks/use-note-id";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
-import { cn } from "@note/ui/lib/utils";
+import { cn } from "@qahwa/ui/lib/utils";
 import { noteEditorModeStore } from "../hooks/use-note-editor";
 
 const extensions = [
@@ -75,7 +75,7 @@ export function NoteEditor({
         >,
       ) => {
         const api = await getClient();
-        const resp = await api.note.$put({
+        const resp = await api.qahwa.$put({
           json: {
             id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
             ...params,
@@ -83,12 +83,12 @@ export function NoteEditor({
         });
 
         if (!resp.ok) {
-          throw new Error("Failed to update note");
+          throw new Error("Failed to update qahwa");
         }
 
-        const { note } = await resp.json();
+        const { qahwa } = await resp.json();
 
-        return note;
+        return qahwa;
       },
       {
         wait: 1500, // too low causes data inconsistency between collections
@@ -99,9 +99,9 @@ export function NoteEditor({
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
-      const { changes: note } = transaction.mutations[0];
+      const { changes: qahwa } = transaction.mutations[0];
 
-      await updateNote(noteId, note);
+      await updateNote(noteId, qahwa);
 
       // TODO: causes all of the notes in the collection to get the same updatedAt - or atleast I think its coming from here
       await noteCollection.invalidate();
@@ -137,7 +137,7 @@ export function NoteEditor({
       if (html) {
         const updatableRecord = noteCollection.state.get(noteId.toString());
         if (!updatableRecord) {
-          // throw new Error(`[NoteEditor] Note with ID of ${noteId} note found in the note collection`)
+          // throw new Error(`[NoteEditor] qahwa with ID of ${noteId} qahwa found in the qahwa collection`)
           return;
         }
         mutate(() => {
@@ -177,7 +177,7 @@ export function NoteEditor({
   function handleTitleChange(title: string) {
     const updatableRecord = noteCollection.state.get(noteId.toString());
     if (!updatableRecord) {
-      // throw new Error(`[NoteEditor] Note with ID of ${noteId} note found in the note collection`)
+      // throw new Error(`[NoteEditor] qahwa with ID of ${noteId} qahwa found in the qahwa collection`)
       return;
     }
     mutate(() => {

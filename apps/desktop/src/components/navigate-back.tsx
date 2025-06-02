@@ -1,7 +1,7 @@
 import type React from "react";
 import { useRouter } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { cn } from "@note/ui/lib/utils";
+import { cn } from "@qahwa/ui/lib/utils";
 
 //TODO: figure out how to calc if user can go back
 export function NavigateBack({

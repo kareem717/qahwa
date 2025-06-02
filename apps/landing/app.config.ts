@@ -30,11 +30,11 @@ const config = defineConfig({
     resolve: {
       alias: [
         {
-          find: "@note/landing",
+          find: "@qahwa/landing",
           replacement: path.resolve(currentDir, "./src"),
         },
         {
-          find: "@note/ui",
+          find: "@qahwa/ui",
           replacement: path.resolve(currentDir, "../../packages/ui/src"),
         },
       ],

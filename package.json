@@ -1,10 +1,10 @@
 {
-  "name": "note",
+  "name": "qahwa",
   "private": true,
   "scripts": {
-    "dev:landing": "pnpm --filter @note/landing dev",
-    "dev:desktop": "pnpm --filter @note/desktop start",
-    "dev:api": "pnpm --filter @note/api dev",
+    "dev:landing": "pnpm --filter @qahwa/landing dev",
+    "dev:desktop": "pnpm --filter @qahwa/desktop start",
+    "dev:api": "pnpm --filter @qahwa/api dev",
     "clean-all": "find . -type d -name node_modules -o -name dist -o -name .turbo -o -name .next -o -type f -name tsconfig.tsbuildinfo -o -name pnpm-lock.yaml | xargs rm -rf",
     "lint": "biome lint ./",
     "lint:fix": "biome lint --write ./",

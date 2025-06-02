@@ -1,19 +1,19 @@
 import { z } from "zod";
-import { Button } from "@note/ui/components/button";
+import { Button } from "@qahwa/ui/components/button";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@note/ui/components/form";
-import { Input } from "@note/ui/components/input";
+} from "@qahwa/ui/components/form";
+import { Input } from "@qahwa/ui/components/input";
 import type { ComponentPropsWithoutRef } from "react";
-import { cn } from "@note/ui/lib/utils";
+import { cn } from "@qahwa/ui/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@note/sdk";
+import { createClient } from "@qahwa/sdk";
 import { toast } from "sonner";
 
 const formSchema = z.object({

@@ -6,7 +6,7 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
-        appName: "Note",
+        appName: "qahwa",
         titleHomePage: "Home Page",
       },
     },

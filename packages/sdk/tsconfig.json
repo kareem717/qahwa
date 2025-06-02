@@ -19,7 +19,7 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@note/sdk/*": ["./src/*"]
+      "@qahwa/sdk/*": ["./src/*"]
     },
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,

@@ -1,18 +1,18 @@
-import { Button, buttonVariants } from "@note/ui/components/button";
+import { Button, buttonVariants } from "@qahwa/ui/components/button";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getSessionFunction } from "@note/landing/functions/auth";
+import { getSessionFunction } from "@qahwa/landing/functions/auth";
 import { createServerFn } from "@tanstack/react-start";
 import { getWebRequest } from "@tanstack/react-start/server";
-import { createClient } from "@note/sdk";
+import { createClient } from "@qahwa/sdk";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardFooter,
-} from "@note/ui/components/card";
-import { cn } from "@note/ui/lib/utils";
+} from "@qahwa/ui/components/card";
+import { cn } from "@qahwa/ui/lib/utils";
 import { Loader2 } from "lucide-react";
 
 const getAPIKey = createServerFn({ method: "GET" }).handler(async () => {

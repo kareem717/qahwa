@@ -1,4 +1,4 @@
-import { createClient as createSdkClient } from "@note/sdk";
+import { createClient as createSdkClient } from "@qahwa/sdk";
 
 const createClient = async () => {
   const token = await window.electronAuth.getToken();

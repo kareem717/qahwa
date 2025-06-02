@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@note/desktop": path.resolve(__dirname, "./src"),
-      "@note/ui": path.resolve(__dirname, "../../packages/ui/src"),
+      "@qahwa/desktop": path.resolve(__dirname, "./src"),
+      "@qahwa/ui": path.resolve(__dirname, "../../packages/ui/src"),
     },
   },
   test: {

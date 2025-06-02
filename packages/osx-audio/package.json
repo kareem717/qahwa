@@ -1,5 +1,5 @@
 {
-  "name": "@note/osx-audio",
+  "name": "@qahwa/osx-audio",
   "version": "1.0.0",
   "description": "A native system audio tap addon for Electron",
   "main": "dist/index.js",

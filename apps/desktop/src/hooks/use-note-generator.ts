@@ -19,7 +19,7 @@ export function useNoteGenerator() {
   async function generate() {
     // Optional: Add validation for noteId if needed, e.g.,
     // if (noteId === DEFAULT_NOTE_ID) {
-    //   console.error("Cannot generate notes: Note ID is not set or is invalid.");
+    //   console.error("Cannot generate notes: qahwa ID is not set or is invalid.");
     //   return;
     // }
 
@@ -27,7 +27,7 @@ export function useNoteGenerator() {
 
     try {
       const api = await getClient();
-      const response = await api.note[":id"].generate.$put({
+      const response = await api.qahwa[":id"].generate.$put({
         param: {
           id: noteId.toString(),
         },
@@ -51,12 +51,12 @@ export function useNoteGenerator() {
           break;
         }
         mutate(() => {
-          const note = noteCollection.state.get(noteId.toString());
-          if (!note) {
-            throw new Error("Note not found");
+          const qahwa = noteCollection.state.get(noteId.toString());
+          if (!qahwa) {
+            throw new Error("qahwa not found");
           }
 
-          noteCollection.update(note, (draft) => {
+          noteCollection.update(qahwa, (draft) => {
             draft.generatedNotes = draft.generatedNotes
               ? draft.generatedNotes + value
               : value;
@@ -64,7 +64,7 @@ export function useNoteGenerator() {
         });
       }
     } catch (error) {
-      console.error("Error generating or streaming note:", error);
+      console.error("Error generating or streaming qahwa:", error);
       // Optionally, set an error state in the store here
     } finally {
       setIsGenerating(false); // Use store action

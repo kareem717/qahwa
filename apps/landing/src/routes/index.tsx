@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Typewriter } from "@note/ui/components/ui/typewriter";
+import { Typewriter } from "@qahwa/ui/components/ui/typewriter";
 import { AppleIcon, WindowsIcon, XIcon } from "../components/icons";
-import { Button } from "@note/ui/components/button";
+import { Button } from "@qahwa/ui/components/button";
 import { toast } from "sonner";
 import { DownloadLink } from "../components/download-link";
-import { QahwaIcon } from "@note/ui/components/icons";
+import { QahwaIcon } from "@qahwa/ui/components/icons";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
@@ -19,7 +19,7 @@ function HomeComponent() {
       <section className="flex flex-col items-center justify-center">
         <h1 className="text-5xl font-bold mb-3">qahwa.</h1>
         <div className="text-xl text-muted-foreground flex items-center gap-1">
-          <span>AI assistant and note compiler for</span>
+          <span>AI assistant and qahwa compiler for</span>
           <Typewriter
             text={["sales calls", "standups", "lectures", "meetings"]}
             speed={70}

@@ -138,7 +138,7 @@ function stopMicAudioCapture(state: MicAudioRecorderState) {
 
 async function getAssemblyAiToken() {
   const client = await getClient();
-  const tokenResponse = await client.note.transcribe.$get();
+  const tokenResponse = await client.qahwa.transcribe.$get();
   const { token } = await tokenResponse.json();
   if (!token) {
     throw new Error("Failed to retrieve AssemblyAI token.");
@@ -239,7 +239,7 @@ export function useTranscript() {
             : internalNoteIdRef.current,
         transcript: changes.transcript,
       };
-      const response = await api.note.$put({
+      const response = await api.qahwa.$put({
         // @ts-expect-error - TODO: fix this
         json: payload,
       });
@@ -248,19 +248,19 @@ export function useTranscript() {
         if (internalNoteIdRef.current === DEFAULT_NOTE_ID) {
           isCreatingNoteRef.current = false; // Reset on creation failure
         }
-        throw new Error("Error upserting note");
+        throw new Error("Error upserting qahwa");
       }
 
-      const { note } = await response.json();
+      const { qahwa } = await response.json();
 
-      if (internalNoteIdRef.current === DEFAULT_NOTE_ID && note && note.id) {
-        const newNoteId = note.id;
+      if (internalNoteIdRef.current === DEFAULT_NOTE_ID && qahwa && qahwa.id) {
+        const newNoteId = qahwa.id;
         setNoteId(newNoteId); // This updates internalNoteIdRef via its own useEffect.
         await fullNoteCollection(newNoteId).invalidate(); // This will update transcriptRef via useLiveQuery and its useEffect.
         isCreatingNoteRef.current = false; // Mark creation as finished. IMPORTANT: Do this after setNoteId & invalidate.
       } else {
-        if (note?.id) {
-          await fullNoteCollection(note.id).invalidate();
+        if (qahwa?.id) {
+          await fullNoteCollection(qahwa.id).invalidate();
         } else if (internalNoteIdRef.current !== DEFAULT_NOTE_ID) {
           await fullNoteCollection(internalNoteIdRef.current).invalidate();
         }
@@ -271,7 +271,7 @@ export function useTranscript() {
     },
   });
 
-  // Effect to flush pending entries once note ID is established and transcript is updated
+  // Effect to flush pending entries once qahwa ID is established and transcript is updated
   // This useEffect MUST be defined AFTER 'mutate' is defined.
   React.useEffect(() => {
     const currentActualNoteId = internalNoteIdRef.current;

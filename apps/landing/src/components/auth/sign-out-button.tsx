@@ -1,7 +1,7 @@
-import { signOut } from "@note/landing/lib/auth-client"; //import the auth client
-import { Button } from "@note/ui/components/button";
+import { signOut } from "@qahwa/landing/lib/auth-client"; //import the auth client
+import { Button } from "@qahwa/ui/components/button";
 import type { ComponentPropsWithRef } from "react";
-import { cn } from "@note/ui/lib/utils";
+import { cn } from "@qahwa/ui/lib/utils";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 

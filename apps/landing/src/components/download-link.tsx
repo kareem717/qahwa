@@ -1,5 +1,5 @@
-import { buttonVariants } from "@note/ui/components/button";
-import { cn } from "@note/ui/lib/utils";
+import { buttonVariants } from "@qahwa/ui/components/button";
+import { cn } from "@qahwa/ui/lib/utils";
 
 const PLATFORMS = ["darwin/arm64", "darwin/x64"] as const;
 
@@ -25,7 +25,11 @@ export function DownloadLink({
   }
 
   return (
-    <a href={url} {...props} className={cn(buttonVariants(), props.className)}>
+    <a
+      href={url.toString()}
+      {...props}
+      className={cn(buttonVariants(), props.className)}
+    >
       {children}
     </a>
   );

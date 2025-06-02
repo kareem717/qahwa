@@ -6,8 +6,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@note/ui/components/card";
-import { Button } from "@note/ui/components/button";
+} from "@qahwa/ui/components/card";
+import { Button } from "@qahwa/ui/components/button";
 import { getSessionFunction } from "../../functions/auth";
 
 export const Route = createFileRoute("/_auth/sign-out")({

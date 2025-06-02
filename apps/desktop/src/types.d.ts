@@ -5,7 +5,7 @@ declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
 // Import types from the osx-audio package
-import type { PermissionResult, DeviceType } from "@note/osx-audio";
+import type { PermissionResult, DeviceType } from "@qahwa/osx-audio";
 import type {
   UpdateInfo,
   UpdateError,

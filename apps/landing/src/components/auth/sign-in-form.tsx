@@ -1,8 +1,8 @@
-import { cn } from "@note/ui/lib/utils";
-import { Button } from "@note/ui/components/button";
-import { Card, CardContent } from "@note/ui/components/card";
-import { Input } from "@note/ui/components/input";
-import { Label } from "@note/ui/components/label";
+import { cn } from "@qahwa/ui/lib/utils";
+import { Button } from "@qahwa/ui/components/button";
+import { Card, CardContent } from "@qahwa/ui/components/card";
+import { Input } from "@qahwa/ui/components/input";
+import { Label } from "@qahwa/ui/components/label";
 import { ArrowRight } from "lucide-react";
 import { GithubIcon, GoogleIcon } from "../icons";
 import { SignInButton } from "./sign-in-button";

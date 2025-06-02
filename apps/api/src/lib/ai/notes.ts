@@ -1,9 +1,9 @@
-import type { Note } from "@note/db/types";
+import type { qahwa } from "@qahwa/db/types";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { env } from "cloudflare:workers";
 import { streamText } from "ai";
 
-type Transcript = Pick<Note, "transcript">["transcript"];
+type Transcript = Pick<qahwa, "transcript">["transcript"];
 
 export const generateTitle = async (
   transcript: Transcript,

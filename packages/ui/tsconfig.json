@@ -23,7 +23,7 @@
     "noPropertyAccessFromIndexSignature": false,
     "baseUrl": ".",
     "paths": {
-      "@note/ui/*": ["./src/*"]
+      "@qahwa/ui/*": ["./src/*"]
     }
   },
   "include": ["src/**/*"],

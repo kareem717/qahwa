@@ -8,7 +8,7 @@ import {
   CommandItem,
   CommandSeparator,
   CommandShortcut,
-} from "@note/ui/components/command";
+} from "@qahwa/ui/components/command";
 import {
   Calendar,
   Smile,
@@ -18,8 +18,8 @@ import {
   Settings,
   Search,
 } from "lucide-react";
-import { Button } from "@note/ui/components/button";
-import { cn } from "@note/ui/lib/utils";
+import { Button } from "@qahwa/ui/components/button";
+import { cn } from "@qahwa/ui/lib/utils";
 
 const COMMAND_KEY = "k";
 

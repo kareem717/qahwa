@@ -1,4 +1,4 @@
-import "@note/desktop/App";
+import "@qahwa/desktop/App";
 import {
   init,
   browserTracingIntegration,

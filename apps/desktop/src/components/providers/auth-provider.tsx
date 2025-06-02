@@ -1,7 +1,7 @@
 import React from "react";
-import type { AuthUser, AuthSession } from "@note/auth/types";
+import type { AuthUser, AuthSession } from "@qahwa/auth/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getClient } from "@note/desktop/lib/api";
+import { getClient } from "@qahwa/desktop/lib/api";
 
 const AuthContext = React.createContext<{
   user?:

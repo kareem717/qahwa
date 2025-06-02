@@ -1,11 +1,11 @@
-import { Button } from "@note/ui/components/button";
+import { Button } from "@qahwa/ui/components/button";
 // biome-ignore lint/style/useImportType: Required to import
 import React from "react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@note/ui/components/avatar";
+} from "@qahwa/ui/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +13,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@note/ui/components/dropdown-menu";
+} from "@qahwa/ui/components/dropdown-menu";
 import { LogOut } from "lucide-react";
 import { useAuth } from "../../components/providers/auth-provider";
 import { SignOutDialog } from "./sign-out-dialog";
-import { cn } from "@note/ui/lib/utils";
+import { cn } from "@qahwa/ui/lib/utils";
 
 interface UserButtonProps
   extends React.ComponentPropsWithoutRef<typeof Button> {}

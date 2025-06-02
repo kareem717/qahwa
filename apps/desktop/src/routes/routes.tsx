@@ -35,7 +35,7 @@ export const HomeRoute = createRoute({
 
 export const NoteRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: "/note",
+  path: "/qahwa",
   validateSearch: zodValidator(
     z.object({
       id: z.coerce.number().optional(),

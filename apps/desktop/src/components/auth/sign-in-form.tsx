@@ -1,14 +1,14 @@
 // biome-ignore lint/style/useImportType: Required to import
 import React from "react";
-import { cn } from "@note/ui/lib/utils";
-import { Button } from "@note/ui/components/button";
+import { cn } from "@qahwa/ui/lib/utils";
+import { Button } from "@qahwa/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@note/ui/components/card";
+} from "@qahwa/ui/components/card";
 import { LogIn } from "lucide-react";
 
 export function SignInForm({

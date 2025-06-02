@@ -1,7 +1,7 @@
 import type React from "react";
-import { Button } from "@note/ui/components/button";
+import { Button } from "@qahwa/ui/components/button";
 import { useNoteGenerator } from "../hooks/use-note-generator";
-import { cn } from "@note/ui/lib/utils";
+import { cn } from "@qahwa/ui/lib/utils";
 import { Loader2 } from "lucide-react";
 
 export function NoteGenerator({

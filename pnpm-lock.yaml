@@ -20,10 +20,10 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.5.0
         version: 0.5.0(hono@4.7.11)(zod@3.25.45)
-      '@note/auth':
+      '@qahwa/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@note/db':
+      '@qahwa/db':
         specifier: workspace:*
         version: link:../../packages/db
       ai:
@@ -54,13 +54,13 @@ importers:
       '@electric-sql/d2ts':
         specifier: ^0.1.5
         version: 0.1.5(@electric-sql/client@1.0.4)
-      '@note/osx-audio':
+      '@qahwa/osx-audio':
         specifier: workspace:*
         version: link:../../packages/osx-audio
-      '@note/sdk':
+      '@qahwa/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@note/ui':
+      '@qahwa/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@sentry/electron':
@@ -220,7 +220,7 @@ importers:
       '@electron/fuses':
         specifier: ^1.8.0
         version: 1.8.0
-      '@note/db':
+      '@qahwa/db':
         specifier: workspace:*
         version: link:../../packages/db
       '@playwright/test':
@@ -325,13 +325,13 @@ importers:
       '@mdx-js/rollup':
         specifier: ^3.1.0
         version: 3.1.0(acorn@8.14.1)(rollup@4.41.1)
-      '@note/auth':
+      '@qahwa/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@note/sdk':
+      '@qahwa/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@note/ui':
+      '@qahwa/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tailwindcss/postcss':
@@ -398,7 +398,7 @@ importers:
 
   packages/auth:
     dependencies:
-      '@note/db':
+      '@qahwa/db':
         specifier: workspace:*
         version: link:../db
       better-auth:
@@ -468,7 +468,7 @@ importers:
         specifier: ^4.7.8
         version: 4.7.11
     devDependencies:
-      '@note/api':
+      '@qahwa/api':
         specifier: workspace:*
         version: link:../../apps/api
       typescript:

@@ -19,7 +19,7 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@note/auth/*": ["./src/*"]
+      "@qahwa/auth/*": ["./src/*"]
     },
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,

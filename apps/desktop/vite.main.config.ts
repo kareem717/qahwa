@@ -29,7 +29,7 @@ export default defineConfig({
     rollupOptions: {
       external: [
         "electron",
-        process.env.NODE_ENV === "development" ? "@note/osx-audio" : "", // needed for `pnpm start`
+        process.env.NODE_ENV === "development" ? "@qahwa/osx-audio" : "", // needed for `pnpm start`
         ...builtinModules,
         ...builtinModules.map((m) => `node:${m}`),
       ],
@@ -46,8 +46,8 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      "@note/desktop": path.resolve(__dirname, "./src"),
-      "@note/ui": path.resolve(__dirname, "../../packages/ui/src"),
+      "@qahwa/desktop": path.resolve(__dirname, "./src"),
+      "@qahwa/ui": path.resolve(__dirname, "../../packages/ui/src"),
     },
   },
 

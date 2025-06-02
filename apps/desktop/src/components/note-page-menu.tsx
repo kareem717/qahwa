@@ -1,8 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { AudioLines, ChevronUp, Loader2, Sparkles, Square } from "lucide-react";
-import { cn } from "@note/ui/lib/utils";
-import { Button } from "@note/ui/components/button";
+import { cn } from "@qahwa/ui/lib/utils";
+import { Button } from "@qahwa/ui/components/button";
 import { useTranscript } from "../hooks/use-transcript";
 import { nanoid } from "nanoid";
 import { useNoteGenerator } from "../hooks/use-note-generator";
@@ -103,7 +103,7 @@ export function NotePageMenuButton({
       return generate();
     }
 
-    toast.error("Unable to generate note");
+    toast.error("Unable to generate qahwa");
   }
 
   return (
@@ -215,7 +215,7 @@ export function NotePageMenuButton({
           ) : (
             <Sparkles className="size-3" />
           )}
-          Generate Note
+          Generate qahwa
         </Button>
         <Button
           variant="ghost"

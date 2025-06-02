@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@note/ui/components",
-    "utils": "@note/ui/lib/utils",
-    "hooks": "@note/ui/hooks",
-    "lib": "@note/ui/lib",
-    "ui": "@note/ui/components"
+    "components": "@qahwa/ui/components",
+    "utils": "@qahwa/ui/lib/utils",
+    "hooks": "@qahwa/ui/hooks",
+    "lib": "@qahwa/ui/lib",
+    "ui": "@qahwa/ui/components"
   }
 }

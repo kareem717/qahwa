@@ -17,8 +17,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@note/desktop/*": ["./src/*"],
-      "@note/ui/*": ["../../packages/ui/src/*"]
+      "@qahwa/desktop/*": ["./src/*"],
+      "@qahwa/ui/*": ["../../packages/ui/src/*"]
     },
     "outDir": "dist",
     "moduleResolution": "bundler"

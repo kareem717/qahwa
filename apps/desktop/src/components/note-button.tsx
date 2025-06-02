@@ -1,25 +1,25 @@
 import type React from "react";
 import { ChevronRight, FileText, Loader2, Trash } from "lucide-react";
-import type { Note } from "@note/db/types";
-import { Button } from "@note/ui/components/button";
-import { cn } from "@note/ui/lib/utils";
+import type { qahwa } from "@qahwa/db/types";
+import { Button } from "@qahwa/ui/components/button";
+import { cn } from "@qahwa/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { getClient } from "../lib/api";
 import { notesCollection } from "../lib/collections/notes";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { toast } from "sonner";
 
-export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">;
+export type SimpleNote = Pick<qahwa, "id" | "title" | "updatedAt">;
 
 interface NoteButtonProps
   extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
-  note: SimpleNote;
+  qahwa: SimpleNote;
 }
 
 // TODO: doesn't shrink all the way
 export function NoteButton({
   className,
-  note: { id, title, updatedAt },
+  qahwa: { id, title, updatedAt },
   ...props
 }: NoteButtonProps) {
   const deleteNote = useOptimisticMutation({
@@ -27,7 +27,7 @@ export function NoteButton({
       const api = await getClient();
 
       //todo: error handling
-      await api.note[":id"].$delete({
+      await api.qahwa[":id"].$delete({
         param: {
           id: id.toString(),
         },
@@ -45,7 +45,7 @@ export function NoteButton({
   return (
     <Link
       {...props}
-      to="/note"
+      to="/qahwa"
       search={{
         id,
         title,
@@ -72,15 +72,15 @@ export function NoteButton({
             e.stopPropagation();
             e.preventDefault();
             deleteNote.mutate(() => {
-              const note = Array.from(notesCollection.state.values()).find(
+              const qahwa = Array.from(notesCollection.state.values()).find(
                 (t) => t.id === id,
               );
 
-              if (note) {
-                return notesCollection.delete(note);
+              if (qahwa) {
+                return notesCollection.delete(qahwa);
               }
 
-              toast.error("Note not found");
+              toast.error("qahwa not found");
             });
           }}
         >

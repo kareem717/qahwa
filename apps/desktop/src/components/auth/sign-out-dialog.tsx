@@ -1,4 +1,4 @@
-import { Button } from "@note/ui/components/button";
+import { Button } from "@qahwa/ui/components/button";
 import React from "react";
 import { useAuth } from "../providers/auth-provider";
 import { Loader2 } from "lucide-react";
@@ -10,7 +10,7 @@ import {
   DialogContent,
   DialogTrigger,
   DialogFooter,
-} from "@note/ui/components/dialog";
+} from "@qahwa/ui/components/dialog";
 
 interface SignOutDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {

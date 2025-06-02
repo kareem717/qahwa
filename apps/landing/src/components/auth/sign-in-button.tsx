@@ -1,5 +1,5 @@
-import { signIn } from "@note/landing/lib/auth-client"; //import the auth client
-import { Button } from "@note/ui/components/button";
+import { signIn } from "@qahwa/landing/lib/auth-client"; //import the auth client
+import { Button } from "@qahwa/ui/components/button";
 import { type ComponentPropsWithRef, useState } from "react";
 
 interface SignInButtonProps extends ComponentPropsWithRef<typeof Button> {
@@ -37,7 +37,7 @@ export function SignInButton({
       /**
        * A URL to redirect if the user is newly registered
        */
-      // newUserCallbackURL: "note-app://",
+      // newUserCallbackURL: "qahwa-app://",
       /**
        * disable the automatic redirect to the provider.
        * @default false

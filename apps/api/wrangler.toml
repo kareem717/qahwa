@@ -15,7 +15,8 @@ BETTER_AUTH_URL = "http://localhost:8080"
 
 [env.production]
 routes = [{ pattern = "api.waitq.sh", custom_domain = true }]
-name = "note-api"
+name = "qahwa-api"
+r2_buckets = [{ binding = "RELEASE_BUCKET", bucket_name = "note-app-version" }]
 
 [observability]
 enabled = true

@@ -28,7 +28,7 @@ export function addUpdateEventListeners(mainWindow: BrowserWindow) {
     "update-available",
     "update-not-available",
     "error",
-    "update-downloaded"
+    "update-downloaded",
   ] as const;
 
   for (const event of autoUpdaterEvents) {

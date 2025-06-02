@@ -38,8 +38,8 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
     alias: {
-      "@note/desktop": path.resolve(__dirname, "./src"),
-      "@note/ui": path.resolve(__dirname, "../../packages/ui/src"),
+      "@qahwa/desktop": path.resolve(__dirname, "./src"),
+      "@qahwa/ui": path.resolve(__dirname, "../../packages/ui/src"),
     },
   },
 });

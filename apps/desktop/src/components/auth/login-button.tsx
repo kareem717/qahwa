@@ -1,5 +1,5 @@
-import { Button } from "@note/ui/components/button";
-import { cn } from "@note/ui/lib/utils";
+import { Button } from "@qahwa/ui/components/button";
+import { cn } from "@qahwa/ui/lib/utils";
 import type React from "react";
 
 interface LoginButtonProps

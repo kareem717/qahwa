@@ -8,8 +8,8 @@
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
-      "@note/landing/*": ["./src/*"],
-      "@note/ui/*": ["../../packages/ui/src/*"]
+      "@qahwa/landing/*": ["./src/*"],
+      "@qahwa/ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

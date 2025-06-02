@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getSessionFunction } from "../../functions/auth";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { SignInForm } from "@note/landing/components/auth/sign-in-form";
+import { SignInForm } from "@qahwa/landing/components/auth/sign-in-form";
 
 export const Route = createFileRoute("/_auth/sign-in")({
   component: RouteComponent,

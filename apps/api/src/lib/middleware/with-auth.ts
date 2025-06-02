@@ -1,7 +1,7 @@
 import { createMiddleware } from "hono/factory";
 import { createAuthClient } from "../auth";
 import type { Context } from "hono";
-import type { AuthType } from "@note/auth/types";
+import type { AuthType } from "@qahwa/auth/types";
 import { HTTPException } from "hono/http-exception";
 
 export const getAuth = (c: Context) => {

@@ -1,5 +1,5 @@
 {
-  "name": "@note/desktop",
+  "name": "@qahwa/desktop",
   "productName": "Qahwa",
   "version": "0.0.0",
   "main": ".vite/build/main.cjs",
@@ -32,7 +32,7 @@
     "@electron-forge/publisher-s3": "^7.8.1",
     "@electron-forge/shared-types": "^7.8.0",
     "@electron/fuses": "^1.8.0",
-    "@note/db": "workspace:*",
+    "@qahwa/db": "workspace:*",
     "@playwright/test": "^1.52.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -65,9 +65,9 @@
   },
   "dependencies": {
     "@electric-sql/d2ts": "^0.1.5",
-    "@note/osx-audio": "workspace:*",
-    "@note/sdk": "workspace:*",
-    "@note/ui": "workspace:*",
+    "@qahwa/osx-audio": "workspace:*",
+    "@qahwa/sdk": "workspace:*",
+    "@qahwa/ui": "workspace:*",
     "@sentry/electron": "^6.6.0",
     "@sentry/vite-plugin": "^3.5.0",
     "@tailwindcss/vite": "^4.1.4",
