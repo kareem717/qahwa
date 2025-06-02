@@ -6,6 +6,8 @@ import { useLiveQuery } from "@tanstack/react-db";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { noteIdStore, DEFAULT_NOTE_ID, setNoteId } from "./use-note-id";
 import { useStore } from "@tanstack/react-store";
+import type { AECAudioData } from "../lib/helpers/ipc/aec-audio/aec-audio-context";
+import type { AECConfig } from "@qahwa/osx-audio";
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -368,6 +370,7 @@ export function useTranscript() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isRecording, setIsRecording] = React.useState(false);
+  const [useAEC, setUseAEC] = React.useState(true); // New state to toggle AEC
 
   // Refs
   const systemSocketRef = React.useRef<WebSocket | null>(null);
@@ -380,7 +383,11 @@ export function useTranscript() {
     setIsLoading(false);
     setIsRecording(false);
 
-    window.electronSystemAudio.stopCapture();
+    if (useAEC) {
+      window.electronAECAudio.stopCapture();
+    } else {
+      window.electronSystemAudio.stopCapture();
+    }
     cleanupAudioIpc(audioIpcCleanupRef);
     closeAndClearWebSocket(systemSocketRef);
     closeAndClearWebSocket(micSocketRef);
@@ -389,7 +396,7 @@ export function useTranscript() {
     // Reset creation-specific state
     isCreatingNoteRef.current = false;
     pendingTranscriptEntriesRef.current = [];
-  }, []);
+  }, [useAEC]);
 
   const startRecording = React.useCallback(async () => {
     if (isRecording || isLoading) {
@@ -412,105 +419,191 @@ export function useTranscript() {
       let isSystemReady = false;
       let isMicReady = false;
 
-      const checkAndStartElectronCapture = async () => {
-        const currentPerms = await window.electronSystemAudio.getPermissions();
+      const checkAndStartAudioCapture = async () => {
+        if (useAEC) {
+          // Use AEC functionality
+          const currentPerms = await window.electronAECAudio.getPermissions();
 
-        // Check microphone permission first
-        switch (currentPerms.microphone) {
-          case "authorized":
-            break;
-          case "denied":
-            toast.error("Microphone permission denied");
-            stopRecording();
-            return;
-          case "not_determined": {
-            const micPerms =
-              await window.electronSystemAudio.requestPermissions("microphone");
-            if (micPerms.microphone !== "authorized") {
-              toast.error("Microphone permission required");
+          // Check microphone permission first
+          switch (currentPerms.microphone) {
+            case "authorized":
+              break;
+            case "denied":
+              toast.error("Microphone permission denied");
               stopRecording();
               return;
+            case "not_determined": {
+              const micPerms =
+                await window.electronAECAudio.requestPermissions("microphone");
+              if (micPerms.microphone !== "authorized") {
+                toast.error("Microphone permission required");
+                stopRecording();
+                return;
+              }
+              break;
             }
-            break;
+            case "restricted":
+              toast.error("Microphone permission restricted");
+              stopRecording();
+              return;
           }
-          case "restricted":
-            toast.error("Microphone permission restricted");
-            stopRecording();
-            return;
-        }
 
-        // Check system audio permission
-        switch (currentPerms.audio) {
-          case "authorized":
-            break;
-          case "denied":
-            toast.error(
-              "Screen recording permission denied. Please enable it in System Preferences > Security & Privacy > Screen Recording to capture system audio.",
-            );
-            stopRecording();
-            return;
-          case "not_determined": {
-            const audioPerms =
-              await window.electronSystemAudio.requestPermissions("audio");
-            if (audioPerms.audio !== "authorized") {
+          // Check system audio permission
+          switch (currentPerms.audio) {
+            case "authorized":
+              break;
+            case "denied":
               toast.error(
-                "Screen recording permission is required for system audio capture. Please enable it in System Preferences > Security & Privacy > Screen Recording.",
+                "Screen recording permission denied. Please enable it in System Preferences > Security & Privacy > Screen Recording to capture system audio.",
               );
               stopRecording();
               return;
+            case "not_determined": {
+              const audioPerms =
+                await window.electronAECAudio.requestPermissions("audio");
+              if (audioPerms.audio !== "authorized") {
+                toast.error(
+                  "Screen recording permission is required for system audio capture. Please enable it in System Preferences > Security & Privacy > Screen Recording.",
+                );
+                stopRecording();
+                return;
+              }
+              break;
             }
-            break;
+            case "restricted":
+              toast.error(
+                "Screen recording permission is restricted by system policy.",
+              );
+              stopRecording();
+              return;
           }
-          case "restricted":
-            toast.error(
-              "Screen recording permission is restricted by system policy.",
-            );
-            stopRecording();
-            return;
-        }
 
-        if (isSystemReady && isMicReady) {
-          try {
-            const handleSystemData = (data: ArrayBuffer) => {
-              if (systemSocketRef.current?.readyState === WebSocket.OPEN) {
-                systemSocketRef.current.send(data);
-              }
-            };
-            const handleMicData = (data: ArrayBuffer) => {
-              if (micSocketRef.current?.readyState === WebSocket.OPEN) {
-                micSocketRef.current.send(data);
-              }
-            };
+          if (isSystemReady && isMicReady) {
+            try {
+              const handleAECData = (data: AECAudioData) => {
+                // Send cleaned microphone audio (with echo cancellation) to mic transcription
+                if (micSocketRef.current?.readyState === WebSocket.OPEN) {
+                  micSocketRef.current.send(data.cleanAudio);
+                }
 
-            const cleanupElectronAndMic = () => {
-              window.electronSystemAudio.startCapture(handleSystemData);
-              startMicAudioCapture(handleMicData)
-                .then((recorderState) => {
-                  micRecorderRef.current = recorderState;
-                })
-                .catch((error) => {
-                  console.log("Failed to start microphone capture.", error);
-                  toast.error("Failed to start microphone capture.");
-                  stopRecording(); // Critical failure, stop everything
-                  throw error;
-                });
-
-              return () => {
-                if (micRecorderRef.current) {
-                  stopMicAudioCapture(micRecorderRef.current);
-                  micRecorderRef.current = null;
+                // Send system audio to system transcription
+                if (systemSocketRef.current?.readyState === WebSocket.OPEN) {
+                  systemSocketRef.current.send(data.systemAudio);
                 }
               };
-            };
-            audioIpcCleanupRef.current = cleanupElectronAndMic();
 
-            setIsLoading(false);
-            setIsRecording(true);
-          } catch (error) {
-            console.error("Failed to start audio capture8.", error);
-            toast.error("Failed to start audio capture.");
-            stopRecording();
-            throw error;
+              audioIpcCleanupRef.current = window.electronAECAudio.startCapture(handleAECData);
+
+              setIsLoading(false);
+              setIsRecording(true);
+            } catch (error) {
+              console.error("Failed to start AEC audio capture.", error);
+              toast.error("Failed to start AEC audio capture.");
+              stopRecording();
+              throw error;
+            }
+          }
+        } else {
+          // Fallback to original separate capture method
+          const currentPerms = await window.electronSystemAudio.getPermissions();
+
+          // Check microphone permission first
+          switch (currentPerms.microphone) {
+            case "authorized":
+              break;
+            case "denied":
+              toast.error("Microphone permission denied");
+              stopRecording();
+              return;
+            case "not_determined": {
+              const micPerms =
+                await window.electronSystemAudio.requestPermissions("microphone");
+              if (micPerms.microphone !== "authorized") {
+                toast.error("Microphone permission required");
+                stopRecording();
+                return;
+              }
+              break;
+            }
+            case "restricted":
+              toast.error("Microphone permission restricted");
+              stopRecording();
+              return;
+          }
+
+          // Check system audio permission
+          switch (currentPerms.audio) {
+            case "authorized":
+              break;
+            case "denied":
+              toast.error(
+                "Screen recording permission denied. Please enable it in System Preferences > Security & Privacy > Screen Recording to capture system audio.",
+              );
+              stopRecording();
+              return;
+            case "not_determined": {
+              const audioPerms =
+                await window.electronSystemAudio.requestPermissions("audio");
+              if (audioPerms.audio !== "authorized") {
+                toast.error(
+                  "Screen recording permission is required for system audio capture. Please enable it in System Preferences > Security & Privacy > Screen Recording.",
+                );
+                stopRecording();
+                return;
+              }
+              break;
+            }
+            case "restricted":
+              toast.error(
+                "Screen recording permission is restricted by system policy.",
+              );
+              stopRecording();
+              return;
+          }
+
+          if (isSystemReady && isMicReady) {
+            try {
+              const handleSystemData = (data: ArrayBuffer) => {
+                if (systemSocketRef.current?.readyState === WebSocket.OPEN) {
+                  systemSocketRef.current.send(data);
+                }
+              };
+              const handleMicData = (data: ArrayBuffer) => {
+                if (micSocketRef.current?.readyState === WebSocket.OPEN) {
+                  micSocketRef.current.send(data);
+                }
+              };
+
+              const cleanupElectronAndMic = () => {
+                window.electronSystemAudio.startCapture(handleSystemData);
+                startMicAudioCapture(handleMicData)
+                  .then((recorderState) => {
+                    micRecorderRef.current = recorderState;
+                  })
+                  .catch((error) => {
+                    console.log("Failed to start microphone capture.", error);
+                    toast.error("Failed to start microphone capture.");
+                    stopRecording(); // Critical failure, stop everything
+                    throw error;
+                  });
+
+                return () => {
+                  if (micRecorderRef.current) {
+                    stopMicAudioCapture(micRecorderRef.current);
+                    micRecorderRef.current = null;
+                  }
+                };
+              };
+              audioIpcCleanupRef.current = cleanupElectronAndMic();
+
+              setIsLoading(false);
+              setIsRecording(true);
+            } catch (error) {
+              console.error("Failed to start audio capture.", error);
+              toast.error("Failed to start audio capture.");
+              stopRecording();
+              throw error;
+            }
           }
         }
       };
@@ -520,7 +613,7 @@ export function useTranscript() {
         url: systemWsUrl,
         onOpen: async () => {
           isSystemReady = true;
-          await checkAndStartElectronCapture();
+          await checkAndStartAudioCapture();
         },
         onMessage: (event) => {
           try {
@@ -575,7 +668,7 @@ export function useTranscript() {
         url: micWsUrl,
         onOpen: async () => {
           isMicReady = true;
-          await checkAndStartElectronCapture();
+          await checkAndStartAudioCapture();
         },
         onMessage: (event) => {
           try {
@@ -621,14 +714,14 @@ export function useTranscript() {
         },
       });
     } catch (error) {
-      console.error("Failed to start rechording.", error);
+      console.error("Failed to start recording.", error);
       toast.error(
         `Error starting recording: ${error instanceof Error ? error.message : String(error)}`,
       );
-      stopRecording(); //TODO: remove this
+      stopRecording();
       throw error;
     }
-  }, [isRecording, isLoading, stopRecording, handleTranscriptChange]);
+  }, [isRecording, isLoading, stopRecording, handleTranscriptChange, useAEC]);
 
   // Effect for automatic cleanup on unmount
   React.useEffect(() => {
@@ -641,12 +734,37 @@ export function useTranscript() {
     };
   }, [stopRecording]); // Dependency on stopRecording
 
+  // AEC configuration management
+  const [aecConfig, setAecConfig] = React.useState<AECConfig | null>(null);
+
+  React.useEffect(() => {
+    if (useAEC) {
+      window.electronAECAudio.getDefaultConfig().then(setAecConfig);
+    }
+  }, [useAEC]);
+
+  const updateAECConfig = React.useCallback(async (newConfig: AECConfig) => {
+    try {
+      await window.electronAECAudio.updateConfig(newConfig);
+      setAecConfig(newConfig);
+      toast.success("AEC configuration updated");
+    } catch (error) {
+      console.error("Failed to update AEC config:", error);
+      toast.error("Failed to update AEC configuration");
+    }
+  }, []);
+
   return {
     transcript,
     partialTranscript,
-    isRecording, // Use the combined state
-    isLoading, // Use the combined state
+    isRecording,
+    isLoading,
     startRecording,
     stopRecording,
+    // AEC-related exports
+    useAEC,
+    setUseAEC,
+    aecConfig,
+    updateAECConfig,
   };
 }

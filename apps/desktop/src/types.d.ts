@@ -5,11 +5,12 @@ declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
 // Import types from the osx-audio package
-import type { PermissionResult, DeviceType } from "@qahwa/osx-audio";
+import type { PermissionResult, DeviceType, AECConfig } from "@qahwa/osx-audio";
 import type {
   UpdateInfo,
   UpdateError,
 } from "./lib/helpers/ipc/update/update-context";
+import type { AECAudioData } from "./lib/helpers/ipc/aec-audio/aec-audio-context";
 
 // Preload types
 interface ThemeModeContext {
@@ -27,11 +28,9 @@ interface WindowContext {
 }
 
 interface AuthContext {
-  openSignInWindow: () => void;
-  handleAuthCallback: (callback: (url: string) => void) => () => void;
-  getToken: () => Promise<string | null>;
-  setToken: (token: string) => Promise<void>;
-  removeToken: () => Promise<void>;
+  signIn: () => Promise<boolean>;
+  signOut: () => Promise<boolean>;
+  isSignedIn: () => Promise<boolean>;
 }
 
 interface ElectronSystemAudio {
@@ -39,6 +38,17 @@ interface ElectronSystemAudio {
   startCapture: (systemCallback: (data: ArrayBuffer) => void) => () => void;
   stopCapture: () => void;
   requestPermissions: (deviceType: DeviceType) => Promise<PermissionResult>;
+}
+
+interface ElectronAECAudio {
+  getPermissions: () => Promise<PermissionResult>;
+  requestPermissions: (deviceType: DeviceType) => Promise<PermissionResult>;
+  getConfig: () => Promise<AECConfig>;
+  updateConfig: (config: AECConfig) => Promise<void>;
+  getDefaultConfig: () => Promise<AECConfig>;
+  isActive: () => Promise<boolean>;
+  startCapture: (callback: (data: AECAudioData) => void) => () => void;
+  stopCapture: () => void;
 }
 
 interface ElectronUpdater {
@@ -59,6 +69,7 @@ declare global {
     electronWindow: WindowContext;
     electronAuth: AuthContext;
     electronSystemAudio: ElectronSystemAudio;
+    electronAECAudio: ElectronAECAudio;
     electronUpdater: ElectronUpdater;
   }
 }

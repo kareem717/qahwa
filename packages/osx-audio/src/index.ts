@@ -23,6 +23,18 @@ export interface PermissionResult {
 }
 
 /**
+ * Configuration for AEC (Acoustic Echo Cancellation) processing.
+ */
+export interface AECConfig {
+  sampleRate: number;           // Sample rate (typically 48000.0)
+  channelsPerFrame: number;     // Number of channels (typically 1 for mono)
+  framesPerBuffer: number;      // Buffer size in frames (typically 512)
+  enableAGC: boolean;           // Enable Automatic Gain Control
+  enableNoiseSupression: boolean; // Enable Noise Suppression
+  enableAEC: boolean;           // Enable Acoustic Echo Cancellation
+}
+
+/**
  * Interface for the native audio manager instance.
  */
 export interface AudioWrapperInstance {
@@ -54,11 +66,64 @@ export interface AudioWrapperInstance {
 }
 
 /**
+ * Interface for the AEC-enabled audio manager instance.
+ */
+export interface AudioManagerAECInstance {
+  /**
+   * Start capturing system audio and microphone with AEC processing.
+   * @param callback Function that receives processed audio data
+   * @throws If permissions not granted or setup fails
+   */
+  startAECCapture(callback: (cleanAudio: ArrayBuffer, originalAudio: ArrayBuffer, systemAudio: ArrayBuffer) => void): void;
+
+  /**
+   * Stop the current AEC capture session.
+   * @throws If stopping capture fails
+   */
+  stopAECCapture(): void;
+
+  /**
+   * Check if AEC processing is currently active.
+   * @returns True if AEC processing is active
+   */
+  isAECActive(): boolean;
+
+  /**
+   * Update AEC configuration.
+   * @param config New AEC configuration parameters
+   * @throws If configuration update fails
+   */
+  updateAECConfig(config: AECConfig): void;
+
+  /**
+   * Get current AEC configuration.
+   * @returns Current AEC configuration
+   */
+  getCurrentAECConfig(): AECConfig;
+
+  /**
+   * Get current permission status for audio devices.
+   * @returns Object containing permission status for each device type
+   */
+  getPermissions: () => PermissionResult;
+
+  /**
+   * Request permission to access an audio device.
+   * @param deviceType The type of device to request permission for
+   * @returns Promise that resolves with updated permission status
+   */
+  requestPermissions: (deviceType: DeviceType) => Promise<PermissionResult>;
+}
+
+/**
  * Interface for the native addon module.
  */
 export interface NativeAddon {
   AudioWrapper: {
-    new (): AudioWrapperInstance;
+    new(): AudioWrapperInstance;
+  };
+  AudioManagerAEC: {
+    new(): AudioManagerAECInstance;
   };
 }
 
@@ -117,4 +182,27 @@ try {
   );
 }
 
+/**
+ * Create a basic audio manager instance for system audio capture.
+ * @returns AudioWrapperInstance for basic system audio functionality
+ */
 export const createAudioManager = () => new nativeAddon.AudioWrapper();
+
+/**
+ * Create an AEC-enabled audio manager instance.
+ * @returns AudioManagerAECInstance with echo cancellation capabilities
+ */
+export const createAudioManagerAEC = () => new nativeAddon.AudioManagerAEC();
+
+/**
+ * Get default AEC configuration.
+ * @returns Default AEC configuration optimized for most use cases
+ */
+export const getDefaultAECConfig = (): AECConfig => ({
+  sampleRate: 48000.0,
+  channelsPerFrame: 1,
+  framesPerBuffer: 512,
+  enableAGC: true,
+  enableNoiseSupression: true,
+  enableAEC: true,
+});
