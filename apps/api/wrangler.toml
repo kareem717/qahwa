@@ -12,11 +12,17 @@ LANDING_URL = "http://localhost:3000"
 ELECTRON_URL = "http://localhost:5173"
 DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "http://localhost:8080"
+NODE_ENV = "development"
+
+[[r2_buckets]]
+binding = "RELEASE_BUCKET"
+bucket_name = "note-app-version"
 
 [env.production]
 routes = [{ pattern = "api.waitq.sh", custom_domain = true }]
 name = "qahwa-api"
 r2_buckets = [{ binding = "RELEASE_BUCKET", bucket_name = "note-app-version" }]
+upload_source_maps = true
 
 [observability]
 enabled = true
@@ -27,3 +33,4 @@ ELECTRON_URL = "http://localhost:5173"
 DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "https://api.waitq.sh"
 BASE_DOMAIN = "waitq.sh"
+NODE_ENV = "production"

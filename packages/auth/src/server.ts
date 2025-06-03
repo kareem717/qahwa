@@ -5,6 +5,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI, apiKey } from "better-auth/plugins";
 import { reactStartCookies } from "better-auth/react-start";
 
+export const API_KEY_HEADER_NAME = 'x-api-key';
+
 export const createServerClient = ({
   basePath,
   databaseUrl,
@@ -76,7 +78,9 @@ export const createServerClient = ({
       openAPI({
         path: "/docs",
       }),
-      apiKey(),
+      apiKey({
+        apiKeyHeaders: API_KEY_HEADER_NAME
+      }),
       reactStartCookies(), // Has to be the last plugin
     ],
   });

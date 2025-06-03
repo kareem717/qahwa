@@ -10,7 +10,6 @@ import { InsertNoteSchema } from "@qahwa/db/validation";
 import { z } from "zod";
 import { generateNotes, generateTitle } from "../lib/ai/notes";
 import { AssemblyAI } from "assemblyai";
-import type { qahwa } from "@qahwa/db/types";
 import { stream } from "hono/streaming";
 
 export const noteHandler = () =>
@@ -29,9 +28,18 @@ export const noteHandler = () =>
         apiKey: env.ASSEMBLYAI_API_KEY,
       });
 
-      const tempToken = await assembly.realtime.createTemporaryToken({
-        expires_in: 60, // in seconds
-      });
+      let tempToken: string;
+      try {
+        tempToken = await assembly.realtime.createTemporaryToken({
+          expires_in: 60, // in seconds
+        });
+      } catch (e) {
+        c.get("sentry").captureException(e);
+
+        throw new HTTPException(500, {
+          message: "Failed to create temporary token",
+        });
+      }
 
       return c.json({
         token: tempToken,
@@ -48,20 +56,29 @@ export const noteHandler = () =>
 
       const db = getDb(env.DATABASE_URL);
 
-      const userNotes =
-        (await db
-          .select({
-            id: notes.id,
-            title: notes.title,
-            updatedAt: notes.updatedAt,
-          })
-          .from(notes)
-          .where(and(eq(notes.userId, Number(user.id))))
-          .orderBy(desc(notes.updatedAt))) ?? [];
+      try {
+        const userNotes =
+          (await db
+            .select({
+              id: notes.id,
+              title: notes.title,
+              updatedAt: notes.updatedAt,
+            })
+            .from(notes)
+            .where(and(eq(notes.userId, Number(user.id))))
+            .orderBy(desc(notes.updatedAt))) ?? [];
 
-      return c.json({
-        notes: userNotes,
-      });
+        return c.json({
+          notes: userNotes,
+        });
+      } catch (e) {
+        c.get("sentry").captureException(e);
+
+        throw new HTTPException(500, {
+          message: "Failed to get user notes",
+        });
+      }
+
     })
     .get(
       "/:id",
@@ -84,14 +101,22 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        const [qahwa] = await db
-          .select()
-          .from(notes)
-          .where(and(eq(notes.userId, Number(user.id)), eq(notes.id, id)));
+        try {
+          const [qahwa] = await db
+            .select()
+            .from(notes)
+            .where(and(eq(notes.userId, Number(user.id)), eq(notes.id, id)));
 
-        return c.json({
-          qahwa: qahwa ?? null,
-        });
+          return c.json({
+            qahwa: qahwa ?? null,
+          });
+        } catch (e) {
+          c.get("sentry").captureException(e);
+
+          throw new HTTPException(500, {
+            message: "Failed to get user notes",
+          });
+        }
       },
     )
     .delete(
@@ -115,38 +140,64 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        const [qahwa] = await db
-          .select()
-          .from(notes)
-          .where(and(eq(notes.id, id)));
+        let note: (typeof notes.$inferSelect) | null = null;
+        try {
+          [note] = await db
+            .select()
+            .from(notes)
+            .where(and(eq(notes.id, id)));
+        } catch (e) {
+          c.get("sentry").captureException(e);
+        }
 
-        if (!qahwa) {
+        if (!note) {
           throw new HTTPException(404, {
             message: "qahwa not found",
           });
         }
 
-        if (qahwa.userId !== Number(user.id)) {
+        if (note.userId !== Number(user.id)) {
+          c.get("sentry").captureMessage("User is not allowed to delete this note", "debug", {
+            captureContext: {
+              extra: {
+
+
+                noteUserId: note.userId,
+                // userId should already be set in the withAuth middleware
+              },
+            },
+          });
+
           throw new HTTPException(403, {
             message: "You are not allowed to delete this qahwa",
           });
         }
 
-        await db.delete(notes).where(eq(notes.id, id));
+        try {
+          await db.delete(notes).where(eq(notes.id, id));
+        } catch (e) {
+          c.get("sentry").captureException(e, {
+            captureContext: {
+              extra: {
+                requestedNoteId: id,
+                noteUserId: note.userId,
+                // userId should already be set in the withAuth middleware
+              },
+            },
+          });
 
-        console.log("deleted qahwa", qahwa);
+          throw new HTTPException(500, {
+            message: "Failed to delete note",
+          });
+        }
 
         return c.body(null, 204);
       },
     )
     .put(
       "/",
-      // zValidator("param", z.object({
-      //   id: z.coerce.number()
-      // })),
       zValidator(
         "json",
-        //TODO: no type inference
         InsertNoteSchema.pick({
           id: true,
           title: true,
@@ -163,44 +214,45 @@ export const noteHandler = () =>
           });
         }
 
-        // const { id } = c.req.valid("param")
-
         const { id, title, transcript, userNotes } = c.req.valid("json");
 
         const db = getDb(env.DATABASE_URL);
 
-        let qahwa: qahwa;
-        if (id) {
-          // Update
-          // console.log("updating qahwa", id)
-          [qahwa] = await db
-            .update(notes)
-            .set({
-              title: title ?? undefined,
-              transcript: transcript ?? undefined,
-              userNotes: userNotes ?? undefined,
-            })
-            .where(and(eq(notes.id, id), eq(notes.userId, Number(user.id))))
-            .returning();
-        } else {
-          // Insert
-          // console.log("inserting qahwa", noteId)
+        if (!id) {
           let insertableTitle = title;
           if (!insertableTitle) {
-            if (transcript || userNotes) {
-              // generate with AI
+            if (!transcript && !userNotes) {
+              c.get("sentry").captureMessage("Note has no title, transcript, or user notes", "debug");
+
+              throw new HTTPException(400, {
+                message: "Note has no title, transcript, or user notes",
+              });
+            }
+
+            try {
               insertableTitle = await generateTitle(
                 transcript ?? [],
                 userNotes ?? undefined,
               );
-            } else {
-              throw new HTTPException(400, {
-                message: "qahwa has no title, transcript, or user notes",
+            } catch (e) {
+              c.get("sentry").captureException(e, {
+                captureContext: {
+                  extra: {
+                    transcriptLength: transcript?.length,
+                    noteId: id,
+                  },
+                },
+              });
+
+              throw new HTTPException(500, {
+                message: "Failed to generate title",
               });
             }
+
+
           }
 
-          [qahwa] = await db
+          const [note] = await db
             .insert(notes)
             .values({
               userId: Number(user.id),
@@ -209,11 +261,40 @@ export const noteHandler = () =>
               transcript: transcript ?? undefined,
             })
             .returning();
+
+          return c.json({
+            note,
+          });
         }
 
-        return c.json({
-          qahwa,
-        });
+
+        try {
+          const [note] = await db
+            .update(notes)
+            .set({
+              title: title ?? undefined,
+              transcript: transcript ?? undefined,
+              userNotes: userNotes ?? undefined,
+            })
+            .where(and(eq(notes.id, id), eq(notes.userId, Number(user.id))))
+            .returning();
+
+          return c.json({
+            note,
+          });
+        } catch (e) {
+          c.get("sentry").captureException(e, {
+            captureContext: {
+              extra: {
+                noteId: id,
+              },
+            },
+          });
+
+          throw new HTTPException(500, {
+            message: "Failed to update note",
+          });
+        }
       },
     )
     .put(
@@ -237,79 +318,102 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        const [qahwa] = await db.select().from(notes).where(eq(notes.id, id));
+        let note: (typeof notes.$inferSelect) | null = null;
+        try {
+          [note] = await db.select().from(notes).where(eq(notes.id, id));
+        } catch (e) {
+          c.get("sentry").captureException(e);
 
-        if (!qahwa) {
-          throw new HTTPException(404, {
-            message: "qahwa not found",
+          throw new HTTPException(500, {
+            message: "Failed to get note",
           });
         }
 
-        if (!qahwa.transcript) {
+
+        if (!note?.transcript) {
+          c.get("sentry").captureMessage("Note has no transcript to generate notes from", "debug", {
+            captureContext: {
+              extra: {
+                noteId: id,
+              },
+            },
+          });
+
           throw new HTTPException(400, {
             message: "qahwa has no transcript",
           });
         }
 
-        if (qahwa.userId !== Number(user.id)) {
+        if (note.userId !== Number(user.id)) {
+          c.get("sentry").captureMessage("User is not allowed to generate notes for this note", "debug", {
+            captureContext: {
+              extra: {
+                noteId: id,
+                noteUserId: note.userId,
+              },
+            },
+          });
           throw new HTTPException(403, {
             message: "You are not allowed to generate notes for this qahwa",
           });
         }
 
-        let generatedNotes: string; // This variable seems unused now, can be removed if not needed elsewhere
         try {
-          // Get the full result from generateNotes, which includes textStream and the full text promise
           const aiStreamResult = generateNotes(
-            qahwa.transcript,
-            qahwa.userNotes ?? undefined,
+            note.transcript,
+            note.userNotes ?? undefined,
           );
 
-          // For immediate streaming to the client
-          const byteStream = aiStreamResult.textStream.pipeThrough(
-            new TextEncoderStream(),
+          // Schedule background task to save to DB after stream completion
+          c.executionCtx.waitUntil(
+            (async () => {
+              let text: string;
+              try {
+                text = await aiStreamResult.text; // Wait for the full text
+              } catch (e) {
+                c.get("sentry").captureException(e, {
+                  captureContext: {
+                    extra: {
+                      noteId: id,
+                    },
+                  },
+                });
+                return; // no point responding to the client
+              }
+
+              try {
+                await db.update(notes).set({
+                  generatedNotes: text,
+                }).where(eq(notes.id, id));
+              } catch (e) {
+                c.get("sentry").captureException(e, {
+                  captureContext: {
+                    extra: {
+                      noteId: id,
+                    },
+                  },
+                });
+              }
+            })(),
           );
 
           c.header("Content-Type", "text/plain; charset=utf-8");
           c.header("Content-Encoding", "Identity"); // Important for Cloudflare Workers
 
-          // Schedule background task to save to DB after stream completion
-          c.executionCtx.waitUntil(
-            (async () => {
-              try {
-                const fullGeneratedText = await aiStreamResult.text; // Wait for the full text
-                if (fullGeneratedText) {
-                  const db = getDb(env.DATABASE_URL);
-                  await db
-                    .update(notes)
-                    .set({
-                      generatedNotes: fullGeneratedText, // Save the full text
-                    })
-                    .where(eq(notes.id, id));
-                  console.log(
-                    `Generated notes saved to DB for qahwa ID: ${id}`,
-                  );
-                } else {
-                  console.log(`No text generated to save for qahwa ID: ${id}`);
-                }
-              } catch (dbError) {
-                console.error(
-                  `Failed to save generated notes to DB for qahwa ID: ${id}`,
-                  dbError,
-                );
-              }
-            })(),
-          ); // IIFE to immediately invoke and pass the promise
-
-          // Pipe the byteStream into Hono's stream helper for client response
           return stream(c, async (honoStream) => {
-            await honoStream.pipe(byteStream);
+            await honoStream.pipe(aiStreamResult.textStream.pipeThrough(
+              new TextEncoderStream(), // not sure if this is needed
+            ));
           });
         } catch (error) {
-          console.error(
-            "Error in /:id/generate stream handling or DB save scheduling:",
-            error,
-          );
+          c.get("sentry").captureException(error, {
+            captureContext: {
+              extra: {
+                noteId: id,
+              },
+            },
+          });
+
           throw new HTTPException(500, {
             message: "Failed to generate notes",
           });
