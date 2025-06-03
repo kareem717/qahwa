@@ -57,6 +57,9 @@ importers:
       '@electric-sql/d2ts':
         specifier: ^0.1.5
         version: 0.1.5(@electric-sql/client@1.0.4)
+      '@qahwa/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@qahwa/osx-audio':
         specifier: workspace:*
         version: link:../../packages/osx-audio

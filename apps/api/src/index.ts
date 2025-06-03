@@ -45,7 +45,7 @@ const app = new Hono()
     }),
   )
   .route("/auth", authHandler())
-  .route("/qahwa", noteHandler())
+  .route("/note", noteHandler())
   .post(
     "/waitlist",
     zValidator("json", InsertWaitlistEmailSchema),

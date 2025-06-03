@@ -64,6 +64,7 @@
     "vitest": "^3.1.2"
   },
   "dependencies": {
+    "@qahwa/auth": "workspace:*",
     "@electric-sql/d2ts": "^0.1.5",
     "@qahwa/osx-audio": "workspace:*",
     "@qahwa/sdk": "workspace:*",

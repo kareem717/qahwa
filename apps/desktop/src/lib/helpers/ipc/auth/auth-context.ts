@@ -6,18 +6,12 @@ export function exposeAuthContext() {
       openSignInWindow: () => {
         ipcRenderer.send("open-sign-in-window");
       },
-      handleAuthCallback: (callback: (url: string) => void) => {
-        console.log("[Preload] Setting up clerk-auth-callback listener"); // Debug log 1
+      handleAuthCallback: (callback: (url: string) => Promise<void> | void) => {
         const handler = (_event: unknown, url: string) => {
-          console.log(
-            "[Preload] Received clerk-auth-callback IPC with URL:",
-            url,
-          ); // Debug log 2
           callback(url);
         };
         ipcRenderer.on("clerk-auth-callback", handler);
         return () => {
-          console.log("[Preload] Cleaning up clerk-auth-callback listener"); // Debug log 3
           ipcRenderer.removeListener("clerk-auth-callback", handler);
         };
       },

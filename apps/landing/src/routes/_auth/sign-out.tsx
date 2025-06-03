@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_auth/sign-out")({
       throw redirect({
         to: "/sign-in",
         search: {
-          redirect: location.href,
+          redirect: import.meta.env.VITE_APP_URL + location.href,
         },
       });
     }

@@ -13,6 +13,7 @@ ELECTRON_URL = "http://localhost:5173"
 DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "http://localhost:8080"
 NODE_ENV = "development"
+BASE_DOMAIN = "localhost"
 
 [[r2_buckets]]
 binding = "RELEASE_BUCKET"

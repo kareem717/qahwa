@@ -82,7 +82,7 @@ export default function HomePage() {
         >
           <div className="flex items-center gap-1">
             <Link
-              to="/qahwa"
+              to="/note"
               // Clear the qahwa id when the new qahwa button is clicked
               onClick={() => setNoteId(DEFAULT_NOTE_ID)}
               className={cn(

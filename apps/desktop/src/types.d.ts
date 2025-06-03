@@ -27,10 +27,9 @@ interface WindowContext {
 }
 
 interface AuthContext {
-  openSignInWindow: () => void;
-  handleAuthCallback: (callback: (url: string) => void) => () => void;
-  getToken: () => Promise<string | null>;
+  handleAuthCallback: (callback: (url: string) => Promise<void> | void) => () => void;
   setToken: (token: string) => Promise<void>;
+  getToken: () => Promise<string>;
   removeToken: () => Promise<void>;
 }
 
