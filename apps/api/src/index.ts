@@ -8,6 +8,7 @@ import { zValidator } from "@hono/zod-validator";
 import { InsertWaitlistEmailSchema } from "@qahwa/db/validation";
 import { getDb } from "@qahwa/db";
 import { z } from "zod";
+import { sentry } from "@hono/sentry";
 
 const ReleaseJsonSchema = z.object({
   currentRelease: z.string(),
@@ -24,6 +25,14 @@ const ReleaseJsonSchema = z.object({
 });
 
 const app = new Hono()
+  .use('*', sentry({
+    enabled: env.NODE_ENV === "production",
+    environment: env.NODE_ENV,
+    dsn: env.SENTRY_DSN,
+  }), (c, next) => {
+    c.get("sentry").setTag("path", c.req.path)
+    return next()
+  })
   .use(
     "*",
     cors({
@@ -43,7 +52,20 @@ const app = new Hono()
     async (c) => {
       const { email } = c.req.valid("json");
       const db = getDb(env.DATABASE_URL);
-      await db.insert(waitlistEmail).values({ email });
+
+      try {
+        await db.insert(waitlistEmail).values({ email });
+      } catch (error) {
+        c.get("sentry").captureException(error, {
+          captureContext: {
+            extra: {
+              email,
+            },
+          },
+        });
+        return c.json({ error: "Failed to insert waitlist email" }, 500);
+      }
+
       return c.json({ success: true });
     },
   )
@@ -60,22 +82,49 @@ const app = new Hono()
       const { platform, arch } = c.req.valid("param");
       const r2 = env.RELEASE_BUCKET;
 
-      const releaseJson = await r2.get(`releases/${platform}/${arch}/RELEASES.json`);
+      const key = `releases/${platform}/${arch}/RELEASES.json`;
+
+      c.get("sentry").setContext("release", {
+        platform,
+        arch,
+        key,
+      })
+
+      const releaseJson = await r2.get(key);
 
       if (releaseJson === null) {
+        c.get("sentry").captureEvent({
+          message: "RELEASES.json not found",
+          level: "error",
+        });
         return c.json({ error: "Release not found" }, 404);
       }
 
       const releaseJsonBody = await releaseJson.json();
-      const { success, data } = ReleaseJsonSchema.safeParse(releaseJsonBody);
+      const { success, data, error } = ReleaseJsonSchema.safeParse(releaseJsonBody);
 
       if (!success) {
+        c.get("sentry").captureEvent({
+          message: "Invalid RELEASES.json format",
+          level: "error",
+          extra: {
+            releaseJsonBody,
+            zodError: error,
+          },
+        });
         return c.json({ error: "Invalid release JSON" }, 500);
       }
 
       const release = data.releases.find((release) => release.version === data.currentRelease);
 
       if (!release) {
+        c.get("sentry").captureEvent({
+          message: "Current release not in releases array",
+          level: "error",
+          extra: {
+            releaseJsonBody,
+          },
+        });
         return c.json({ error: "Current release not in releases array" }, 500);
       }
 
@@ -83,5 +132,11 @@ const app = new Hono()
       return c.redirect(release.updateTo.url, 302);
     },
   );
+
+// We can technically use this to capture errors from the app, but it's not needed for now
+// app.onError((err, c) => {
+//   c.get("sentry").captureException(err);
+//   return c.json({ error: "Internal server error" }, 500);
+// });
 
 export default app;

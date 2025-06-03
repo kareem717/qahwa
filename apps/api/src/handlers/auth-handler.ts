@@ -41,7 +41,13 @@ export const authHandler = () =>
           success: true,
         });
       } catch (error) {
-        console.error(error);
+        c.get("sentry").captureException(error, {
+          captureContext: {
+            extra: {
+              sessionId: session.id,
+            },
+          },
+        });
 
         return c.json(
           {
@@ -69,7 +75,13 @@ export const authHandler = () =>
           headers: c.req.raw.headers,
         });
       } catch (error) {
-        console.error(error);
+        c.get("sentry").captureException(error, {
+          captureContext: {
+            extra: {
+              sessionId: session.id,
+            },
+          },
+        });
 
         return c.json(
           {
@@ -94,7 +106,14 @@ export const authHandler = () =>
             headers: c.req.raw.headers,
           });
         } catch (error) {
-          console.error(error);
+          c.get("sentry").captureException(error, {
+            captureContext: {
+              extra: {
+                existingAppKeyId: existingAppKey.id,
+                sessionId: session.id,
+              },
+            },
+          });
 
           return c.json(
             {
@@ -117,7 +136,13 @@ export const authHandler = () =>
           key: newApiKey.key,
         });
       } catch (error) {
-        console.error(error);
+        c.get("sentry").captureException(error, {
+          captureContext: {
+            extra: {
+              sessionId: session.id,
+            },
+          },
+        });
 
         return c.json(
           {
