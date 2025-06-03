@@ -5,10 +5,14 @@ import type { AuthType } from "@qahwa/auth/types";
 import { HTTPException } from "hono/http-exception";
 import { API_KEY_HEADER_NAME } from "@qahwa/auth/server";
 
+const AUTH_CLIENT_KEY = "authClient";
+const SESSION_KEY = "session";
+const USER_KEY = "user";
+
 export const getAuth = (c: Context) => {
-  const client = c.get("authClient");
-  const session = c.get("session");
-  const user = c.get("user");
+  const client = c.get(AUTH_CLIENT_KEY);
+  const session = c.get(SESSION_KEY);
+  const user = c.get(USER_KEY);
 
   if (!client || !session || !user) {
     return {
@@ -37,8 +41,9 @@ export const withAuth = () =>
           userId: resp.user.id, // downstream heavily depends on this tag
         })
 
-        c.set("user", resp.user);
-        c.set("session", resp.session);
+        c.set(USER_KEY, resp.user);
+        c.set(SESSION_KEY, resp.session);
+        c.set(AUTH_CLIENT_KEY, auth);
         return await next();
       }
     } catch (e) {

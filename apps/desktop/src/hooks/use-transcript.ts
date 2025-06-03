@@ -140,7 +140,7 @@ function stopMicAudioCapture(state: MicAudioRecorderState) {
 
 async function getAssemblyAiToken() {
   const client = await getClient();
-  const tokenResponse = await client.qahwa.transcribe.$get();
+  const tokenResponse = await client.note.transcribe.$get();
   const { token } = await tokenResponse.json();
   if (!token) {
     throw new Error("Failed to retrieve AssemblyAI token.");
@@ -241,7 +241,7 @@ export function useTranscript() {
             : internalNoteIdRef.current,
         transcript: changes.transcript,
       };
-      const response = await api.qahwa.$put({
+      const response = await api.note.$put({
         // @ts-expect-error - TODO: fix this
         json: payload,
       });
@@ -253,16 +253,16 @@ export function useTranscript() {
         throw new Error("Error upserting qahwa");
       }
 
-      const { qahwa } = await response.json();
+      const { note } = await response.json();
 
-      if (internalNoteIdRef.current === DEFAULT_NOTE_ID && qahwa && qahwa.id) {
-        const newNoteId = qahwa.id;
+      if (internalNoteIdRef.current === DEFAULT_NOTE_ID && note && note.id) {
+        const newNoteId = note.id;
         setNoteId(newNoteId); // This updates internalNoteIdRef via its own useEffect.
         await fullNoteCollection(newNoteId).invalidate(); // This will update transcriptRef via useLiveQuery and its useEffect.
         isCreatingNoteRef.current = false; // Mark creation as finished. IMPORTANT: Do this after setNoteId & invalidate.
       } else {
-        if (qahwa?.id) {
-          await fullNoteCollection(qahwa.id).invalidate();
+        if (note?.id) {
+          await fullNoteCollection(note.id).invalidate();
         } else if (internalNoteIdRef.current !== DEFAULT_NOTE_ID) {
           await fullNoteCollection(internalNoteIdRef.current).invalidate();
         }
@@ -652,7 +652,7 @@ export function useTranscript() {
             // Handle error silently
           }
         },
-        onError: (errorEvent) => {
+        onError: () => {
           toast.error("System connection error.");
           stopRecording();
         },

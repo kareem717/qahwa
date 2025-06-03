@@ -1,5 +1,6 @@
-import type React from "react";
-import { ChevronRight, FileText, Loader2, Trash } from "lucide-react";
+// biome-ignore lint/style/useImportType: needed for electron
+import React from "react";
+import { ChevronRight, FileText, Trash } from "lucide-react";
 import type { qahwa } from "@qahwa/db/types";
 import { Button } from "@qahwa/ui/components/button";
 import { cn } from "@qahwa/ui/lib/utils";
@@ -27,7 +28,7 @@ export function NoteButton({
       const api = await getClient();
 
       //todo: error handling
-      await api.qahwa[":id"].$delete({
+      await api.note[":id"].$delete({
         param: {
           id: id.toString(),
         },
@@ -45,7 +46,7 @@ export function NoteButton({
   return (
     <Link
       {...props}
-      to="/qahwa"
+      to="/note"
       search={{
         id,
         title,

@@ -60,7 +60,7 @@ export function AuthProvider({
         return { success: false };
       }
 
-      window.electronAuth.removeToken();
+      await window.electronAuth.removeToken();
 
       return { success: true };
     },

@@ -17,7 +17,7 @@ export const notesCollection = createQueryCollection<
   queryKey: [NOTES_COLLECTION_KEY],
   queryFn: async () => {
     const api = await getClient();
-    const response = await api.qahwa.$get();
+    const response = await api.note.$get();
 
     if (!response.ok) {
       console.error("Error fetching notes", response);
@@ -69,7 +69,7 @@ export const fullNoteCollection = (id: number) => {
     queryKey: [FULL_NOTE_COLLECTION_KEY, id],
     queryFn: async () => {
       const api = await getClient();
-      const response = await api.qahwa[":id"].$get({
+      const response = await api.note[":id"].$get({
         param: { id: id.toString() },
       });
 

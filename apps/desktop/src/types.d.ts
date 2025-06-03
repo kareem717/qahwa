@@ -28,9 +28,10 @@ interface WindowContext {
 }
 
 interface AuthContext {
-  signIn: () => Promise<boolean>;
-  signOut: () => Promise<boolean>;
-  isSignedIn: () => Promise<boolean>;
+  handleAuthCallback: (callback: (url: string) => Promise<void> | void) => () => void;
+  setToken: (token: string) => Promise<void>;
+  getToken: () => Promise<string>;
+  removeToken: () => Promise<void>;
 }
 
 interface ElectronSystemAudio {
