@@ -1,7 +1,8 @@
 {
   "name": "@qahwa/api",
   "scripts": {
-    "dev": "wrangler dev",
+    "stripe:webhook": "stripe listen --forward-to localhost:8080/api/auth/webhooks/stripe",
+    "dev": "pnpm stripe:webhook & wrangler dev --port 8080",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },

@@ -4,6 +4,7 @@ import {
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react"; // make sure to import from better-auth/react
 import type { AuthType } from "./types";
+import { stripeClient } from "@better-auth/stripe/client"
 
 export const createClient = ({
   baseURL,
@@ -18,5 +19,11 @@ export const createClient = ({
     fetchOptions: {
       credentials: "include",
     },
-    plugins: [inferAdditionalFields<AuthType>(), apiKeyClient()],
+    plugins: [
+      inferAdditionalFields<AuthType>(),
+      apiKeyClient(),
+      stripeClient({
+        subscription: true,
+      }),
+    ],
   });

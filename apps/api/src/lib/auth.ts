@@ -9,4 +9,8 @@ export const createAuthClient = () =>
     googleClientId: env.GOOGLE_CLIENT_ID,
     baseDomain: env.BASE_DOMAIN,
     googleClientSecret: env.GOOGLE_CLIENT_SECRET,
+    stripeConfig: {
+      apiKey: env.STRIPE_SECRET_KEY,
+      webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    },
   });
