@@ -58,8 +58,7 @@ export const createServerClient = ({
     },
     session: {
       cookieCache: {
-        enabled: true,
-        maxAge: 5 * 60, // 7 days
+        enabled: false, // causes sign-out to be weird on landing page
       },
       expiresIn: 60 * 60 * 24 * 7, // 7 days
       updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)

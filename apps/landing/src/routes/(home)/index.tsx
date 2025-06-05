@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Typewriter } from "@qahwa/ui/components/ui/typewriter";
-import { AppleIcon, WindowsIcon, XIcon } from "../components/icons";
+import { AppleIcon, WindowsIcon, XIcon } from "../../components/icons";
 import { Button } from "@qahwa/ui/components/button";
 import { toast } from "sonner";
-import { DownloadLink } from "../components/download-link";
+import { DownloadLink } from "./-components/download-link";
 import { QahwaIcon } from "@qahwa/ui/components/icons";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/(home)/")({
   component: HomeComponent,
 });
 
@@ -32,7 +32,7 @@ function HomeComponent() {
         <div className="flex flex-col items-center justify-center mt-8 w-xs mx-auto gap-4">
           {/* <h2 className="text-xl font-medium">download</h2> */}
           <div className="grid grid-cols-2 gap-2 w-full">
-            <DownloadLink platform="darwin/arm64">
+            <DownloadLink platform="darwin" arch="arm64">
               <AppleIcon className="size-5" />
             </DownloadLink>
             <Button onClick={() => toast.info("Coming soon...")}>

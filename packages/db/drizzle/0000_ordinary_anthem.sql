@@ -50,6 +50,23 @@ CREATE TABLE "sessions" (
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
+CREATE TABLE "subscriptions" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"plan" text NOT NULL,
+	"reference_id" text,
+	"stripe_customer_id" text,
+	"stripe_subscription_id" text,
+	"status" text NOT NULL,
+	"period_start" timestamp,
+	"period_end" timestamp,
+	"cancel_at_period_end" boolean,
+	"seats" integer,
+	"trial_start" timestamp,
+	"trial_end" timestamp,
+	"created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -58,7 +75,9 @@ CREATE TABLE "users" (
 	"image" text,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL,
-	CONSTRAINT "users_email_unique" UNIQUE("email")
+	"stripe_customer_id" text,
+	CONSTRAINT "users_email_unique" UNIQUE("email"),
+	CONSTRAINT "users_stripe_customer_id_unique" UNIQUE("stripe_customer_id")
 );
 --> statement-breakpoint
 CREATE TABLE "verifications" (

@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -16,7 +17,7 @@ export const users = pgTable("users", {
   image: text("image"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
-  stripeCustomerId: text("stripe_customer_id"),
+  stripeCustomerId: text("stripe_customer_id").unique(),
 });
 
 export const sessions = pgTable("sessions", {
@@ -88,9 +89,6 @@ export const apikey = pgTable("api_keys", {
 // TODO: add more enums for plan, status, etc.
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
   plan: text("plan").notNull(),
   referenceId: text("reference_id"),
   stripeCustomerId: text("stripe_customer_id"),
@@ -102,6 +100,16 @@ export const subscriptions = pgTable("subscriptions", {
   seats: integer("seats"),
   trialStart: timestamp("trial_start"),
   trialEnd: timestamp("trial_end"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull()
+  createdAt: timestamp({
+    withTimezone: true,
+    mode: "string",
+  })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp({
+    withTimezone: true,
+    mode: "string",
+  })
+    .notNull()
+    .$onUpdateFn(() => sql`CURRENT_TIMESTAMP`),
 });

@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { createAuthClient } from "../lib/auth";
 import { getAuth, withAuth } from "../lib/middleware/with-auth";
+import Stripe from "stripe";
+import { env } from "cloudflare:workers";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
 const APP_API_KEY_NAME = "app";
 
@@ -14,9 +18,9 @@ export const authHandler = () =>
 
         return session && user
           ? c.json({
-              session,
-              user,
-            })
+            session,
+            user,
+          })
           : c.json(null);
       },
     )
@@ -152,4 +156,41 @@ export const authHandler = () =>
         );
       }
     })
+    .get("/billing-portal",
+      zValidator("query", z.object({
+        returnUrl: z.string().url(),
+      })),
+      async (c) => {
+        const { session, user } = getAuth(c);
+
+        if (!session || !user) {
+          return c.json(
+            {
+              error: "Unauthorized",
+            },
+            401,
+          );
+        }
+
+        const customerId = await user.stripeCustomerId
+
+        if (!customerId) {
+          c.get("sentry").captureMessage("No customer id found", "debug");
+          return c.json(
+            {
+              error: "No customer id found",
+            },
+            500,
+          );
+        }
+
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+
+        const { url } = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: c.req.query("returnUrl"),
+        });
+
+        return c.json({ url });
+      })
     .on(["POST", "GET"], "/*", (c) => createAuthClient().handler(c.req.raw));

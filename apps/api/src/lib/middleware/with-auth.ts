@@ -39,6 +39,7 @@ export const withAuth = () =>
       if (resp) { // set both or none
         c.get("sentry").setTags({
           userId: resp.user.id, // downstream heavily depends on this tag
+          sessionId: resp.session.id,
         })
 
         c.set(USER_KEY, resp.user);

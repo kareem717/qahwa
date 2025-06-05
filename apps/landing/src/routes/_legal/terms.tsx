@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import Terms from "./terms.mdx";
+import Terms from "./-mdx/terms.mdx";
 
 export const Route = createFileRoute("/_legal/terms")({
   component: RouteComponent,

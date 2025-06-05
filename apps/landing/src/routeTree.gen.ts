@@ -13,12 +13,13 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as LegalRouteImport } from './routes/_legal/route'
 import { Route as AuthRouteImport } from './routes/_auth/route'
-import { Route as IndexImport } from './routes/index'
+import { Route as homeIndexImport } from './routes/(home)/index'
 import { Route as LegalTermsImport } from './routes/_legal/terms'
 import { Route as LegalPrivacyImport } from './routes/_legal/privacy'
 import { Route as AuthSignOutImport } from './routes/_auth/sign-out'
 import { Route as AuthSignInImport } from './routes/_auth/sign-in'
 import { Route as AuthAppRedirectImport } from './routes/_auth/app-redirect'
+import { Route as dashboardDashboardImport } from './routes/(dashboard)/dashboard'
 
 // Create/Update Routes
 
@@ -32,8 +33,8 @@ const AuthRouteRoute = AuthRouteImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
-  id: '/',
+const homeIndexRoute = homeIndexImport.update({
+  id: '/(home)/',
   path: '/',
   getParentRoute: () => rootRoute,
 } as any)
@@ -68,17 +69,16 @@ const AuthAppRedirectRoute = AuthAppRedirectImport.update({
   getParentRoute: () => AuthRouteRoute,
 } as any)
 
+const dashboardDashboardRoute = dashboardDashboardImport.update({
+  id: '/(dashboard)/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -91,6 +91,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/(dashboard)/dashboard': {
+      id: '/(dashboard)/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof dashboardDashboardImport
       parentRoute: typeof rootRoute
     }
     '/_auth/app-redirect': {
@@ -128,6 +135,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsImport
       parentRoute: typeof LegalRouteImport
     }
+    '/(home)/': {
+      id: '/(home)/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof homeIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -164,79 +178,87 @@ const LegalRouteRouteWithChildren = LegalRouteRoute._addFileChildren(
 )
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '': typeof LegalRouteRouteWithChildren
+  '/dashboard': typeof dashboardDashboardRoute
   '/app-redirect': typeof AuthAppRedirectRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-out': typeof AuthSignOutRoute
   '/privacy': typeof LegalPrivacyRoute
   '/terms': typeof LegalTermsRoute
+  '/': typeof homeIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '': typeof LegalRouteRouteWithChildren
+  '/dashboard': typeof dashboardDashboardRoute
   '/app-redirect': typeof AuthAppRedirectRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-out': typeof AuthSignOutRoute
   '/privacy': typeof LegalPrivacyRoute
   '/terms': typeof LegalTermsRoute
+  '/': typeof homeIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_legal': typeof LegalRouteRouteWithChildren
+  '/(dashboard)/dashboard': typeof dashboardDashboardRoute
   '/_auth/app-redirect': typeof AuthAppRedirectRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-out': typeof AuthSignOutRoute
   '/_legal/privacy': typeof LegalPrivacyRoute
   '/_legal/terms': typeof LegalTermsRoute
+  '/(home)/': typeof homeIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | ''
+    | '/dashboard'
     | '/app-redirect'
     | '/sign-in'
     | '/sign-out'
     | '/privacy'
     | '/terms'
+    | '/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | ''
+    | '/dashboard'
     | '/app-redirect'
     | '/sign-in'
     | '/sign-out'
     | '/privacy'
     | '/terms'
+    | '/'
   id:
     | '__root__'
-    | '/'
     | '/_auth'
     | '/_legal'
+    | '/(dashboard)/dashboard'
     | '/_auth/app-redirect'
     | '/_auth/sign-in'
     | '/_auth/sign-out'
     | '/_legal/privacy'
     | '/_legal/terms'
+    | '/(home)/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   LegalRouteRoute: typeof LegalRouteRouteWithChildren
+  dashboardDashboardRoute: typeof dashboardDashboardRoute
+  homeIndexRoute: typeof homeIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   LegalRouteRoute: LegalRouteRouteWithChildren,
+  dashboardDashboardRoute: dashboardDashboardRoute,
+  homeIndexRoute: homeIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -249,13 +271,11 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
         "/_auth",
-        "/_legal"
+        "/_legal",
+        "/(dashboard)/dashboard",
+        "/(home)/"
       ]
-    },
-    "/": {
-      "filePath": "index.tsx"
     },
     "/_auth": {
       "filePath": "_auth/route.tsx",
@@ -271,6 +291,9 @@ export const routeTree = rootRoute
         "/_legal/privacy",
         "/_legal/terms"
       ]
+    },
+    "/(dashboard)/dashboard": {
+      "filePath": "(dashboard)/dashboard.tsx"
     },
     "/_auth/app-redirect": {
       "filePath": "_auth/app-redirect.tsx",
@@ -291,6 +314,9 @@ export const routeTree = rootRoute
     "/_legal/terms": {
       "filePath": "_legal/terms.tsx",
       "parent": "/_legal"
+    },
+    "/(home)/": {
+      "filePath": "(home)/index.tsx"
     }
   }
 }

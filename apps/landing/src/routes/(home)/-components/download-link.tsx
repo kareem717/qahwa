@@ -20,7 +20,9 @@ export function DownloadLink({
   onClick,
   ...props
 }: DownloadLinkProps) {
-  const api = createClient(import.meta.env.VITE_API_URL);
+  const api = createClient({
+    baseUrl: import.meta.env.VITE_API_URL,
+  });
 
   const url = api.download[":platform"][":arch"].$url({
     param: {

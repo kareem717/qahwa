@@ -27,7 +27,9 @@ const addWaitlistEmailFunction = createServerFn({
     return formSchema.parse(req);
   })
   .handler(async (ctx) => {
-    const api = createClient(import.meta.env.VITE_API_URL);
+    const api = createClient({
+      baseUrl: import.meta.env.VITE_API_URL,
+    });
     const resp = await api.waitlist.$post({ json: { email: ctx.data.email } });
     return await resp.json();
   });
@@ -53,7 +55,7 @@ export function WaitlistForm({
       const resp = await addWaitlistEmailFunction({
         data: { email: values.email },
       });
-      if (resp.success) {
+      if ("success" in resp && resp.success) {
         onSuccess?.();
         toast.success("Email added to waitlist");
       } else {

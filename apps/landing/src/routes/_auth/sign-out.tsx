@@ -1,5 +1,5 @@
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { SignOutButton } from "../../components/auth/sign-out-button";
+import { createFileRoute, Navigate, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { SignOutButton } from "./-components/sign-out-button";
 import {
   Card,
   CardDescription,
@@ -28,6 +28,7 @@ export const Route = createFileRoute("/_auth/sign-out")({
 
 function RouteComponent() {
   const router = useRouter();
+  const navigate = useNavigate();
 
   return (
     <Card className="w-full max-w-sm">
@@ -41,7 +42,7 @@ function RouteComponent() {
         <Button onClick={() => router.history.back()}>Cancel</Button>
         <SignOutButton
           onSuccess={() => {
-            throw redirect({
+            navigate({
               to: "/",
             });
           }}

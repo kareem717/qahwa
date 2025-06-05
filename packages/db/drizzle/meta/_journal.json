@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747589273210,
-      "tag": "0000_daily_wendigo",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1749004833816,
-      "tag": "0001_numerous_spyke",
+      "when": 1749141145118,
+      "tag": "0000_ordinary_anthem",
       "breakpoints": true
     }
   ]

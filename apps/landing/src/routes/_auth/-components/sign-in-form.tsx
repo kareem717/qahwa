@@ -4,7 +4,7 @@ import { Card, CardContent } from "@qahwa/ui/components/card";
 import { Input } from "@qahwa/ui/components/input";
 import { Label } from "@qahwa/ui/components/label";
 import { ArrowRight } from "lucide-react";
-import { GithubIcon, GoogleIcon } from "../icons";
+import { GithubIcon, GoogleIcon } from "@qahwa/landing/components/icons";
 import { SignInButton } from "./sign-in-button";
 import { Link } from "@tanstack/react-router";
 
