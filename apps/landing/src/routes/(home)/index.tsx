@@ -5,16 +5,19 @@ import { Button } from "@qahwa/ui/components/button";
 import { toast } from "sonner";
 import { DownloadLink } from "./-components/download-link";
 import { QahwaIcon } from "@qahwa/ui/components/icons";
+import { AuthButton } from "./-components/auth-button";
 
 export const Route = createFileRoute("/(home)/")({
   component: HomeComponent,
 });
 
 function HomeComponent() {
+
   return (
     <div className="flex flex-col items-center justify-between h-screen relative p-4 container mx-auto">
-      <header className="w-full font-bold text-2xl tracking-wide">
+      <header className="w-full font-bold text-2xl tracking-wide flex items-center justify-between">
         <QahwaIcon className="size-7" />
+        <AuthButton />
       </header>
       <section className="flex flex-col items-center justify-center">
         <h1 className="text-5xl font-bold mb-3">qahwa.</h1>
