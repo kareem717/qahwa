@@ -17,7 +17,7 @@ import {
 import { LogOut } from "lucide-react";
 import { useAuth } from "../../components/providers/auth-provider";
 import { SignOutDialog } from "./sign-out-dialog";
-import { UserButton as UserButtonComponent } from "@qahwa/ui/components/custom/user-button";
+import { UserAvatar } from "@qahwa/ui/components/custom/user-avatar";
 
 interface UserButtonProps
   extends React.ComponentPropsWithoutRef<typeof Button> { }
@@ -33,11 +33,17 @@ export function UserButton({ className, }: UserButtonProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <UserButtonComponent user={{
-          ...user,
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(user.updatedAt),
-        }} />
+        <Button
+          size="icon"
+          variant="ghost"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-full hover:cursor-pointer"
+        >
+          <UserAvatar user={{
+            ...user,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+          }} />
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"

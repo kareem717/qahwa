@@ -5,6 +5,7 @@ import { DashboardSidebar } from './-components/dashboard-sidebar'
 import { BillingTab } from './-components/tab-billing'
 import { CreditCardIcon } from 'lucide-react'
 import { getSessionFunction } from '@qahwa/landing/functions/auth'
+import { ScrollArea } from '@qahwa/ui/components/scroll-area'
 
 export const DashboardTabs = {
   "billing": {
@@ -45,9 +46,12 @@ function RouteComponent() {
   const TabComponent = DashboardTabs[tab].component
 
   return (
-    <div className="flex">
-      <DashboardSidebar currentTab={tab as DashboardTabType} user={user} />
-      <TabComponent className="w-full" />
+    <div className="flex h-full w-full">
+      <DashboardSidebar currentTab={tab as DashboardTabType} user={user}>
+        <ScrollArea className="mx-auto container h-screen">
+          <TabComponent className="w-full p-4" />
+        </ScrollArea>
+      </DashboardSidebar>
     </div>
   )
 }

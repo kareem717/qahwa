@@ -26,7 +26,6 @@ interface DashboardSidebarProps extends ComponentPropsWithoutRef<typeof Sidebar>
 export function DashboardSidebar({ className, currentTab, user, ...props }: DashboardSidebarProps) {
   return (
     <SidebarProvider className="items-start">
-
       <Sidebar collapsible="none" className={cn("hidden md:flex", className)} {...props}>
         <SidebarHeader>
           {/* <SidebarMenu>
@@ -63,9 +62,10 @@ export function DashboardSidebar({ className, currentTab, user, ...props }: Dash
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarUser user={user} />
+          <SidebarUser user={user} className="w-full" />
         </SidebarFooter>
       </Sidebar>
+      {props.children}
     </SidebarProvider>
   )
 }

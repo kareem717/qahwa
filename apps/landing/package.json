@@ -27,6 +27,7 @@
     "@qahwa/sdk": "workspace:*",
     "@qahwa/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.1.5",
+    "@tanstack/react-query": "^5.74.7",
     "@tanstack/react-router": "^1.119.0",
     "@tanstack/react-start": "^1.120.3",
     "@tanstack/vite-config": "^0.2.0",

@@ -11,10 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@qahwa/ui/components/dropdown-menu";
-import { UserButton } from "@qahwa/ui/components/custom/user-button";
+import { UserAvatar } from "@qahwa/ui/components/custom/user-avatar";
 import type { AuthUser } from "@qahwa/auth/types";
 import type { ComponentPropsWithoutRef } from "react";
-import { SidebarMenu, SidebarMenuItem } from "@qahwa/ui/components/sidebar";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@qahwa/ui/components/sidebar";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -27,30 +27,30 @@ export function SidebarUser({ className, user, ...props }: SidebarUserProps) {
     <SidebarMenu {...props}>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-2">
-              <UserButton user={{
-                ...user,
-                createdAt: new Date(user.createdAt),
-                updatedAt: new Date(user.updatedAt),
-              }} />
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">
-                  {user.name}
-                </span>
-                <span className="text-xs font-medium">
-                  {user.email}
-                </span>
+          <SidebarMenuButton asChild>
+            <DropdownMenuTrigger className="w-full">
+              <div className="flex items-center justify-between gap-2 w-full">
+                <UserAvatar user={{
+                  ...user,
+                  createdAt: new Date(user.createdAt),
+                  updatedAt: new Date(user.updatedAt),
+                }} />
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    {user.name}
+                  </span>
+                  <span className="text-xs font-medium">
+                    {user.email}
+                  </span>
+                </div>
+                <ChevronsUpDown className="size-4" />
               </div>
-              <ChevronsUpDown className="size-4" />
-            </div>
-          </DropdownMenuTrigger>
+            </DropdownMenuTrigger>
+          </SidebarMenuButton>
           <DropdownMenuContent
             className="w-full rounded-lg"
-            // side={isMobile ? "bottom" : "right"}
-            // side="bottom"
             align="end"
-            // sideOffset={÷÷4}
+            sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">

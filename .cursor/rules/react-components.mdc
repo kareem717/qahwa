@@ -1,0 +1,9 @@
+---
+description: Rules for react components
+globs: 
+alwaysApply: false
+---
+- Always use the base component props when creating a component via `ComponentPropsWithoutRef` or the like. 
+- Always allow for the `className` prop to be passed and use `cn` from `@qahwa/ui/lib/utils` to merge the classes.
+- Always import individually from React, instead of using `import React from 'react'` - unless a linter error is thrown.
+- Use component co-location if the compnent being implemented is only used within that directory/route - otherwise put it in the shared, respective, `components` foler.

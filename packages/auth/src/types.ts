@@ -1,3 +1,4 @@
+import type { StripePlan } from "@better-auth/stripe";
 import type { createServerClient } from "./server";
 
 type AuthInstance = ReturnType<typeof createServerClient>;
@@ -11,3 +12,21 @@ export type AuthType = {
     session: AuthSession | null;
   };
 };
+
+export interface PricingPlan {
+  name: string
+  priceUsdCents: {
+    monthly: number;
+    yearly: number;
+  }
+  description: string
+  features: string[]
+  cta: string
+  highlighted?: boolean
+  popular?: boolean
+}
+
+export interface SubscriptionPlan {
+  stripePlan: StripePlan;
+  plan: PricingPlan
+}

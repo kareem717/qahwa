@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authClient } from "../lib/auth-client";
-import { getWebRequest } from "@tanstack/react-start/server";
 
 const SUBSCRIPTION_QUERY_KEY = "subscription" as const;
 
@@ -8,23 +7,19 @@ export function useSubscription() {
   return useQuery({
     queryKey: [SUBSCRIPTION_QUERY_KEY],
     queryFn: async () => {
-      const { data: subscriptions, error } = await authClient.subscription.list({
-        fetchOptions: {
-          headers: getWebRequest()?.headers,
-        },
-      });
+      const { data: subscriptions, error } = await authClient.subscription.list();
 
       if (error) {
-        //TODO: add sentry
-        throw error;
+        return null;
       }
 
-      const activeSubscription = subscriptions?.find(
+      
+      return subscriptions?.find(
         sub => sub.status === "active" || sub.status === "trialing"
-      );
-
-      return activeSubscription;
+      ) || null;
     },
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 

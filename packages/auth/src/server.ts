@@ -6,14 +6,9 @@ import { openAPI, apiKey } from "better-auth/plugins";
 import { reactStartCookies } from "better-auth/react-start";
 import { stripe } from "@better-auth/stripe"
 import Stripe from "stripe"
+import { SubscriptionPlans } from "./subscriptions";
 
 export const API_KEY_HEADER_NAME = 'x-api-key';
-
-interface StripeConfig {
-  stripeClient: Stripe;
-  stripeWebhookSecret: string;
-  createCustomerOnSignUp: boolean;
-}
 
 interface ServerClientConfig {
   basePath: string;
@@ -105,30 +100,21 @@ export const createServerClient = ({
         stripeClient,
         stripeWebhookSecret: stripeConfig.webhookSecret,
         createCustomerOnSignUp: true,
+        getCustomerCreateParams: async (data, request) => {
+          return {
+            userId: data.user.id,
+          }
+        },
+        getCheckoutSessionParams: () => {
+          return {
+            params: {
+              allow_promotion_codes: true,
+            }
+          }
+        },
         subscription: {
           enabled: true,
-          plans: [
-            {
-              name: "basic", // the name of the plan, it'll be automatically lower cased when stored in the database
-              priceId: "price_1234567890", // the price ID from stripe
-              annualDiscountPriceId: "price_1234567890", // (optional) the price ID for annual billing with a discount
-              limits: {
-                projects: 5,
-                storage: 10
-              }
-            },
-            {
-              name: "pro",
-              priceId: "price_0987654321",
-              limits: {
-                projects: 20,
-                storage: 50
-              },
-              freeTrial: {
-                days: 14,
-              }
-            }
-          ]
+          plans: Object.values(SubscriptionPlans).map((subscription) => subscription.stripePlan),
         },
         schema: {
           subscription: {

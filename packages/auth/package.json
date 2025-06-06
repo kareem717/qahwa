@@ -12,7 +12,8 @@
   "exports": {
     "./server": "./src/server.ts",
     "./client": "./src/client.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./subscriptions": "./src/subscriptions.ts"
   },
   "dependencies": {
     "@better-auth/stripe": "^1.2.8",
