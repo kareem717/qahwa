@@ -18,9 +18,9 @@ export const authHandler = () =>
 
         return session && user
           ? c.json({
-            session,
-            user,
-          })
+              session,
+              user,
+            })
           : c.json(null);
       },
     )

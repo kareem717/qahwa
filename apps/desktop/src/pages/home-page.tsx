@@ -42,17 +42,14 @@ function formatDate(dateString: string | null) {
 // Helper function to group notes by date
 function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
   if (!notes || notes.length === 0) return {};
-  return notes.reduce(
-    (acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
-      const dateKey = formatDate(note.updatedAt);
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(note);
-      return acc;
-    },
-    {},
-  );
+  return notes.reduce((acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
+    const dateKey = formatDate(note.updatedAt);
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(note);
+    return acc;
+  }, {});
 }
 
 export default function HomePage() {

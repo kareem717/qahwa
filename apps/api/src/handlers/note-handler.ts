@@ -12,7 +12,11 @@ import { generateNotes, generateTitle } from "../lib/ai/notes";
 import { AssemblyAI } from "assemblyai";
 import { stream } from "hono/streaming";
 import type { Subscription } from "@qahwa/auth/types";
-import { canGenerateNotes, canGenerateTitle, canTranscribe } from "../lib/utils/abac";
+import {
+  canGenerateNotes,
+  canGenerateTitle,
+  canTranscribe,
+} from "../lib/utils/abac";
 
 export const noteHandler = () =>
   new Hono()
@@ -416,7 +420,6 @@ export const noteHandler = () =>
           subscriptions = await client.api.listActiveSubscriptions({
             headers: c.req.raw.headers,
           });
-
         } catch (e) {
           c.get("sentry").captureException(e);
           throw new HTTPException(500, {
@@ -444,10 +447,7 @@ export const noteHandler = () =>
 
         const { id } = c.req.valid("param");
 
-
         const db = getDb(env.DATABASE_URL);
-
-
 
         let note: typeof notes.$inferSelect | null = null;
         try {
