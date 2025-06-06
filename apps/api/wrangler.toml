@@ -11,6 +11,7 @@ DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "http://localhost:8080"
 NODE_ENV = "development"
 BASE_DOMAIN = "localhost"
+BYPASS_SUBSCRIPTION_CHECK = true
 
 [[r2_buckets]]
 binding = "RELEASE_BUCKET"
@@ -32,3 +33,4 @@ DESKTOP_APP_PROTOCOL = "note-app"
 BETTER_AUTH_URL = "https://api.waitq.sh"
 BASE_DOMAIN = "waitq.sh"
 NODE_ENV = "production"
+BYPASS_SUBSCRIPTION_CHECK = false

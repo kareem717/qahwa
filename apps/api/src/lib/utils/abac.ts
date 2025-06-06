@@ -1,7 +1,6 @@
-//TODO: add development bypass
-
 import type { Subscription } from "@qahwa/auth/types";
 import { PRO_PLAN_NAME } from "@qahwa/auth/subscriptions";
+import { env } from "cloudflare:workers";
 
 export enum ABACErrorCode {
   NOT_SUBSCRIBED = "NOT_SUBSCRIBED",
@@ -12,14 +11,17 @@ export enum ABACErrorCode {
 export class ABACError extends Error {
   constructor(
     message: string,
-    options?: { cause?: unknown; code?: ABACErrorCode },
+    options?: {
+      cause?: string | Record<string, unknown>;
+      code?: ABACErrorCode;
+    },
   ) {
     super(message, options);
     this.cause = options?.cause;
     this.code = options?.code;
   }
 
-  cause?: unknown;
+  cause?: string | Record<string, unknown>;
   code?: ABACErrorCode;
 
   isPlanRelated() {
@@ -34,82 +36,58 @@ export class ABACError extends Error {
 
 export type ABACResponse =
   | {
-    success: true;
-    error: null;
-  }
+      success: true;
+      error: null;
+    }
   | {
-    success: false;
-    error: ABACError;
-  };
+      success: false;
+      error: ABACError;
+    };
+
+// Generic function to check if user has required subscription
+const requiresProPlan = (
+  subscriptions: Subscription[],
+  featureName: string,
+): ABACResponse => {
+  if (env.BYPASS_SUBSCRIPTION_CHECK) {
+    return { success: true, error: null };
+  }
+
+  const currentSub = currentSubscription(subscriptions);
+
+  if (currentSub?.plan !== PRO_PLAN_NAME) {
+    return {
+      success: false,
+      error: new ABACError(
+        `You are not authorized to use ${featureName}. Please upgrade to the Pro plan to use this feature.`,
+        {
+          code: ABACErrorCode.INSUFFICIENT_SUBSCRIPTION,
+          cause: { currentPlan: currentSub?.plan, requiredPlan: PRO_PLAN_NAME },
+        },
+      ),
+    };
+  }
+
+  return { success: true, error: null };
+};
 
 export const canTranscribe = ({
   subscriptions,
 }: {
   subscriptions: Subscription[];
-}): ABACResponse => {
-  const currentSub = currentSubscription(subscriptions);
-  if (currentSub?.plan !== PRO_PLAN_NAME) {
-      return {
-        success: false,
-        error: new ABACError("You are not authorized to use this feature. Please upgrade to the Pro plan to use this feature.", {
-          cause: {
-            currentPlan: currentSub?.plan,
-          },
-          code: ABACErrorCode.INSUFFICIENT_SUBSCRIPTION,
-      }),
-    };
-  }
-
-  return {
-    success: true,
-    error: null,
-  };
-};
+}): ABACResponse => requiresProPlan(subscriptions, "transcription");
 
 export const canGenerateNotes = ({
   subscriptions,
 }: {
   subscriptions: Subscription[];
-}): ABACResponse => {
-  const currentSub = currentSubscription(subscriptions);
-  if (currentSub?.plan !== PRO_PLAN_NAME) {
-    return {
-      success: false,
-      error: new ABACError("You are not authorized to use this feature. Please upgrade to the Pro plan to use this feature.", {
-        code: ABACErrorCode.INSUFFICIENT_SUBSCRIPTION,
-        cause: `current plan: ${currentSub?.plan}`,
-      }),
-    };
-  }
+}): ABACResponse => requiresProPlan(subscriptions, "note generation");
 
-  return {
-    success: true,
-    error: null,
-  };
-};
-
-// in theory can generate title = can create note
 export const canGenerateTitle = ({
   subscriptions,
 }: {
   subscriptions: Subscription[];
-}): ABACResponse => {
-  const currentSub = currentSubscription(subscriptions);
-  if (currentSub?.plan !== PRO_PLAN_NAME) {
-    return {
-      success: false,
-      error: new ABACError("You are not authorized to use this feature. Please upgrade to the Pro plan to use this feature.", {
-        code: ABACErrorCode.INSUFFICIENT_SUBSCRIPTION,
-        cause: `current plan: ${currentSub?.plan}`,
-      }),
-    };
-  }
-
-  return {
-    success: true,
-    error: null,
-  };
-};
+}): ABACResponse => requiresProPlan(subscriptions, "title generation");
 
 const currentSubscription = (subscriptions: Subscription[]) => {
   if (!subscriptions.length) {
