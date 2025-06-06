@@ -1,9 +1,9 @@
-import React from "react";
 import type { AuthUser, AuthSession } from "@qahwa/auth/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getClient } from "@qahwa/desktop/lib/api";
+import { createContext, useContext, type ReactNode } from "react";
 
-const AuthContext = React.createContext<{
+const AuthContext = createContext<{
   user?:
     | (Omit<AuthUser, "createdAt" | "updatedAt"> & {
         createdAt: string;
@@ -29,13 +29,13 @@ const AuthContext = React.createContext<{
 });
 
 export const useAuth = () => {
-  return React.useContext(AuthContext);
+  return useContext(AuthContext);
 };
 
 export function AuthProvider({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const { data, isLoading } = useQuery({
     queryKey: ["auth"],

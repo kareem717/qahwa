@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import { AudioLines, ChevronUp, Loader2, Sparkles, Square } from "lucide-react";
 import { cn } from "@qahwa/ui/lib/utils";
@@ -10,6 +9,12 @@ import { toast } from "sonner";
 import { setNoteEditorMode } from "../hooks/use-note-editor";
 import { useStore } from "@tanstack/react-store";
 import { noteEditorModeStore } from "../hooks/use-note-editor";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+} from "react";
 
 function TranscriptItem({
   sender,
@@ -37,10 +42,10 @@ function TranscriptItem({
 export function NotePageMenuButton({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof motion.div>) {
-  const [menu, setMenu] = React.useState<"closed" | "transcript">("closed");
-  const transcriptContainerRef = React.useRef<HTMLDivElement>(null);
-  const [userScrolled, setUserScrolled] = React.useState(false);
+}: ComponentPropsWithoutRef<typeof motion.div>) {
+  const [menu, setMenu] = useState<"closed" | "transcript">("closed");
+  const transcriptContainerRef = useRef<HTMLDivElement>(null);
+  const [userScrolled, setUserScrolled] = useState(false);
   const {
     isRecording,
     startRecording,
@@ -53,7 +58,7 @@ export function NotePageMenuButton({
   const { mode } = useStore(noteEditorModeStore, (store) => store);
 
   // Auto-scroll to bottom when new transcript items appear
-  React.useEffect(() => {
+  useEffect(() => {
     // Only scroll if we're not handling a user scroll and the container exists
     if (transcriptContainerRef.current && !userScrolled) {
       // Use requestAnimationFrame to ensure DOM has updated before scrolling
@@ -67,7 +72,7 @@ export function NotePageMenuButton({
   }, [userScrolled]);
 
   // Force scroll to bottom when transcript menu is first opened
-  React.useEffect(() => {
+  useEffect(() => {
     if (menu === "transcript" && transcriptContainerRef.current) {
       // Short delay to ensure content has rendered
       setTimeout(() => {

@@ -1,6 +1,4 @@
 import { Button } from "@qahwa/ui/components/button";
-// biome-ignore lint/style/useImportType: Required to import
-import React from "react";
 import {
   Avatar,
   AvatarFallback,
@@ -18,9 +16,9 @@ import { LogOut } from "lucide-react";
 import { useAuth } from "../../components/providers/auth-provider";
 import { SignOutDialog } from "./sign-out-dialog";
 import { UserAvatar } from "@qahwa/ui/components/custom/user-avatar";
+import type { ComponentPropsWithoutRef } from "react";
 
-interface UserButtonProps
-  extends React.ComponentPropsWithoutRef<typeof Button> {}
+interface UserButtonProps extends ComponentPropsWithoutRef<typeof Button> {}
 
 // TODO: not sure why image not showing up
 export function UserButton({ className }: UserButtonProps) {

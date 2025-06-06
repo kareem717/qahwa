@@ -1,4 +1,4 @@
-import type React from "react";
+import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@qahwa/ui/lib/utils";
@@ -8,10 +8,10 @@ export function NavigateBack({
   className,
   onClick,
   ...props
-}: React.ComponentPropsWithoutRef<typeof ArrowLeft>) {
+}: ComponentPropsWithoutRef<typeof ArrowLeft>) {
   const router = useRouter();
 
-  function handleClick(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
+  function handleClick(e: MouseEvent<SVGSVGElement, MouseEvent>) {
     e.preventDefault();
     router.history.back();
     onClick?.(e);

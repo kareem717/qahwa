@@ -1,7 +1,7 @@
-import React from "react";
 import { Store, useStore } from "@tanstack/react-store";
 import { toast } from "sonner";
 import type { UpdateInfo } from "../lib/helpers/ipc/update/update-context";
+import { useEffect } from "react";
 
 interface AppUpdaterState {
   isUpdateAvailable: boolean;
@@ -58,7 +58,7 @@ export function useAppUpdater() {
     await window.electronUpdater.checkForUpdates();
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!window.electronUpdater) {
       console.warn("Electron updater not available");
       return;

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { syncThemeWithLocal } from "./lib/helpers/theme_helpers";
 import { useTranslation } from "react-i18next";
@@ -66,7 +66,7 @@ if (!app) {
 
 const root = createRoot(app);
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     <App />
-  </React.StrictMode>,
+  </StrictMode>,
 );

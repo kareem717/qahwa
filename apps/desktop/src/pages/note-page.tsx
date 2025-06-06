@@ -1,4 +1,3 @@
-import React from "react";
 import { NoteRoute } from "../routes/routes";
 import { Header } from "../components/header";
 import { ScrollArea } from "@qahwa/ui/components/scroll-area";

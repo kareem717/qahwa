@@ -1,5 +1,4 @@
-import React from "react";
-import type { qahwa as NoteType } from "@qahwa/db/types";
+import type { Note as NoteType } from "@qahwa/db/types";
 import { getClient } from "../lib/api";
 import { useLiveQuery, useOptimisticMutation } from "@tanstack/react-db";
 import { fullNoteCollection, notesCollection } from "../lib/collections/notes";
@@ -11,6 +10,12 @@ import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { cn } from "@qahwa/ui/lib/utils";
 import { noteEditorModeStore } from "../hooks/use-note-editor";
+import {
+  useCallback,
+  useRef,
+  useEffect,
+  type ComponentPropsWithoutRef,
+} from "react";
 
 const extensions = [
   StarterKit.configure({
@@ -49,9 +54,9 @@ const extensions = [
   Markdown,
 ];
 
-interface NoteEditorProps extends React.ComponentPropsWithoutRef<"div"> {
+interface NoteEditorProps extends ComponentPropsWithoutRef<"div"> {
   noteEditorProps?: Omit<
-    React.ComponentPropsWithoutRef<typeof EditorContent>,
+    ComponentPropsWithoutRef<typeof EditorContent>,
     "editor"
   >;
 }
@@ -64,9 +69,9 @@ export function NoteEditor({
   const noteId = useStore(noteIdStore, (store) => store.noteId);
   const noteCollection = fullNoteCollection(noteId);
   const mode = useStore(noteEditorModeStore, (store) => store.mode);
-  const isProgrammaticUpdate = React.useRef(false);
+  const isProgrammaticUpdate = useRef(false);
 
-  const updateNote = React.useCallback(
+  const updateNote = useCallback(
     asyncDebounce(
       async (
         noteId: number,
@@ -75,7 +80,7 @@ export function NoteEditor({
         >,
       ) => {
         const api = await getClient();
-        const resp = await api.qahwa.$put({
+        const resp = await api.note.$put({
           json: {
             id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
             ...params,
@@ -86,9 +91,9 @@ export function NoteEditor({
           throw new Error("Failed to update qahwa");
         }
 
-        const { qahwa } = await resp.json();
+        const { note } = await resp.json();
 
-        return qahwa;
+        return note;
       },
       {
         wait: 1500, // too low causes data inconsistency between collections
@@ -150,7 +155,7 @@ export function NoteEditor({
   });
 
   // Update editor content when data or mode changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!editor || !data || !data[0]) return;
 
     isProgrammaticUpdate.current = true;
@@ -165,7 +170,7 @@ export function NoteEditor({
   }, [data, mode, editor]);
 
   // Update editor editability when mode changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!editor) return;
     editor.setEditable(mode === "user");
   }, [mode, editor]);

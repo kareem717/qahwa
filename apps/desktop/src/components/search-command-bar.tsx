@@ -1,4 +1,3 @@
-import React from "react";
 import {
   CommandDialog,
   CommandInput,
@@ -20,16 +19,22 @@ import {
 } from "lucide-react";
 import { Button } from "@qahwa/ui/components/button";
 import { cn } from "@qahwa/ui/lib/utils";
+import {
+  useState,
+  useEffect,
+  type ComponentPropsWithoutRef,
+  type MouseEvent,
+} from "react";
 
 const COMMAND_KEY = "k";
 
 export function SearchCommandBar({
   className,
   ...props
-}: React.ComponentProps<typeof Button>) {
-  const [open, setOpen] = React.useState(false);
+}: ComponentPropsWithoutRef<typeof Button>) {
+  const [open, setOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === COMMAND_KEY && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -42,7 +47,7 @@ export function SearchCommandBar({
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+  function handleClick(e: MouseEvent<HTMLButtonElement>) {
     setOpen(true);
     props.onClick?.(e);
   }

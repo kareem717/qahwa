@@ -1,14 +1,15 @@
 import { getClient } from "../lib/api";
-import { noteIdStore } from "./use-note-id";
+import { DEFAULT_NOTE_ID, noteIdStore } from "./use-note-id";
 import { useStore } from "@tanstack/react-store";
 import { fullNoteCollection } from "../lib/collections/notes";
-import React from "react";
 import { useOptimisticMutation } from "@tanstack/react-db";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function useNoteGenerator() {
   const noteId = useStore(noteIdStore, (state) => state.noteId);
   const noteCollection = fullNoteCollection(noteId);
-  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async () => {
@@ -17,11 +18,10 @@ export function useNoteGenerator() {
   });
 
   async function generate() {
-    // Optional: Add validation for noteId if needed, e.g.,
-    // if (noteId === DEFAULT_NOTE_ID) {
-    //   console.error("Cannot generate notes: note ID is not set or is invalid.");
-    //   return;
-    // }
+    if (noteId === DEFAULT_NOTE_ID) {
+      toast.error("Cannot generate notes");
+      return;
+    }
 
     setIsGenerating(true);
 

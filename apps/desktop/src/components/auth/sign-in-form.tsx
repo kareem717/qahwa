@@ -1,5 +1,3 @@
-// biome-ignore lint/style/useImportType: Required to import
-import React from "react";
 import { cn } from "@qahwa/ui/lib/utils";
 import { Button } from "@qahwa/ui/components/button";
 import {
@@ -10,11 +8,12 @@ import {
   CardTitle,
 } from "@qahwa/ui/components/card";
 import { LogIn } from "lucide-react";
+import type { ComponentPropsWithoutRef } from "react";
 
 export function SignInForm({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: ComponentPropsWithoutRef<"div">) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>

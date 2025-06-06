@@ -1,4 +1,3 @@
-import React from "react";
 import { getClient } from "../lib/api";
 import { toast } from "sonner";
 import { fullNoteCollection } from "../lib/collections/notes";
@@ -6,6 +5,14 @@ import { useLiveQuery } from "@tanstack/react-db";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { noteIdStore, DEFAULT_NOTE_ID, setNoteId } from "./use-note-id";
 import { useStore } from "@tanstack/react-store";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+  useCallback,
+} from "react";
 
 type MicAudioRecorderState = {
   stream: MediaStream | null;
@@ -163,9 +170,7 @@ function setupWebSocket(options: WebSocketSetupOptions): WebSocket {
   return socket;
 }
 
-function closeAndClearWebSocket(
-  socketRef: React.MutableRefObject<WebSocket | null>,
-) {
+function closeAndClearWebSocket(socketRef: RefObject<WebSocket | null>) {
   if (socketRef.current && socketRef.current.readyState < WebSocket.CLOSING) {
     try {
       socketRef.current.send(JSON.stringify({ terminate_session: true }));
@@ -177,9 +182,7 @@ function closeAndClearWebSocket(
   socketRef.current = null; // Clear the ref
 }
 
-function cleanupAudioIpc(
-  audioIpcCleanupRef: React.MutableRefObject<(() => void) | null>,
-) {
+function cleanupAudioIpc(audioIpcCleanupRef: RefObject<(() => void) | null>) {
   if (audioIpcCleanupRef.current) {
     audioIpcCleanupRef.current();
     audioIpcCleanupRef.current = null;
@@ -189,13 +192,13 @@ function cleanupAudioIpc(
 export function useTranscript() {
   const noteId = useStore(noteIdStore, (state) => state.noteId);
 
-  const internalNoteIdRef = React.useRef(noteId);
-  const transcriptRef = React.useRef<typeof transcript>([]);
+  const internalNoteIdRef = useRef(noteId);
+  const transcriptRef = useRef<typeof transcript>([]);
 
-  const isCreatingNoteRef = React.useRef(false);
-  const pendingTranscriptEntriesRef = React.useRef<typeof transcript>([]);
+  const isCreatingNoteRef = useRef(false);
+  const pendingTranscriptEntriesRef = useRef<typeof transcript>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     internalNoteIdRef.current = noteId;
     if (noteId !== DEFAULT_NOTE_ID) {
       isCreatingNoteRef.current = false;
@@ -203,7 +206,7 @@ export function useTranscript() {
     }
   }, [noteId]);
 
-  const liveQueryCollection = React.useMemo(() => {
+  const liveQueryCollection = useMemo(() => {
     return fullNoteCollection(noteId);
   }, [noteId]);
 
@@ -218,11 +221,11 @@ export function useTranscript() {
 
   const transcript = data[0]?.transcript ?? [];
 
-  React.useEffect(() => {
+  useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
 
-  const [partialTranscript, setPartialTranscript] = React.useState<{
+  const [partialTranscript, setPartialTranscript] = useState<{
     them: string;
     me: string;
   }>({ them: "", me: "" });
@@ -273,7 +276,7 @@ export function useTranscript() {
 
   // Effect to flush pending entries once note ID is established and transcript is updated
   // This useEffect MUST be defined AFTER 'mutate' is defined.
-  React.useEffect(() => {
+  useEffect(() => {
     const currentActualNoteId = internalNoteIdRef.current;
     if (
       currentActualNoteId !== DEFAULT_NOTE_ID &&
@@ -314,7 +317,7 @@ export function useTranscript() {
     }
   }, [mutate]);
 
-  const handleTranscriptChange = React.useCallback(
+  const handleTranscriptChange = useCallback(
     (
       newTranscriptEntries: {
         timestamp: string;
@@ -366,17 +369,17 @@ export function useTranscript() {
     [mutate],
   ); // Dependencies: mutate (stable), refs are accessed directly.
 
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isRecording, setIsRecording] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   // Refs
-  const systemSocketRef = React.useRef<WebSocket | null>(null);
-  const micSocketRef = React.useRef<WebSocket | null>(null);
-  const audioIpcCleanupRef = React.useRef<(() => void) | null>(null); // To store cleanup from startCapture
-  const micRecorderRef = React.useRef<MicAudioRecorderState | null>(null);
+  const systemSocketRef = useRef<WebSocket | null>(null);
+  const micSocketRef = useRef<WebSocket | null>(null);
+  const audioIpcCleanupRef = useRef<(() => void) | null>(null); // To store cleanup from startCapture
+  const micRecorderRef = useRef<MicAudioRecorderState | null>(null);
 
   // --- Main Recording Logic ---
-  const stopRecording = React.useCallback(() => {
+  const stopRecording = useCallback(() => {
     setIsLoading(false);
     setIsRecording(false);
 
@@ -391,7 +394,7 @@ export function useTranscript() {
     pendingTranscriptEntriesRef.current = [];
   }, []);
 
-  const startRecording = React.useCallback(async () => {
+  const startRecording = useCallback(async () => {
     if (isRecording || isLoading) {
       return;
     }
@@ -631,7 +634,7 @@ export function useTranscript() {
   }, [isRecording, isLoading, stopRecording, handleTranscriptChange]);
 
   // Effect for automatic cleanup on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       stopRecording();
       if (micRecorderRef.current) {

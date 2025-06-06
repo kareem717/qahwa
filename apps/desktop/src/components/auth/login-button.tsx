@@ -1,10 +1,8 @@
-// biome-ignore lint/style/useImportType: Required for electron
-import React from "react";
 import { Button } from "@qahwa/ui/components/button";
 import { cn } from "@qahwa/ui/lib/utils";
+import type { ComponentPropsWithoutRef } from "react";
 
-interface LoginButtonProps
-  extends React.ComponentPropsWithoutRef<typeof Button> {
+interface LoginButtonProps extends ComponentPropsWithoutRef<typeof Button> {
   onLogin?: () => void;
 }
 

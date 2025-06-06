@@ -1,9 +1,8 @@
-import React from "react";
 import { NoteButton, type SimpleNote } from "../components/note-button";
 import { Header } from "../components/header";
 import { Badge } from "@qahwa/ui/components/badge";
 import { Link } from "@tanstack/react-router";
-import { Button, buttonVariants } from "@qahwa/ui/components/button";
+import { buttonVariants } from "@qahwa/ui/components/button";
 import { cn } from "@qahwa/ui/lib/utils";
 import { UserButton } from "../components/auth/user-button";
 import { ScrollArea } from "@qahwa/ui/components/scroll-area";
@@ -12,7 +11,6 @@ import { AuthenticatedLayout } from "../layouts/authenticated-layout";
 import { useLiveQuery } from "@tanstack/react-db";
 import { notesCollection } from "../lib/collections/notes";
 import { setNoteId, DEFAULT_NOTE_ID } from "../hooks/use-note-id";
-import { useAppUpdater } from "../hooks/use-app-updater";
 
 const today = new Date();
 const yesterday = new Date(today);

@@ -1,14 +1,13 @@
-// biome-ignore lint/style/useImportType: Required for electron
-import React from "react";
 import { Button } from "@qahwa/ui/components/button";
 import { useNoteGenerator } from "../hooks/use-note-generator";
 import { cn } from "@qahwa/ui/lib/utils";
 import { Loader2 } from "lucide-react";
+import type { ComponentPropsWithoutRef } from "react";
 
 export function NoteGenerator({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<typeof Button>) {
+}: ComponentPropsWithoutRef<typeof Button>) {
   const { isGenerating, generate, canGenerate } = useNoteGenerator();
 
   async function handleClick() {

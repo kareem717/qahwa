@@ -1,5 +1,3 @@
-// biome-ignore lint/style/useImportType: needed for electron
-import React from "react";
 import { ChevronRight, FileText, Trash } from "lucide-react";
 import type { Note } from "@qahwa/db/types";
 import { Button } from "@qahwa/ui/components/button";
@@ -9,15 +7,15 @@ import { getClient } from "../lib/api";
 import { notesCollection } from "../lib/collections/notes";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { toast } from "sonner";
+import type { ComponentPropsWithoutRef } from "react";
 
 export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">;
 
 interface NoteButtonProps
-  extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
+  extends Omit<ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
   note: SimpleNote;
 }
 
-// TODO: doesn't shrink all the way
 export function NoteButton({
   className,
   note: { id, title, updatedAt },

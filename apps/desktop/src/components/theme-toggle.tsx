@@ -1,5 +1,4 @@
 import { Moon } from "lucide-react";
-import React from "react";
 import { Button } from "@qahwa/ui/components/button";
 import { toggleTheme } from "@qahwa/desktop/lib/helpers/theme_helpers";
 

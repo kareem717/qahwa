@@ -1,5 +1,4 @@
 import { Button } from "@qahwa/ui/components/button";
-import React from "react";
 import { useAuth } from "../providers/auth-provider";
 import { Loader2 } from "lucide-react";
 import {
@@ -11,12 +10,12 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@qahwa/ui/components/dialog";
+import { useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 
-interface SignOutDialogProps
-  extends React.ComponentPropsWithoutRef<typeof Dialog> {
+interface SignOutDialogProps extends ComponentPropsWithoutRef<typeof Dialog> {
   onLogout?: () => void;
-  contentProps?: React.ComponentPropsWithoutRef<typeof DialogContent>;
-  children?: React.ReactNode;
+  contentProps?: ComponentPropsWithoutRef<typeof DialogContent>;
+  children?: ReactNode;
 }
 
 export function SignOutDialog({
@@ -26,7 +25,7 @@ export function SignOutDialog({
   ...props
 }: SignOutDialogProps) {
   const { signOut, isSigningOut } = useAuth();
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   async function handleLogout() {
     const { success } = await signOut();

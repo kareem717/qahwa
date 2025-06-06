@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import "@qahwa/desktop/styles/app.css";
 

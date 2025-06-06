@@ -1,11 +1,10 @@
-// biome-ignore lint/style/useImportType: Required for electron
-import React from "react";
 import { cn } from "@qahwa/ui/lib/utils";
 import { SearchCommandBar } from "./search-command-bar";
 import { NavigateBack } from "./navigate-back";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
-interface HeaderProps extends React.ComponentProps<"header"> {
-  leftTag?: React.ReactNode;
+interface HeaderProps extends ComponentPropsWithoutRef<"header"> {
+  leftTag?: ReactNode;
 }
 
 export function Header({
