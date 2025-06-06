@@ -1,4 +1,10 @@
-import { createFileRoute, Navigate, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Navigate,
+  redirect,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import { SignOutButton } from "./-components/sign-out-button";
 import {
   Card,

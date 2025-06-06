@@ -5,7 +5,10 @@ import { Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 
-export function AuthButton({ className, ...props }: ComponentPropsWithoutRef<typeof Button>) {
+export function AuthButton({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<typeof Button>) {
   const { data: session, isPending, error } = useSession();
 
   if (error) {
@@ -14,17 +17,22 @@ export function AuthButton({ className, ...props }: ComponentPropsWithoutRef<typ
 
   return (
     <Link
-      className={cn(buttonVariants({ size: "sm" }), "w-min h-7 text-xs", className)}
+      className={cn(
+        buttonVariants({ size: "sm" }),
+        "w-min h-7 text-xs",
+        className,
+      )}
       to={session ? "/dashboard" : "/sign-in"}
       search={session ? { tab: "dashboard" } : undefined}
       preload={session ? "intent" : "render"}
     >
-      {isPending
-        ? <Loader2 className="size-4 animate-spin" />
-        : session
-          ? "Dashboard"
-          : "Sign in"
-      }
+      {isPending ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : session ? (
+        "Dashboard"
+      ) : (
+        "Sign in"
+      )}
     </Link>
-  )
+  );
 }

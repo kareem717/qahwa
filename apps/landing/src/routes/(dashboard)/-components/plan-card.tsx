@@ -1,27 +1,32 @@
-import { BadgeCheck, ArrowRight, Check, Loader2 } from "lucide-react"
+import { BadgeCheck, ArrowRight, Check, Loader2 } from "lucide-react";
 
-import { cn } from "@qahwa/ui/lib/utils"
-import { Badge } from "@qahwa/ui/components/badge"
-import { Button } from "@qahwa/ui/components/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@qahwa/ui/components/card"
-import { authClient } from "@qahwa/landing/lib/auth-client"
-import type { PricingPlan } from "@qahwa/auth/types"
-import { useState, type ComponentPropsWithoutRef } from "react"
-import { toast } from "sonner"
+import { cn } from "@qahwa/ui/lib/utils";
+import { Badge } from "@qahwa/ui/components/badge";
+import { Button } from "@qahwa/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@qahwa/ui/components/card";
+import { authClient } from "@qahwa/landing/lib/auth-client";
+import type { PricingPlan } from "@qahwa/auth/types";
+import { useState, type ComponentPropsWithoutRef } from "react";
+import { toast } from "sonner";
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value / 100) // Convert cents to dollars
+  }).format(value / 100); // Convert cents to dollars
 }
 
 interface PlanCardProps extends ComponentPropsWithoutRef<typeof Card> {
-  plan: PricingPlan
-  paymentFrequency?: "monthly" | "yearly"
-  isCurrentPlan?: boolean
+  plan: PricingPlan;
+  paymentFrequency?: "monthly" | "yearly";
+  isCurrentPlan?: boolean;
 }
 
 export function PlanCard({
@@ -29,35 +34,37 @@ export function PlanCard({
   paymentFrequency = "monthly",
   isCurrentPlan,
 }: PlanCardProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const price = plan.priceUsdCents[paymentFrequency]
-  const isHighlighted = plan.highlighted
-  const isPopular = plan.popular
+  const [isLoading, setIsLoading] = useState(false);
+  const price = plan.priceUsdCents[paymentFrequency];
+  const isHighlighted = plan.highlighted;
+  const isPopular = plan.popular;
 
   async function handleCheckout() {
-    setIsLoading(true)
+    setIsLoading(true);
     if (isCurrentPlan) {
       return toast.info(`You are already on the ${plan.name} plan.`, {
         description: `You are already on the ${plan.name} plan. You can manage your subscription in the billing tab.`,
-      })
+      });
     }
 
     const { data, error } = await authClient.subscription.upgrade({
       plan: plan.name,
       successUrl: window.location.href,
       cancelUrl: window.location.href,
-    })
+    });
 
     if (error) {
-      setIsLoading(false)
+      setIsLoading(false);
       return toast.error("Failed to redirect to checkout.", {
-        description: error instanceof Error ? error.message : "An unknown error occurred.",
-      })
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred.",
+      });
     }
 
     return toast.info(`Redirecting to checkout for ${plan.name} plan...`, {
-      description: "You will be redirected to the checkout page in a few seconds.",
-    })
+      description:
+        "You will be redirected to the checkout page in a few seconds.",
+    });
   }
 
   return (
@@ -68,7 +75,7 @@ export function PlanCard({
           ? "bg-foreground text-background"
           : "bg-background text-foreground",
         isPopular && "ring-2 ring-primary",
-        isCurrentPlan && "ring-2 ring-green-500"
+        isCurrentPlan && "ring-2 ring-green-500",
       )}
     >
       {isHighlighted && <HighlightedBackground />}
@@ -84,7 +91,10 @@ export function PlanCard({
               </Badge>
             )}
             {isCurrentPlan && (
-              <Badge variant="outline" className="border-green-500 text-green-500 z-10">
+              <Badge
+                variant="outline"
+                className="border-green-500 text-green-500 z-10"
+              >
                 Current Plan
               </Badge>
             )}
@@ -113,7 +123,7 @@ export function PlanCard({
               key={feature}
               className={cn(
                 "flex items-center gap-2 text-sm",
-                isHighlighted ? "text-background" : "text-muted-foreground"
+                isHighlighted ? "text-background" : "text-muted-foreground",
               )}
             >
               <BadgeCheck className="h-4 w-4 flex-shrink-0" />
@@ -124,7 +134,9 @@ export function PlanCard({
       </CardContent>
       <CardFooter>
         <Button
-          variant={isHighlighted ? "secondary" : isCurrentPlan ? "outline" : "default"}
+          variant={
+            isHighlighted ? "secondary" : isCurrentPlan ? "outline" : "default"
+          }
           className="w-full"
           disabled={isCurrentPlan || isLoading}
           onClick={handleCheckout}
@@ -144,13 +156,13 @@ export function PlanCard({
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
 
 const HighlightedBackground = () => (
   <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:45px_45px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] pointer-events-none" />
-)
+);
 
 const PopularBackground = () => (
   <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))] pointer-events-none" />
-) 
+);

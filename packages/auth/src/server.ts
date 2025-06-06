@@ -4,11 +4,11 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI, apiKey } from "better-auth/plugins";
 import { reactStartCookies } from "better-auth/react-start";
-import { stripe } from "@better-auth/stripe"
-import Stripe from "stripe"
+import { stripe } from "@better-auth/stripe";
+import Stripe from "stripe";
 import { SubscriptionPlans } from "./subscriptions";
 
-export const API_KEY_HEADER_NAME = 'x-api-key';
+export const API_KEY_HEADER_NAME = "x-api-key";
 
 interface ServerClientConfig {
   basePath: string;
@@ -20,7 +20,7 @@ interface ServerClientConfig {
   stripeConfig: {
     apiKey: string;
     webhookSecret: string;
-    config?: Omit<Stripe.StripeConfig, "apiVersion">
+    config?: Omit<Stripe.StripeConfig, "apiVersion">;
   };
 }
 
@@ -36,7 +36,7 @@ export const createServerClient = ({
   const stripeClient = new Stripe(stripeConfig.apiKey, {
     apiVersion: "2025-05-28.basil",
     ...stripeConfig.config,
-  })
+  });
 
   return betterAuth({
     basePath,
@@ -94,7 +94,7 @@ export const createServerClient = ({
         path: "/docs",
       }),
       apiKey({
-        apiKeyHeaders: API_KEY_HEADER_NAME
+        apiKeyHeaders: API_KEY_HEADER_NAME,
       }),
       stripe({
         stripeClient,
@@ -103,26 +103,28 @@ export const createServerClient = ({
         getCustomerCreateParams: async (data, request) => {
           return {
             userId: data.user.id,
-          }
+          };
         },
         getCheckoutSessionParams: () => {
           return {
             params: {
               allow_promotion_codes: true,
-            }
-          }
+            },
+          };
         },
         subscription: {
           enabled: true,
-          plans: Object.values(SubscriptionPlans).map((subscription) => subscription.stripePlan),
+          plans: Object.values(SubscriptionPlans).map(
+            (subscription) => subscription.stripePlan,
+          ),
         },
         schema: {
           subscription: {
             modelName: "subscriptions",
-          }
-        }
+          },
+        },
       }),
       reactStartCookies(), // Has to be the last plugin
     ],
   });
-}
+};

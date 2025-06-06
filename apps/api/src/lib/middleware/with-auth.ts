@@ -36,11 +36,12 @@ export const withAuth = () =>
     try {
       const resp = await auth.api.getSession({ headers: c.req.raw.headers });
 
-      if (resp) { // set both or none
+      if (resp) {
+        // set both or none
         c.get("sentry").setTags({
           userId: resp.user.id, // downstream heavily depends on this tag
           sessionId: resp.session.id,
-        })
+        });
 
         c.set(USER_KEY, resp.user);
         c.set(SESSION_KEY, resp.session);
@@ -55,7 +56,7 @@ export const withAuth = () =>
             apiKeyHeaderValue: c.req.raw.headers.get(API_KEY_HEADER_NAME),
           },
           extra: {
-            request: c.req.raw
+            request: c.req.raw,
           },
         },
       });

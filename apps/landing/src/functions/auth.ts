@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { getWebRequest } from "@tanstack/react-start/server";
 import { authClient } from "../lib/auth-client";
 import { createClient } from "@qahwa/sdk";
-import { getHeader } from '@tanstack/react-start/server'
-import { z } from 'zod'
+import { getHeader } from "@tanstack/react-start/server";
+import { z } from "zod";
 
 export const getSessionFunction = createServerFn({ method: "GET" }).handler(
   async () =>
@@ -15,28 +15,29 @@ export const getSessionFunction = createServerFn({ method: "GET" }).handler(
 );
 
 export const getBillingPortalUrl = createServerFn({ method: "GET" })
-  .validator(z.object({
-    returnUrl: z.string().url(),
-  })).handler(
-    async ({ data }) => {
-      const apiClient = createClient({
-        baseUrl: import.meta.env.VITE_API_URL,
-        headers: {
-          'cookie': getHeader("Cookie") || '',
-        },
-      });
+  .validator(
+    z.object({
+      returnUrl: z.string().url(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const apiClient = createClient({
+      baseUrl: import.meta.env.VITE_API_URL,
+      headers: {
+        cookie: getHeader("Cookie") || "",
+      },
+    });
 
-      const resp = await apiClient.auth["billing-portal"].$get({
-        query: {
-          returnUrl: data.returnUrl
-        },
-      });
+    const resp = await apiClient.auth["billing-portal"].$get({
+      query: {
+        returnUrl: data.returnUrl,
+      },
+    });
 
-      if (!resp.ok) {
-        //TODO: add sentry error
-        throw new Error("Failed to get billing portal url");
-      }
-
-      return await resp.json();
+    if (!resp.ok) {
+      //TODO: add sentry error
+      throw new Error("Failed to get billing portal url");
     }
-  );
+
+    return await resp.json();
+  });

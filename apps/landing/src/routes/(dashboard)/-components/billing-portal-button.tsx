@@ -6,9 +6,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
 import { useState, type ComponentPropsWithoutRef } from "react";
 
-interface BillingPortalButtonProps extends ComponentPropsWithoutRef<typeof Button> { }
+interface BillingPortalButtonProps
+  extends ComponentPropsWithoutRef<typeof Button> {}
 
-export function BillingPortalButton({ className, children, ...props }: BillingPortalButtonProps) {
+export function BillingPortalButton({
+  className,
+  children,
+  ...props
+}: BillingPortalButtonProps) {
   const getUrl = useServerFn(getBillingPortalUrl);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -21,7 +26,7 @@ export function BillingPortalButton({ className, children, ...props }: BillingPo
         },
       });
 
-      window.location.href = url // TODO: is there a better way to do this?
+      window.location.href = url; // TODO: is there a better way to do this?
     } catch (error) {
       // TODO: add sentry error
       console.error("Failed to get billing portal url");
@@ -34,5 +39,5 @@ export function BillingPortalButton({ className, children, ...props }: BillingPo
       {isLoading && <Loader2 className="size-4 animate-spin mr-2" />}
       {children}
     </Button>
-  )
+  );
 }

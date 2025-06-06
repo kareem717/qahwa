@@ -16,7 +16,7 @@
       ".vinxi",
       ".vite",
       "packages/ui/src/components/*.tsx" // we want to still lint custom components
-    ],
+    ]
   },
   "linter": {
     "enabled": true,

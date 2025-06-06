@@ -1,27 +1,32 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { fallback, zodValidator } from '@tanstack/zod-adapter'
-import { z } from 'zod'
-import { DashboardSidebar } from './-components/dashboard-sidebar'
-import { BillingTab } from './-components/tab-billing'
-import { CreditCardIcon } from 'lucide-react'
-import { getSessionFunction } from '@qahwa/landing/functions/auth'
-import { ScrollArea } from '@qahwa/ui/components/scroll-area'
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { fallback, zodValidator } from "@tanstack/zod-adapter";
+import { z } from "zod";
+import { DashboardSidebar } from "./-components/dashboard-sidebar";
+import { BillingTab } from "./-components/tab-billing";
+import { CreditCardIcon } from "lucide-react";
+import { getSessionFunction } from "@qahwa/landing/functions/auth";
+import { ScrollArea } from "@qahwa/ui/components/scroll-area";
 
 export const DashboardTabs = {
-  "billing": {
+  billing: {
     name: "Billing",
     component: BillingTab,
-    icon: CreditCardIcon
+    icon: CreditCardIcon,
   },
-} as const
+} as const;
 
-export type DashboardTabType = keyof typeof DashboardTabs
+export type DashboardTabType = keyof typeof DashboardTabs;
 
-export const Route = createFileRoute('/(dashboard)/dashboard')({
+export const Route = createFileRoute("/(dashboard)/dashboard")({
   component: RouteComponent,
-  validateSearch: zodValidator(z.object({
-    tab: fallback(z.enum(Object.keys(DashboardTabs) as [string, ...string[]]), "billing")
-  })),
+  validateSearch: zodValidator(
+    z.object({
+      tab: fallback(
+        z.enum(Object.keys(DashboardTabs) as [string, ...string[]]),
+        "billing",
+      ),
+    }),
+  ),
   beforeLoad: async ({ location }) => {
     //TODO: move to a cached fn, clear on sign out
     const { data } = await getSessionFunction();
@@ -36,14 +41,14 @@ export const Route = createFileRoute('/(dashboard)/dashboard')({
     }
     return {
       user: data.user,
-    }
+    };
   },
-})
+});
 
 function RouteComponent() {
-  const { tab } = Route.useSearch()
-  const { user } = Route.useRouteContext()
-  const TabComponent = DashboardTabs[tab].component
+  const { tab } = Route.useSearch();
+  const { user } = Route.useRouteContext();
+  const TabComponent = DashboardTabs[tab].component;
 
   return (
     <div className="flex h-full w-full">
@@ -53,5 +58,5 @@ function RouteComponent() {
         </ScrollArea>
       </DashboardSidebar>
     </div>
-  )
+  );
 }

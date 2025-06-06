@@ -18,9 +18,9 @@ export const authHandler = () =>
 
         return session && user
           ? c.json({
-            session,
-            user,
-          })
+              session,
+              user,
+            })
           : c.json(null);
       },
     )
@@ -156,10 +156,14 @@ export const authHandler = () =>
         );
       }
     })
-    .get("/billing-portal",
-      zValidator("query", z.object({
-        returnUrl: z.string().url(),
-      })),
+    .get(
+      "/billing-portal",
+      zValidator(
+        "query",
+        z.object({
+          returnUrl: z.string().url(),
+        }),
+      ),
       async (c) => {
         const { session, user } = getAuth(c);
 
@@ -172,7 +176,7 @@ export const authHandler = () =>
           );
         }
 
-        const customerId = await user.stripeCustomerId
+        const customerId = await user.stripeCustomerId;
 
         if (!customerId) {
           c.get("sentry").captureMessage("No customer id found", "debug");
@@ -192,5 +196,6 @@ export const authHandler = () =>
         });
 
         return c.json({ url });
-      })
+      },
+    )
     .on(["POST", "GET"], "/*", (c) => createAuthClient().handler(c.req.raw));

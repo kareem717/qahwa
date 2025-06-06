@@ -14,19 +14,19 @@ export type AuthType = {
 };
 
 export interface PricingPlan {
-  name: string
+  name: string;
   priceUsdCents: {
     monthly: number;
     yearly: number;
-  }
-  description: string
-  features: string[]
-  cta: string
-  highlighted?: boolean
-  popular?: boolean
+  };
+  description: string;
+  features: string[];
+  cta: string;
+  highlighted?: boolean;
+  popular?: boolean;
 }
 
 export interface SubscriptionPlan {
   stripePlan: StripePlan;
-  plan: PricingPlan
+  plan: PricingPlan;
 }

@@ -15,8 +15,8 @@ export const createClient = ({
       ...headers,
       ...(token
         ? {
-          "x-api-key": token,
-        }
+            "x-api-key": token,
+          }
         : undefined),
       "Content-Type": "application/json",
     },

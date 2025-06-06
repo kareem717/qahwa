@@ -78,7 +78,6 @@ export const noteHandler = () =>
           message: "Failed to get user notes",
         });
       }
-
     })
     .get(
       "/:id",
@@ -140,7 +139,7 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        let note: (typeof notes.$inferSelect) | null = null;
+        let note: typeof notes.$inferSelect | null = null;
         try {
           [note] = await db
             .select()
@@ -157,16 +156,18 @@ export const noteHandler = () =>
         }
 
         if (note.userId !== Number(user.id)) {
-          c.get("sentry").captureMessage("User is not allowed to delete this note", "debug", {
-            captureContext: {
-              extra: {
-
-
-                noteUserId: note.userId,
-                // userId should already be set in the withAuth middleware
+          c.get("sentry").captureMessage(
+            "User is not allowed to delete this note",
+            "debug",
+            {
+              captureContext: {
+                extra: {
+                  noteUserId: note.userId,
+                  // userId should already be set in the withAuth middleware
+                },
               },
             },
-          });
+          );
 
           throw new HTTPException(403, {
             message: "You are not allowed to delete this qahwa",
@@ -222,7 +223,10 @@ export const noteHandler = () =>
           let insertableTitle = title;
           if (!insertableTitle) {
             if (!transcript && !userNotes) {
-              c.get("sentry").captureMessage("Note has no title, transcript, or user notes", "debug");
+              c.get("sentry").captureMessage(
+                "Note has no title, transcript, or user notes",
+                "debug",
+              );
 
               throw new HTTPException(400, {
                 message: "Note has no title, transcript, or user notes",
@@ -248,8 +252,6 @@ export const noteHandler = () =>
                 message: "Failed to generate title",
               });
             }
-
-
           }
 
           const [note] = await db
@@ -266,7 +268,6 @@ export const noteHandler = () =>
             note,
           });
         }
-
 
         try {
           const [note] = await db
@@ -318,7 +319,7 @@ export const noteHandler = () =>
 
         const db = getDb(env.DATABASE_URL);
 
-        let note: (typeof notes.$inferSelect) | null = null;
+        let note: typeof notes.$inferSelect | null = null;
         try {
           [note] = await db.select().from(notes).where(eq(notes.id, id));
         } catch (e) {
@@ -329,15 +330,18 @@ export const noteHandler = () =>
           });
         }
 
-
         if (!note?.transcript) {
-          c.get("sentry").captureMessage("Note has no transcript to generate notes from", "debug", {
-            captureContext: {
-              extra: {
-                noteId: id,
+          c.get("sentry").captureMessage(
+            "Note has no transcript to generate notes from",
+            "debug",
+            {
+              captureContext: {
+                extra: {
+                  noteId: id,
+                },
               },
             },
-          });
+          );
 
           throw new HTTPException(400, {
             message: "qahwa has no transcript",
@@ -345,14 +349,18 @@ export const noteHandler = () =>
         }
 
         if (note.userId !== Number(user.id)) {
-          c.get("sentry").captureMessage("User is not allowed to generate notes for this note", "debug", {
-            captureContext: {
-              extra: {
-                noteId: id,
-                noteUserId: note.userId,
+          c.get("sentry").captureMessage(
+            "User is not allowed to generate notes for this note",
+            "debug",
+            {
+              captureContext: {
+                extra: {
+                  noteId: id,
+                  noteUserId: note.userId,
+                },
               },
             },
-          });
+          );
           throw new HTTPException(403, {
             message: "You are not allowed to generate notes for this qahwa",
           });
@@ -382,9 +390,12 @@ export const noteHandler = () =>
               }
 
               try {
-                await db.update(notes).set({
-                  generatedNotes: text,
-                }).where(eq(notes.id, id));
+                await db
+                  .update(notes)
+                  .set({
+                    generatedNotes: text,
+                  })
+                  .where(eq(notes.id, id));
               } catch (e) {
                 c.get("sentry").captureException(e, {
                   captureContext: {
@@ -401,9 +412,11 @@ export const noteHandler = () =>
           c.header("Content-Encoding", "Identity"); // Important for Cloudflare Workers
 
           return stream(c, async (honoStream) => {
-            await honoStream.pipe(aiStreamResult.textStream.pipeThrough(
-              new TextEncoderStream(), // not sure if this is needed
-            ));
+            await honoStream.pipe(
+              aiStreamResult.textStream.pipeThrough(
+                new TextEncoderStream(), // not sure if this is needed
+              ),
+            );
           });
         } catch (error) {
           c.get("sentry").captureException(error, {

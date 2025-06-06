@@ -12,7 +12,7 @@ interface PlansDisplayProps extends ComponentPropsWithoutRef<"div"> {
   subtitle?: string;
 }
 
-const plans = Object.values(SubscriptionPlans)
+const plans = Object.values(SubscriptionPlans);
 
 export function PlansDisplay({
   title = "Choose Your Plan",
@@ -21,9 +21,9 @@ export function PlansDisplay({
   ...props
 }: PlansDisplayProps) {
   const { data: subscription } = useSubscription();
-  const [selectedFrequency, setSelectedFrequency] = useState<"monthly" | "yearly">("monthly");
-
-
+  const [selectedFrequency, setSelectedFrequency] = useState<
+    "monthly" | "yearly"
+  >("monthly");
 
   return (
     <div className={cn("space-y-8", className)} {...props}>
@@ -35,7 +35,9 @@ export function PlansDisplay({
         <Tabs
           defaultValue="monthly"
           value={selectedFrequency}
-          onValueChange={(value) => setSelectedFrequency(value as "monthly" | "yearly")}
+          onValueChange={(value) =>
+            setSelectedFrequency(value as "monthly" | "yearly")
+          }
           className="w-fit mx-auto"
         >
           <TabsList className="grid w-full grid-cols-2">
@@ -51,12 +53,16 @@ export function PlansDisplay({
       </div>
 
       {/* Plans grid */}
-      <div className={cn(
-        "grid gap-6 max-w-6xl mx-auto",
-        plans.length % 3 === 0 ? "grid-cols-3" :
-          plans.length % 2 === 0 ? "grid-cols-2" :
-            "grid-cols-1"
-      )}>
+      <div
+        className={cn(
+          "grid gap-6 max-w-6xl mx-auto",
+          plans.length % 3 === 0
+            ? "grid-cols-3"
+            : plans.length % 2 === 0
+              ? "grid-cols-2"
+              : "grid-cols-1",
+        )}
+      >
         {plans.map((plan) => (
           <PlanCard
             key={plan.stripePlan.name}
@@ -72,13 +78,19 @@ export function PlansDisplay({
       {subscription && (
         <div className="text-center text-sm text-muted-foreground">
           <p>
-            Currently subscribed to <span className="font-medium capitalize">{subscription.plan}</span> plan
+            Currently subscribed to{" "}
+            <span className="font-medium capitalize">{subscription.plan}</span>{" "}
+            plan
             {subscription.cancelAtPeriodEnd && subscription.periodEnd && (
-              <span className="text-destructive"> (ends on {new Date(subscription.periodEnd).toLocaleDateString()})</span>
+              <span className="text-destructive">
+                {" "}
+                (ends on {new Date(subscription.periodEnd).toLocaleDateString()}
+                )
+              </span>
             )}
           </p>
         </div>
       )}
     </div>
   );
-} 
+}

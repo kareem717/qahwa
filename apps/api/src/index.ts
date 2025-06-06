@@ -12,27 +12,33 @@ import { sentry } from "@hono/sentry";
 
 const ReleaseJsonSchema = z.object({
   currentRelease: z.string(),
-  releases: z.array(z.object({
-    version: z.string(),
-    updateTo: z.object({
-      name: z.string(),
+  releases: z.array(
+    z.object({
       version: z.string(),
-      pub_date: z.string(),
-      url: z.string(),
-      notes: z.string(),
+      updateTo: z.object({
+        name: z.string(),
+        version: z.string(),
+        pub_date: z.string(),
+        url: z.string(),
+        notes: z.string(),
+      }),
     }),
-  })),
+  ),
 });
 
 const app = new Hono()
-  .use('*', sentry({
-    enabled: env.NODE_ENV === "production",
-    environment: env.NODE_ENV,
-    dsn: env.SENTRY_DSN,
-  }), (c, next) => {
-    c.get("sentry").setTag("path", c.req.path)
-    return next()
-  })
+  .use(
+    "*",
+    sentry({
+      enabled: env.NODE_ENV === "production",
+      environment: env.NODE_ENV,
+      dsn: env.SENTRY_DSN,
+    }),
+    (c, next) => {
+      c.get("sentry").setTag("path", c.req.path);
+      return next();
+    },
+  )
   .use(
     "*",
     cors({
@@ -88,7 +94,7 @@ const app = new Hono()
         platform,
         arch,
         key,
-      })
+      });
 
       const releaseJson = await r2.get(key);
 
@@ -101,7 +107,8 @@ const app = new Hono()
       }
 
       const releaseJsonBody = await releaseJson.json();
-      const { success, data, error } = ReleaseJsonSchema.safeParse(releaseJsonBody);
+      const { success, data, error } =
+        ReleaseJsonSchema.safeParse(releaseJsonBody);
 
       if (!success) {
         c.get("sentry").captureEvent({
@@ -115,7 +122,9 @@ const app = new Hono()
         return c.json({ error: "Invalid release JSON" }, 500);
       }
 
-      const release = data.releases.find((release) => release.version === data.currentRelease);
+      const release = data.releases.find(
+        (release) => release.version === data.currentRelease,
+      );
 
       if (!release) {
         c.get("sentry").captureEvent({

@@ -12,7 +12,6 @@ export const Route = createFileRoute("/(home)/")({
 });
 
 function HomeComponent() {
-
   return (
     <div className="flex flex-col items-center justify-between h-screen relative p-4 container mx-auto">
       <header className="w-full font-bold text-2xl tracking-wide flex items-center justify-between">

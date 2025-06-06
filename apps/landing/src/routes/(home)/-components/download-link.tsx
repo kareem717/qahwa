@@ -32,7 +32,11 @@ export function DownloadLink({
   });
 
   return (
-    <a href={url.toString()} {...props} className={cn(buttonVariants(), props.className)}>
+    <a
+      href={url.toString()}
+      {...props}
+      className={cn(buttonVariants(), props.className)}
+    >
       {children}
     </a>
   );

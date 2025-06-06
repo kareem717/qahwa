@@ -20,10 +20,10 @@ import { SignOutDialog } from "./sign-out-dialog";
 import { UserAvatar } from "@qahwa/ui/components/custom/user-avatar";
 
 interface UserButtonProps
-  extends React.ComponentPropsWithoutRef<typeof Button> { }
+  extends React.ComponentPropsWithoutRef<typeof Button> {}
 
 // TODO: not sure why image not showing up
-export function UserButton({ className, }: UserButtonProps) {
+export function UserButton({ className }: UserButtonProps) {
   const { user } = useAuth();
 
   if (!user) {
@@ -38,11 +38,13 @@ export function UserButton({ className, }: UserButtonProps) {
           variant="ghost"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-full hover:cursor-pointer"
         >
-          <UserAvatar user={{
-            ...user,
-            createdAt: new Date(user.createdAt),
-            updatedAt: new Date(user.updatedAt),
-          }} />
+          <UserAvatar
+            user={{
+              ...user,
+              createdAt: new Date(user.createdAt),
+              updatedAt: new Date(user.updatedAt),
+            }}
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -59,9 +61,7 @@ export function UserButton({ className, }: UserButtonProps) {
               <AvatarFallback>{user.name?.[0]}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">
-                {user.name}
-              </span>
+              <span className="truncate font-semibold">{user.name}</span>
               <span className="truncate text-xs">{user.email}</span>
             </div>
           </div>
