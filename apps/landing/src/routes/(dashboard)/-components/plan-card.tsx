@@ -101,7 +101,7 @@ export function PlanCard({
           </div>
         </div>
         <div className="relative">
-          {typeof price === "number" ? (
+          {price > 0 ? (
             <>
               <span className="text-4xl font-medium">
                 {formatCurrency(price)}
@@ -111,8 +111,9 @@ export function PlanCard({
               </p>
             </>
           ) : (
-            <span className="text-4xl font-medium">{price}</span>
+            <span className="text-4xl font-medium">Free</span>
           )}
+          {/* TODO: add a enterprise plan */}
         </div>
       </CardHeader>
       <CardContent className="flex-1 space-y-4">

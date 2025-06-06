@@ -33,6 +33,7 @@ interface AuthContext {
   setToken: (token: string) => Promise<void>;
   getToken: () => Promise<string>;
   removeToken: () => Promise<void>;
+  openSignInWindow: () => void;
 }
 
 interface ElectronSystemAudio {

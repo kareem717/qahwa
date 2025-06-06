@@ -2,7 +2,7 @@ import {
   createQueryCollection,
   type QueryCollection,
 } from "@tanstack/db-collections";
-import type { qahwa } from "@qahwa/db/types";
+import type { Note } from "@qahwa/db/types";
 import { SelectNoteSchema } from "@qahwa/db/validation";
 import { getClient } from "../api";
 import { getQueryClient } from "../query-client";
@@ -10,7 +10,7 @@ import { getQueryClient } from "../query-client";
 export const NOTES_COLLECTION_KEY = "notes";
 
 export const notesCollection = createQueryCollection<
-  Pick<qahwa, "id" | "title" | "updatedAt">
+  Pick<Note, "id" | "title" | "updatedAt">
 >({
   queryClient: getQueryClient(),
   id: NOTES_COLLECTION_KEY,
@@ -32,18 +32,18 @@ export const notesCollection = createQueryCollection<
   schema: SelectNoteSchema.pick({ id: true, title: true, updatedAt: true }), // any standard schema
 });
 
-const FULL_NOTE_COLLECTION_KEY = "full-qahwa";
+const FULL_NOTE_COLLECTION_KEY = "full-note";
 
 // Define the maximum size for the cache
 const MAX_FULL_NOTE_CACHE_SIZE = 2; // Example: Max 50 items
 
-const fullNoteCollectionCache = new Map<number, QueryCollection<qahwa>>();
+const fullNoteCollectionCache = new Map<number, QueryCollection<Note>>();
 
 export const fullNoteCollection = (id: number) => {
   if (id < 1) {
-    return createQueryCollection<qahwa>({
+    return createQueryCollection<Note>({
       queryClient: getQueryClient(),
-      id: `${FULL_NOTE_COLLECTION_KEY}-${id}`, // Make collection id specific to the qahwa id
+      id: `${FULL_NOTE_COLLECTION_KEY}-${id}`, // Make collection id specific to the note id
       queryKey: [FULL_NOTE_COLLECTION_KEY, id],
       queryFn: async () => [],
       getId: (item) => String(item.id),
@@ -63,9 +63,9 @@ export const fullNoteCollection = (id: number) => {
     return collection;
   }
 
-  const collection = createQueryCollection<qahwa>({
+  const collection = createQueryCollection<Note>({
     queryClient: getQueryClient(),
-    id: `${FULL_NOTE_COLLECTION_KEY}-${id}`, // Make collection id specific to the qahwa id
+    id: `${FULL_NOTE_COLLECTION_KEY}-${id}`, // Make collection id specific to the note id
     queryKey: [FULL_NOTE_COLLECTION_KEY, id],
     queryFn: async () => {
       const api = await getClient();
@@ -77,16 +77,16 @@ export const fullNoteCollection = (id: number) => {
         throw new Error("Error fetching notes");
       }
 
-      const { qahwa } = await response.json();
+      const { note } = await response.json();
 
-      return [qahwa];
+      return [note];
     },
     getId: (item) => String(item.id),
     schema: SelectNoteSchema, // any standard schema
   });
 
   // Before adding the new item, check if the cache is at or over its max size
-  // qahwa: We check >= because we are about to add one more item.
+  // note: We check >= because we are about to add one more item.
   // If size is currently 49 and MAX is 50, after adding it will be 50 (ok).
   // If size is currently 50 and MAX is 50, after adding it will be 51 (needs eviction).
   if (fullNoteCollectionCache.size >= MAX_FULL_NOTE_CACHE_SIZE) {

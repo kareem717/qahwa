@@ -1,7 +1,7 @@
 // biome-ignore lint/style/useImportType: needed for electron
 import React from "react";
 import { ChevronRight, FileText, Trash } from "lucide-react";
-import type { qahwa } from "@qahwa/db/types";
+import type { Note } from "@qahwa/db/types";
 import { Button } from "@qahwa/ui/components/button";
 import { cn } from "@qahwa/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
@@ -10,17 +10,17 @@ import { notesCollection } from "../lib/collections/notes";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { toast } from "sonner";
 
-export type SimpleNote = Pick<qahwa, "id" | "title" | "updatedAt">;
+export type SimpleNote = Pick<Note, "id" | "title" | "updatedAt">;
 
 interface NoteButtonProps
   extends Omit<React.ComponentPropsWithoutRef<typeof Link>, "to" | "params"> {
-  qahwa: SimpleNote;
+  note: SimpleNote;
 }
 
 // TODO: doesn't shrink all the way
 export function NoteButton({
   className,
-  qahwa: { id, title, updatedAt },
+  note: { id, title, updatedAt },
   ...props
 }: NoteButtonProps) {
   const deleteNote = useOptimisticMutation({
@@ -73,15 +73,15 @@ export function NoteButton({
             e.stopPropagation();
             e.preventDefault();
             deleteNote.mutate(() => {
-              const qahwa = Array.from(notesCollection.state.values()).find(
+              const note = Array.from(notesCollection.state.values()).find(
                 (t) => t.id === id,
               );
 
-              if (qahwa) {
-                return notesCollection.delete(qahwa);
+              if (note) {
+                return notesCollection.delete(note);
               }
 
-              toast.error("qahwa not found");
+              toast.error("note not found");
             });
           }}
         >

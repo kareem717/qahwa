@@ -1,4 +1,5 @@
-import type React from "react";
+// biome-ignore lint/style/useImportType: Required for electron
+import React from "react";
 import { Button } from "@qahwa/ui/components/button";
 import { useNoteGenerator } from "../hooks/use-note-generator";
 import { cn } from "@qahwa/ui/lib/utils";

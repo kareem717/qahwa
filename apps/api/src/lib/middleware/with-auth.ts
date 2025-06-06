@@ -1,5 +1,5 @@
 import { createMiddleware } from "hono/factory";
-import { createAuthClient } from "../auth";
+import { createAuthClient } from "../utils/auth";
 import type { Context } from "hono";
 import type { AuthType } from "@qahwa/auth/types";
 import { HTTPException } from "hono/http-exception";

@@ -16,7 +16,9 @@ import { cn } from "@qahwa/ui/lib/utils";
 import { Loader2 } from "lucide-react";
 
 const getAPIKey = createServerFn({ method: "GET" }).handler(async () => {
-  const api = createClient(import.meta.env.VITE_API_URL);
+  const api = createClient({
+    baseUrl: import.meta.env.VITE_API_URL,
+  });
 
   try {
     const req = await api.auth.key.$get(

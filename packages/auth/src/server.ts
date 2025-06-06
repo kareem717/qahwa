@@ -1,5 +1,5 @@
 import { getDb } from "@qahwa/db";
-import { auth as AuthSchema } from "@qahwa/db/schema";
+import { auth as AuthSchema, subscription as SubscriptionSchema } from "@qahwa/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI, apiKey } from "better-auth/plugins";
@@ -45,6 +45,7 @@ export const createServerClient = ({
       provider: "pg",
       schema: {
         ...AuthSchema,
+        ...SubscriptionSchema,
       },
     }),
     // Allow requests from the frontend development server
@@ -113,9 +114,12 @@ export const createServerClient = ({
             },
           };
         },
+        onCustomerCreate: async (data, request) => {},
         subscription: {
           enabled: true,
-          plans: SubscriptionPlans(stripeConfig.env).map((plan) => plan.stripePlan),
+          plans: SubscriptionPlans(stripeConfig.env).map(
+            (plan) => plan.stripePlan,
+          ),
         },
         schema: {
           subscription: {

@@ -248,7 +248,7 @@ export function useTranscript() {
         if (internalNoteIdRef.current === DEFAULT_NOTE_ID) {
           isCreatingNoteRef.current = false; // Reset on creation failure
         }
-        throw new Error("Error upserting qahwa");
+        throw new Error("Error upserting note");
       }
 
       const { note } = await response.json();
@@ -271,7 +271,7 @@ export function useTranscript() {
     },
   });
 
-  // Effect to flush pending entries once qahwa ID is established and transcript is updated
+  // Effect to flush pending entries once note ID is established and transcript is updated
   // This useEffect MUST be defined AFTER 'mutate' is defined.
   React.useEffect(() => {
     const currentActualNoteId = internalNoteIdRef.current;

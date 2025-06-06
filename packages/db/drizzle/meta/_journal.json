@@ -8,6 +8,20 @@
       "when": 1749141145118,
       "tag": "0000_ordinary_anthem",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1749244400385,
+      "tag": "0001_last_mother_askani",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749248924865,
+      "tag": "0002_tough_wind_dancer",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,7 @@
-import type { StripePlan } from "@better-auth/stripe";
+import type {
+  StripePlan,
+  Subscription as BetterAuthSubscription,
+} from "@better-auth/stripe";
 import type { createServerClient } from "./server";
 
 type AuthInstance = ReturnType<typeof createServerClient>;
@@ -30,3 +33,5 @@ export interface SubscriptionPlan {
   stripePlan: StripePlan;
   plan: PricingPlan;
 }
+
+export type Subscription = BetterAuthSubscription;

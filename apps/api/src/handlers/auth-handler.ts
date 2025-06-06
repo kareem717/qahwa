@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createAuthClient } from "../lib/auth";
+import { createAuthClient } from "../lib/utils/auth";
 import { getAuth, withAuth } from "../lib/middleware/with-auth";
 import Stripe from "stripe";
 import { env } from "cloudflare:workers";
@@ -18,9 +18,9 @@ export const authHandler = () =>
 
         return session && user
           ? c.json({
-              session,
-              user,
-            })
+            session,
+            user,
+          })
           : c.json(null);
       },
     )

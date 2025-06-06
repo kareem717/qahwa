@@ -43,12 +43,12 @@ function formatDate(dateString: string | null) {
 function groupNotesByDate(notes: SimpleNote[]): Record<string, SimpleNote[]> {
   if (!notes || notes.length === 0) return {};
   return notes.reduce(
-    (acc: Record<string, SimpleNote[]>, qahwa: SimpleNote) => {
-      const dateKey = formatDate(qahwa.updatedAt);
+    (acc: Record<string, SimpleNote[]>, note: SimpleNote) => {
+      const dateKey = formatDate(note.updatedAt);
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
-      acc[dateKey].push(qahwa);
+      acc[dateKey].push(note);
       return acc;
     },
     {},
@@ -83,7 +83,7 @@ export default function HomePage() {
           <div className="flex items-center gap-1">
             <Link
               to="/note"
-              // Clear the qahwa id when the new qahwa button is clicked
+              // Clear the note id when the new note button is clicked
               onClick={() => setNoteId(DEFAULT_NOTE_ID)}
               className={cn(
                 buttonVariants({
@@ -93,7 +93,7 @@ export default function HomePage() {
                 "h-7 text-xs font-normal",
               )}
             >
-              New qahwa
+              New note
             </Link>
             <UserButton />
           </div>
@@ -116,8 +116,8 @@ export default function HomePage() {
                   >
                     <h2 className="text-xl font-semibold">{dateKey}</h2>
                     <div className="flex flex-col">
-                      {groupedNotes[dateKey].map((qahwa: SimpleNote) => (
-                        <NoteButton key={qahwa.id} qahwa={qahwa} />
+                      {groupedNotes[dateKey].map((note: SimpleNote) => (
+                        <NoteButton key={note.id} note={note} />
                       ))}
                     </div>
                   </div>

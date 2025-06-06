@@ -103,7 +103,7 @@ export function NotePageMenuButton({
       return generate();
     }
 
-    toast.error("Unable to generate qahwa");
+    toast.error("Unable to generate note");
   }
 
   return (
@@ -215,7 +215,7 @@ export function NotePageMenuButton({
           ) : (
             <Sparkles className="size-3" />
           )}
-          Generate qahwa
+          Generate note
         </Button>
         <Button
           variant="ghost"

@@ -58,3 +58,4 @@ export const waitlistEmail = pgTable("waitlist_email", {
 });
 
 export * as auth from "./auth";
+export * as subscription from "./subscription";
