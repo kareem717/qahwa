@@ -12,5 +12,6 @@ export const createAuthClient = () =>
     stripeConfig: {
       apiKey: env.STRIPE_SECRET_KEY,
       webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+      env: env.NODE_ENV === "production" ? "production" : "sandbox",
     },
   });

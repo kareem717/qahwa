@@ -21,6 +21,7 @@ interface ServerClientConfig {
     apiKey: string;
     webhookSecret: string;
     config?: Omit<Stripe.StripeConfig, "apiVersion">;
+    env?: "production" | "sandbox";
   };
 }
 
@@ -114,9 +115,7 @@ export const createServerClient = ({
         },
         subscription: {
           enabled: true,
-          plans: Object.values(SubscriptionPlans).map(
-            (subscription) => subscription.stripePlan,
-          ),
+          plans: SubscriptionPlans(stripeConfig.env).map((plan) => plan.stripePlan),
         },
         schema: {
           subscription: {

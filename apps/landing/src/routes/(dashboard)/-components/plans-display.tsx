@@ -12,7 +12,7 @@ interface PlansDisplayProps extends ComponentPropsWithoutRef<"div"> {
   subtitle?: string;
 }
 
-const plans = Object.values(SubscriptionPlans);
+const plans = SubscriptionPlans(import.meta.env.DEV ? "sandbox" : "production"); // doesn't rly matter
 
 export function PlansDisplay({
   title = "Choose Your Plan",
