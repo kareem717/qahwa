@@ -7,6 +7,23 @@ on:
     paths: # Workflow runs if EITHER API OR LANDING changes
       - 'apps/api/**'
       - 'apps/landing/**'
+  workflow_dispatch:
+    inputs:
+      bypass_change_checks:
+        description: 'Bypass change checks and deploy both API and Landing'
+        required: false
+        default: false
+        type: boolean
+      deploy_api_only:
+        description: 'Deploy only the API (ignores bypass_change_checks if true)'
+        required: false
+        default: false
+        type: boolean
+      deploy_landing_only:
+        description: 'Deploy only the Landing page (ignores bypass_change_checks if true)'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   check-changes:
@@ -46,7 +63,10 @@ jobs:
     timeout-minutes: 60
     environment: production # Add this to access environment variables
     needs: check-changes # Depends on the check-changes job
-    if: needs.check-changes.outputs.api_changed == 'true' # Run only if API files changed
+    if: |
+      needs.check-changes.outputs.api_changed == 'true' || 
+      inputs.bypass_change_checks == true || 
+      inputs.deploy_api_only == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -79,7 +99,10 @@ jobs:
     timeout-minutes: 30
     environment: production # Add this to access environment variables
     needs: check-changes # Depends on the check-changes job
-    if: needs.check-changes.outputs.landing_changed == 'true' # Run only if landing files changed
+    if: |
+      needs.check-changes.outputs.landing_changed == 'true' || 
+      inputs.bypass_change_checks == true || 
+      inputs.deploy_landing_only == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
