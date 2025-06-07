@@ -5,15 +5,28 @@ import { fullNoteCollection } from "../lib/collections/notes";
 import { useOptimisticMutation } from "@tanstack/react-db";
 import { useState } from "react";
 import { toast } from "sonner";
+import { asyncDebounce } from "@tanstack/pacer";
 
 export function useNoteGenerator() {
   const noteId = useStore(noteIdStore, (state) => state.noteId);
   const noteCollection = fullNoteCollection(noteId);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const invalidate = asyncDebounce(
+    async () => {
+      await noteCollection.invalidate()
+    },
+    {
+      wait: 1500, // wait for db to be updated
+    },
+  )
+
+
+
   const { mutate } = useOptimisticMutation({
     mutationFn: async () => {
-      await noteCollection.invalidate();
+      // TODO: remove when new sync engine is implemented
+      await invalidate();
     },
   });
 
@@ -44,24 +57,31 @@ export function useNoteGenerator() {
       const textStream = response.body.pipeThrough(new TextDecoderStream());
       const reader = textStream.getReader();
 
-      // eslint-disable-next-line no-constant-condition
+      let isFirstChunk = true;
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
           break;
         }
-        mutate(() => {
-          const note = noteCollection.state.get(noteId.toString());
-          if (!note) {
-            throw new Error("note not found");
-          }
 
+        const note = noteCollection.state.get(noteId.toString());
+        if (!note) {
+          throw new Error("Note not found");
+        }
+
+        mutate(() => {
           noteCollection.update(note, (draft) => {
-            draft.generatedNotes = draft.generatedNotes
-              ? draft.generatedNotes + value
-              : value;
+            draft.generatedNotes = isFirstChunk // reset on first chunk
+              ? value
+              : note.generatedNotes
+                ? note.generatedNotes + value
+                : value;
           });
         });
+
+        if (isFirstChunk) {
+          isFirstChunk = false;
+        }
       }
     } catch (error) {
       console.error("Error generating or streaming note:", error);
