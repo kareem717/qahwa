@@ -13,25 +13,32 @@ jobs:
     name: Check for Changed Files
     runs-on: ubuntu-latest
     outputs:
-      api_changed: ${{ steps.changed_files_api.outputs.any_changed }}
-      landing_changed: ${{ steps.changed_files_landing.outputs.any_changed }}
+      api_changed: ${{ steps.check_api.outputs.changed }}
+      landing_changed: ${{ steps.check_landing.outputs.changed }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for tj-actions/changed-files to diff correctly
+          fetch-depth: 0
 
-      - name: Get changed files for API
-        id: changed_files_api
-        uses: tj-actions/changed-files@v44 # Using a specific version is good practice
-        with:
-          files: apps/api/**
-
-      - name: Get changed files for Landing
-        id: changed_files_landing
+      - name: Check API changes (including workspace deps)
+        id: check_api
         uses: tj-actions/changed-files@v44
         with:
-          files: apps/landing/**
+          files: |
+            apps/api/**
+            packages/auth/**
+            packages/db/**
+
+      - name: Check Landing changes (including workspace deps) 
+        id: check_landing
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            apps/landing/**
+            packages/auth/**
+            packages/sdk/**
+            packages/ui/**
 
   deploy-api:
     name: Deploy API to Cloudflare Workers
