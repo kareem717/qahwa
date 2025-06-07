@@ -17,6 +17,7 @@ import { useAuth } from "../../components/providers/auth-provider";
 import { SignOutDialog } from "./sign-out-dialog";
 import { UserAvatar } from "@qahwa/ui/components/custom/user-avatar";
 import type { ComponentPropsWithoutRef } from "react";
+import { ToggleTheme } from "../theme-toggle";
 
 interface UserButtonProps extends ComponentPropsWithoutRef<typeof Button> {}
 
@@ -77,13 +78,8 @@ export function UserButton({ className }: UserButtonProps) {
             </Button>
           </SignOutDialog>
         </DropdownMenuItem>
-        {/* <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          TODO: notice how different this is from the logout button
-          Control
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <ModeToggle className="w-full" /> */}
+        <ToggleTheme className="w-full" />
       </DropdownMenuContent>
     </DropdownMenu>
   );

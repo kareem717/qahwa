@@ -10,13 +10,7 @@ export function NavigateBack({
   ...props
 }: ComponentPropsWithoutRef<typeof ArrowLeft>) {
   const router = useRouter();
-
-  function handleClick(e: MouseEvent<SVGSVGElement, MouseEvent>) {
-    e.preventDefault();
-    router.history.back();
-    onClick?.(e);
-  }
-
+  
   return (
     <ArrowLeft
       className={cn(
@@ -25,7 +19,11 @@ export function NavigateBack({
           ? "cursor-pointer"
           : "text-muted-foreground cursor-not-allowed",
       )}
-      onClick={handleClick}
+      onClick={(e) => {
+        e.preventDefault();
+        router.history.back();
+        onClick?.(e);
+      }}
       {...props}
     />
   );

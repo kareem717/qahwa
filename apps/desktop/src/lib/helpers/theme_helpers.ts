@@ -17,6 +17,10 @@ export async function getCurrentTheme(): Promise<ThemePreferences> {
   };
 }
 
+export function getLocalTheme(): ThemeMode | null {
+  return localStorage.getItem(THEME_KEY) as ThemeMode;
+}
+
 export async function setTheme(newTheme: ThemeMode) {
   switch (newTheme) {
     case "dark":

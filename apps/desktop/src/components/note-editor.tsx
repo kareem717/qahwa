@@ -85,7 +85,7 @@ export function NoteEditor({
 
       await notesCollection.invalidate();
     },
-    { wait: 1500 }
+    { wait: 1500 },
   );
 
   const { mutate } = useOptimisticMutation({
@@ -100,30 +100,34 @@ export function NoteEditor({
   );
 
   const note = data?.[0];
-  const editorContent = mode === 'user' ? note?.userNotes : note?.generatedNotes;
+  const editorContent =
+    mode === "user" ? note?.userNotes : note?.generatedNotes;
 
-  const editor = useEditor({
-    extensions,
-    autofocus: "start",
-    content: editorContent ?? "",
-    editable: mode === "user",
-    onUpdate: (props) => {
-      if (mode !== "user") return;
+  const editor = useEditor(
+    {
+      extensions,
+      autofocus: "start",
+      content: editorContent ?? "",
+      editable: mode === "user",
+      onUpdate: (props) => {
+        if (mode !== "user") return;
 
-      const html = props.editor.getHTML();
-      const updatableRecord = noteCollection.state.get(noteId.toString());
+        const html = props.editor.getHTML();
+        const updatableRecord = noteCollection.state.get(noteId.toString());
 
-      if (!updatableRecord) {
-        throw new Error(`Note with ID ${noteId} not found in collection`);
-      }
+        if (!updatableRecord) {
+          throw new Error(`Note with ID ${noteId} not found in collection`);
+        }
 
-      mutate(() => {
-        noteCollection.update(updatableRecord, (draft) => {
-          draft.userNotes = html;
+        mutate(() => {
+          noteCollection.update(updatableRecord, (draft) => {
+            draft.userNotes = html;
+          });
         });
-      });
+      },
     },
-  }, [mode]);
+    [mode],
+  );
 
   const hasInitialized = useRef(false);
 

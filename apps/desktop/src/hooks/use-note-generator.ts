@@ -14,14 +14,12 @@ export function useNoteGenerator() {
 
   const invalidate = asyncDebounce(
     async () => {
-      await noteCollection.invalidate()
+      await noteCollection.invalidate();
     },
     {
       wait: 1500, // wait for db to be updated
     },
-  )
-
-
+  );
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async () => {

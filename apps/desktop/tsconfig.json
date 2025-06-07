@@ -3,10 +3,7 @@
     "jsx": "react-jsx",
     "target": "ES2022",
     "module": "ESNext",
-    "lib": [
-      "dom",
-      "ESNext"
-    ],
+    "lib": ["dom", "ESNext"],
     "experimentalDecorators": true,
     // Makes ui pkg usage fail
     // "composite": true,
@@ -20,20 +17,11 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@qahwa/desktop/*": [
-        "./src/*"
-      ],
-      "@qahwa/ui/*": [
-        "../../packages/ui/src/*"
-      ]
+      "@qahwa/desktop/*": ["./src/*"],
+      "@qahwa/ui/*": ["../../packages/ui/src/*"]
     },
     "outDir": "dist",
     "moduleResolution": "bundler"
   },
-  "include": [
-    "src/**/*",
-    "./package.json",
-    "./forge.config.ts",
-    "public"
-  ]
+  "include": ["src/**/*", "./package.json", "./forge.config.ts", "public"]
 }
