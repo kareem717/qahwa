@@ -1,4 +1,4 @@
-name = "note-api"
+name = "qahwa-api"
 main = "src/index.ts"
 compatibility_date = "2024-07-22"
 compatibility_flags = ["nodejs_compat"]
@@ -7,7 +7,7 @@ minify = true
 [vars]
 LANDING_URL = "http://localhost:3000"
 ELECTRON_URL = "http://localhost:5173"
-DESKTOP_APP_PROTOCOL = "note-app"
+DESKTOP_APP_PROTOCOL = "qahwa-app"
 BETTER_AUTH_URL = "http://localhost:8080"
 NODE_ENV = "development"
 BASE_DOMAIN = "localhost"
@@ -29,7 +29,7 @@ enabled = true
 [env.production.vars]
 LANDING_URL = "https://www.waitq.sh"
 ELECTRON_URL = "http://localhost:5173"
-DESKTOP_APP_PROTOCOL = "note-app"
+DESKTOP_APP_PROTOCOL = "qahwa-app"
 BETTER_AUTH_URL = "https://api.waitq.sh"
 BASE_DOMAIN = "waitq.sh"
 NODE_ENV = "production"
