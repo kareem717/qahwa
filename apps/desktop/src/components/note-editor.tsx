@@ -10,12 +10,8 @@ import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { cn } from "@qahwa/ui/lib/utils";
 import { noteEditorModeStore } from "../hooks/use-note-editor";
-import {
-  useCallback,
-  useRef,
-  useEffect,
-  type ComponentPropsWithoutRef,
-} from "react";
+import type { ComponentPropsWithoutRef } from "react";
+import { useRef, useEffect, useCallback } from "react";
 
 const extensions = [
   StarterKit.configure({
@@ -69,51 +65,33 @@ export function NoteEditor({
   const noteId = useStore(noteIdStore, (store) => store.noteId);
   const noteCollection = fullNoteCollection(noteId);
   const mode = useStore(noteEditorModeStore, (store) => store.mode);
-  const isProgrammaticUpdate = useRef(false);
 
-  const updateNote = useCallback(
-    asyncDebounce(
-      async (
-        noteId: number,
-        params: Partial<
-          Pick<NoteType, "title" | "userNotes" | "generatedNotes">
-        >,
-      ) => {
-        const api = await getClient();
-        const resp = await api.note.$put({
-          json: {
-            id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
-            ...params,
-          },
-        });
+  const updateNote = asyncDebounce(
+    async (
+      noteId: number,
+      params: Partial<Pick<NoteType, "title" | "userNotes" | "generatedNotes">>,
+    ) => {
+      const api = await getClient();
+      const resp = await api.note.$put({
+        json: {
+          id: noteId === DEFAULT_NOTE_ID ? undefined : noteId,
+          ...params,
+        },
+      });
 
-        if (!resp.ok) {
-          throw new Error("Failed to update qahwa");
-        }
+      if (!resp.ok) {
+        throw new Error("Failed to update note");
+      }
 
-        const { note } = await resp.json();
-
-        return note;
-      },
-      {
-        wait: 1500, // too low causes data inconsistency between collections
-      },
-    ),
-    [],
+      await notesCollection.invalidate();
+    },
+    { wait: 1500 }
   );
 
   const { mutate } = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
-      const { changes: qahwa } = transaction.mutations[0];
-
-      await updateNote(noteId, qahwa);
-
-      // TODO: causes all of the notes in the collection to get the same updatedAt - or atleast I think its coming from here
-      await noteCollection.invalidate();
-
-      //TODO: For some reason this always chops a letter off the end of the title
-      // seems to happe when the `wait` is set too low (i.e. 500ms)
-      await notesCollection.invalidate();
+      const { changes: note } = transaction.mutations[0];
+      await updateNote(noteId, note);
     },
   });
 
@@ -121,70 +99,51 @@ export function NoteEditor({
     query.from({ noteCollection }).select("@*").keyBy("@id"),
   );
 
+  const note = data?.[0];
+  const editorContent = mode === 'user' ? note?.userNotes : note?.generatedNotes;
+
   const editor = useEditor({
     extensions,
     autofocus: "start",
-    immediatelyRender: true,
-    // content: mode === 'user' ? (data?.[0]?.userNotes ?? undefined) : (data?.[0]?.generatedNotes ?? undefined),
+    content: editorContent ?? "",
     editable: mode === "user",
     onUpdate: (props) => {
-      // Skip if this is a programmatic update (e.g., from mode switching)
-      if (isProgrammaticUpdate.current) {
-        return;
-      }
-
-      if (mode !== "user") {
-        return;
-      }
+      if (mode !== "user") return;
 
       const html = props.editor.getHTML();
+      const updatableRecord = noteCollection.state.get(noteId.toString());
 
-      if (html) {
-        const updatableRecord = noteCollection.state.get(noteId.toString());
-        if (!updatableRecord) {
-          // throw new Error(`[NoteEditor] qahwa with ID of ${noteId} qahwa found in the qahwa collection`)
-          return;
-        }
-        mutate(() => {
-          noteCollection.update(updatableRecord, (draft) => {
-            draft.userNotes = html;
-          });
-        });
+      if (!updatableRecord) {
+        throw new Error(`Note with ID ${noteId} not found in collection`);
       }
+
+      mutate(() => {
+        noteCollection.update(updatableRecord, (draft) => {
+          draft.userNotes = html;
+        });
+      });
     },
-  });
+  }, [mode]);
 
-  // Update editor content when data or mode changes
+  const hasInitialized = useRef(false);
+
+  const updateEditorContent = useCallback(() => {
+    if (editor && editorContent !== undefined) {
+      editor.commands.setContent(editorContent);
+    }
+  }, [editor, editorContent]);
+
   useEffect(() => {
-    if (!editor || !data || !data[0]) return;
-
-    isProgrammaticUpdate.current = true;
-    editor.commands.setContent(
-      mode === "user" ? data[0].userNotes : data[0].generatedNotes,
-    );
-
-    // Reset the flag after a brief delay to allow the update to complete
-    setTimeout(() => {
-      isProgrammaticUpdate.current = false;
-    }, 0);
-  }, [data, mode, editor]);
-
-  // Update editor editability when mode changes
-  useEffect(() => {
-    if (!editor) return;
-    editor.setEditable(mode === "user");
-  }, [mode, editor]);
-
-  if (!editor) {
-    return null;
-  }
+    if (note && !hasInitialized.current) {
+      hasInitialized.current = true;
+      updateEditorContent();
+    }
+  }, [note, updateEditorContent]);
 
   function handleTitleChange(title: string) {
     const updatableRecord = noteCollection.state.get(noteId.toString());
-    if (!updatableRecord) {
-      // throw new Error(`[NoteEditor] qahwa with ID of ${noteId} qahwa found in the qahwa collection`)
-      return;
-    }
+    if (!updatableRecord) return;
+
     mutate(() => {
       noteCollection.update(updatableRecord, (draft) => {
         draft.title = title;
@@ -196,7 +155,7 @@ export function NoteEditor({
     <div className={cn("flex flex-col gap-2", className)} {...props}>
       <input
         type="text"
-        value={data?.[0]?.title}
+        value={note?.title || ""}
         onChange={(e) => handleTitleChange(e.target.value)}
         className="text-2xl font-bold outline-none"
       />
