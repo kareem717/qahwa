@@ -1,7 +1,6 @@
-import { getDb } from "@qahwa/db";
-import { auth as AuthSchema, subscription as SubscriptionSchema } from "@qahwa/db/schema";
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { convexAdapter } from "@better-auth-kit/convex";
+import { ConvexHttpClient } from "convex/browser";
 import { openAPI, apiKey } from "better-auth/plugins";
 import { reactStartCookies } from "better-auth/react-start";
 import { stripe } from "@better-auth/stripe";
@@ -12,7 +11,7 @@ export const API_KEY_HEADER_NAME = "x-api-key";
 
 interface ServerClientConfig {
   basePath: string;
-  databaseUrl: string;
+  convexUrl: string;
   trustedOrigins: string[];
   googleClientId: string;
   googleClientSecret: string;
@@ -27,7 +26,7 @@ interface ServerClientConfig {
 
 export const createServerClient = ({
   basePath,
-  databaseUrl,
+  convexUrl,
   trustedOrigins,
   googleClientId,
   googleClientSecret,
@@ -39,15 +38,11 @@ export const createServerClient = ({
     ...stripeConfig.config,
   });
 
+  const convexClient = new ConvexHttpClient(convexUrl);
+
   return betterAuth({
     basePath,
-    database: drizzleAdapter(getDb(databaseUrl), {
-      provider: "pg",
-      schema: {
-        ...AuthSchema,
-        ...SubscriptionSchema,
-      },
-    }),
+    database: convexAdapter(convexClient),
     // Allow requests from the frontend development server
     trustedOrigins,
     emailAndPassword: {
@@ -114,7 +109,7 @@ export const createServerClient = ({
             },
           };
         },
-        onCustomerCreate: async (data, request) => {},
+        onCustomerCreate: async (data: any, request: any) => {},
         subscription: {
           enabled: true,
           plans: SubscriptionPlans(stripeConfig.env).map(

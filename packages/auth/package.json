@@ -17,7 +17,9 @@
   },
   "dependencies": {
     "@better-auth/stripe": "^1.2.8",
+    "@better-auth-kit/convex": "workspace:*",
     "better-auth": "^1.2.7",
+    "convex": "workspace:*",
     "stripe": "^18.0.0"
   }
 }
