@@ -15,8 +15,15 @@
     "check:fix": "biome check --apply ./",
     "check:fix-unsafe": "biome check --apply-unsafe ./"
   },
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "devDependencies": {
     "@biomejs/biome": "^1.9.4"
+  },
+  "dependencies": {
+    "@better-auth-kit/convex": "^1.2.2",
+    "convex": "^1.24.8"
   }
 }
